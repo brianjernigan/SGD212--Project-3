@@ -24,5 +24,4 @@ public class DeckManager : MonoBehaviour
             _handManager.AddCardToHand(drawnCardData);
         }
     }
-    
 }

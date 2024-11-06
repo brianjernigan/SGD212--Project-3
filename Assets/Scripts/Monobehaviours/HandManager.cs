@@ -6,6 +6,7 @@ public class HandManager : MonoBehaviour
 {
     [SerializeField] private Transform _handPanel;
     [SerializeField] private GameObject _cardPrefab;
+    [SerializeField] private RectTransform _playArea;
 
     public int MaxHandSize { get; set; } = 5;
     public int CardsInHand { get; set; }
@@ -22,6 +23,8 @@ public class HandManager : MonoBehaviour
         var cardDisplay = cardToDisplay.GetComponent<CardDisplay>();
 
         cardDisplay.InitializeCard(drawnCard);
+        cardDisplay.PlayArea = _playArea;
+        
         _hand.Add(cardDisplay);
         CardsInHand++;
     }
