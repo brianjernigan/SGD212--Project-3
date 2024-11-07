@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class CardDisplay : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] private Image _cardImage;
     [SerializeField] private TMP_Text _cardRankText;
@@ -57,7 +57,6 @@ public class CardDisplay : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     private void PlayCard()
     {
-        Debug.Log("Card played");
-        Destroy(gameObject);
+        transform.SetParent(PlayArea);
     }
 }
