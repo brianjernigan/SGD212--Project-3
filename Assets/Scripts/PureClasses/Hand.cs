@@ -4,13 +4,16 @@ using UnityEngine;
 
 public class Hand
 {
-    private List<CardData> _cardsInHand;
-    private int _maxHandSize;
+    private const int BaseMaxHandSize = 5;
+    private readonly List<CardData> _cardsInHand;
+    private Deck _currentDeck;
+    private int _currentMaxHandSize;
 
-    public Hand(int initialHandSize)
+    public Hand(Deck currentDeck)
     {
         _cardsInHand = new List<CardData>();
-        _maxHandSize = initialHandSize;
+        _currentDeck = currentDeck;
+        _currentMaxHandSize = BaseMaxHandSize;
     }
 
     public bool AddCardToHand(CardData cardDataToAdd)
@@ -37,18 +40,18 @@ public class Hand
     
     public bool HandIsFull()
     {
-        return _cardsInHand.Count >= _maxHandSize;
+        return _cardsInHand.Count >= _currentMaxHandSize;
     }
 
     public void SetMaxHandSize(int newMaxHandSize)
     {
-        _maxHandSize = newMaxHandSize;
+        _currentMaxHandSize = newMaxHandSize;
         
         // May want to discard far-right or far-left card if shrinking hand size
     }
 
     public int GetMaxHandSize()
     {
-        return _maxHandSize;
+        return _currentMaxHandSize;
     }
 }

@@ -5,30 +5,29 @@ using UnityEngine;
 public class HandManager : MonoBehaviour
 {
     [SerializeField] private GameObject _cardPrefab;
-    [SerializeField] private Transform _handArea;
+    [SerializeField] private RectTransform _handArea;
     [SerializeField] private DeckManager _deckManager;
     
-    private int _initialHandSize = 5;
     private Hand _playerHand;
-    private List<CardData> _onScreenCards = new();
+    private Deck _currentDeck;
+    private List<CardUI> _onScreenCards = new();
 
     private void Awake()
     {
-        _playerHand = new Hand(_initialHandSize);
+        _currentDeck = _deckManager.CurrentDeck;
+        _playerHand = new Hand(_currentDeck);
     }
 
-    public bool DrawCard()
+    public void DrawCardToHand()
     {
-        var drawnCard = _deckManager.CurrentDeck.DrawCard();
+        var drawnCard = _deckManager.CurrentDeck.DrawCardFromDeck();
 
-        if (drawnCard is not null)
-        {
-            if (_playerHand.AddCardToHand(drawnCard))
-            {
-                var onScreenCard = Instantiate(_cardPrefab, _handArea);
-            }
-        }
-
-        return false;
+        if (drawnCard is null) return;
+        if (!_playerHand.AddCardToHand(drawnCard)) return;
+        
+        var onScreenCard = Instantiate(_cardPrefab, _handArea);
+        var cardUI = onScreenCard.GetComponent<CardUI>();
+        cardUI.InitializeCard(drawnCard);
+        _onScreenCards.Add(cardUI);
     }
 }

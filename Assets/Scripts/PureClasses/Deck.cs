@@ -38,7 +38,7 @@ public class Deck
         }
     }
 
-    public CardData DrawCard()
+    public CardData DrawCardFromDeck()
     {
         if (_currentDeck.Count == 0) return null;
 

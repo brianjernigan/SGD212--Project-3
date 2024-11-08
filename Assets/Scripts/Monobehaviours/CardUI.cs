@@ -11,15 +11,15 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     [SerializeField] private Image _cardImage;
     [SerializeField] private TMP_Text _cardRankText;
     [SerializeField] private TMP_Text _cardCostText;
-
+    
+    private RectTransform _playArea;
     private Vector3 _originalPosition;
     private Transform _originalParent;
     private Canvas _canvas;
-    
-    public RectTransform PlayArea { get; set; }
 
     private void Start()
     {
+        _playArea = GameObject.FindGameObjectWithTag("PlayArea").GetComponent<RectTransform>();
         _canvas = GetComponentInParent<Canvas>();
         _originalParent = transform.parent;
     }
@@ -44,8 +44,8 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (PlayArea is not null &&
-            RectTransformUtility.RectangleContainsScreenPoint(PlayArea, Input.mousePosition, _canvas.worldCamera))
+        if (_playArea is not null &&
+            RectTransformUtility.RectangleContainsScreenPoint(_playArea, Input.mousePosition, _canvas.worldCamera))
         {
             PlayCard();
         }
@@ -58,6 +58,6 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     private void PlayCard()
     {
-        transform.SetParent(PlayArea);
+        transform.SetParent(_playArea);
     }
 }
