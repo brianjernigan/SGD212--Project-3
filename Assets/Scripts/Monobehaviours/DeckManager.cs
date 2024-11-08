@@ -2,26 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Handles all visual aspects of the deck and game
 public class DeckManager : MonoBehaviour
 {
-    [SerializeField] private Deck _deck;
-    [SerializeField] private HandManager _handManager;
+    private Dictionary<CardData, int> _defaultDeckConfiguration;
+    public Deck CurrentDeck { get; private set; }
 
-    private List<CardData> _discardPile = new();
-
+    private void Awake()
+    {
+        InitializeDecks();
+    }
+    
     private void Start()
     {
-        _deck.InitializeDeck();
-        _deck.ShuffleDeck();
+        CurrentDeck = new Deck(_defaultDeckConfiguration);
     }
 
-    public void DrawCard()
+    private void InitializeDecks()
     {
-        var drawnCardData = _deck.DrawCard();
+        _defaultDeckConfiguration = new Dictionary<CardData, int>();
+        var allCards = GameManager.Instance.AllPossibleCards;
 
-        if (drawnCardData is not null)
+        foreach (var card in allCards)
         {
-            _handManager.AddCardToHand(drawnCardData);
+            _defaultDeckConfiguration.Add(card, 4);
         }
     }
 }

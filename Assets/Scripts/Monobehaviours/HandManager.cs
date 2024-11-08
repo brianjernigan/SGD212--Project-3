@@ -4,33 +4,30 @@ using UnityEngine;
 
 public class HandManager : MonoBehaviour
 {
-    [SerializeField] private Transform _handPanel;
     [SerializeField] private GameObject _cardPrefab;
-    [SerializeField] private RectTransform _playArea;
+    [SerializeField] private RectTransform _handArea;
+    [SerializeField] private DeckManager _deckManager;
+    
+    private Hand _playerHand;
+    private Deck _currentDeck;
+    private List<CardUI> _onScreenCards = new();
 
-    public int MaxHandSize { get; set; } = 5;
-    public int CardsInHand { get; set; }
-
-    private List<CardDisplay> _hand = new();
-
-    public bool CanDraw => _hand.Count < MaxHandSize;
-
-    public void AddCardToHand(CardData drawnCard)
+    private void Awake()
     {
-        if (CardsInHand >= MaxHandSize) return;
-        
-        var cardToDisplay = Instantiate(_cardPrefab, _handPanel);
-        var cardDisplay = cardToDisplay.GetComponent<CardDisplay>();
-
-        cardDisplay.InitializeCard(drawnCard);
-        cardDisplay.PlayArea = _playArea;
-        
-        _hand.Add(cardDisplay);
-        CardsInHand++;
+        _currentDeck = _deckManager.CurrentDeck;
+        _playerHand = new Hand(_currentDeck);
     }
 
-    public void RemoveCardFromHand(CardData cardToDiscard)
+    public void DrawCardToHand()
     {
-        throw new System.NotImplementedException();
+        var drawnCard = _deckManager.CurrentDeck.DrawCardFromDeck();
+
+        if (drawnCard is null) return;
+        if (!_playerHand.AddCardToHand(drawnCard)) return;
+        
+        var onScreenCard = Instantiate(_cardPrefab, _handArea);
+        var cardUI = onScreenCard.GetComponent<CardUI>();
+        cardUI.InitializeCard(drawnCard);
+        _onScreenCards.Add(cardUI);
     }
 }
