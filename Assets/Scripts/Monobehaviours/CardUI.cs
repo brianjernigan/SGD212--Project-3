@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-// Handles visual representation of card
 public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] private Image _cardImage;
@@ -16,17 +15,19 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     private Vector3 _originalPosition;
     private Transform _originalParent;
     private Canvas _canvas;
+    private Animator _animator;
 
     private void Start()
     {
         _playArea = GameObject.FindGameObjectWithTag("PlayArea").GetComponent<RectTransform>();
         _canvas = GetComponentInParent<Canvas>();
         _originalParent = transform.parent;
+        _animator = GetComponent<Animator>();
     }
     
     public void InitializeCard(CardData data)
     {
-        _cardImage = data.CardImage;
+        _cardImage.sprite = data.CardImage.sprite; // Assuming CardImage is a Sprite
         _cardRankText.text = data.CardRank.ToString();
         _cardCostText.text = data.CardCost.ToString();
     }
@@ -35,6 +36,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     {
         _originalPosition = transform.position;
         transform.SetParent(_canvas.transform);
+        transform.localScale = Vector3.one * 1.1f; // Slightly enlarge the card when dragging
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -44,7 +46,8 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (_playArea is not null &&
+        transform.localScale = Vector3.one; // Reset scale
+        if (_playArea != null &&
             RectTransformUtility.RectangleContainsScreenPoint(_playArea, Input.mousePosition, _canvas.worldCamera))
         {
             PlayCard();
@@ -59,5 +62,17 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     private void PlayCard()
     {
         transform.SetParent(_playArea);
+        // Trigger play animation via Animator
+        _animator.SetTrigger("OnPlay");
+        // Play play particle effect
+        CardEffectManager.Instance.PlayPlayEffect(transform.position);
+    }
+
+    public void OnCardDrawn()
+    {
+        // Trigger draw animation via Animator
+        _animator.SetTrigger("OnDraw");
+        // Play draw particle effect
+        CardEffectManager.Instance.PlayDrawEffect(transform.position);
     }
 }
