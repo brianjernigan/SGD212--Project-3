@@ -11,10 +11,6 @@ public class DeckManager : MonoBehaviour
     private void Awake()
     {
         InitializeDecks();
-    }
-    
-    private void Start()
-    {
         CurrentDeck = new Deck(_defaultDeckConfiguration);
     }
 

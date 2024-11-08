@@ -18,7 +18,7 @@ public class Hand
 
     public bool AddCardToHand(CardData cardDataToAdd)
     {
-        if (HandIsFull()) return false;
+        if (IsFull()) return false;
         _cardsInHand.Add(cardDataToAdd);
         return true;
     }
@@ -38,7 +38,7 @@ public class Hand
         return _cardsInHand.Count;
     }
     
-    public bool HandIsFull()
+    public bool IsFull()
     {
         return _cardsInHand.Count >= _currentMaxHandSize;
     }

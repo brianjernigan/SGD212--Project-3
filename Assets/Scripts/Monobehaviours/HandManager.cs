@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,16 +19,29 @@ public class HandManager : MonoBehaviour
         _playerHand = new Hand(_currentDeck);
     }
 
-    public void DrawCardToHand()
+    public void DrawFullHand()
     {
-        var drawnCard = _deckManager.CurrentDeck.DrawCardFromDeck();
+        while (!_playerHand.IsFull())
+        {
+            DrawCardToHand();
+        }
+    }
+
+    private void DrawCardToHand()
+    {
+        var drawnCard = _currentDeck.DrawCardFromDeck();
 
         if (drawnCard is null) return;
         if (!_playerHand.AddCardToHand(drawnCard)) return;
         
         var onScreenCard = Instantiate(_cardPrefab, _handArea);
         var cardUI = onScreenCard.GetComponent<CardUI>();
-        cardUI.InitializeCard(drawnCard);
+        cardUI.InitializeCard(drawnCard, this);
         _onScreenCards.Add(cardUI);
+    }
+
+    public void DiscardCardFromHand(CardData data)
+    {
+        _playerHand.DiscardCardFromHand(data);
     }
 }
