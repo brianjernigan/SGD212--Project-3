@@ -5,14 +5,14 @@ using UnityEngine;
 // Handles all visual aspects of the deck and game
 public class DeckManager : MonoBehaviour
 {
-    [SerializeField] private List<Card> _allCards;
+    [SerializeField] private List<CardData> _allCards;
 
     private Deck _currentDeck;
     public Deck CurrentDeck => _currentDeck;
     
     private void Start()
     {
-        var defaultDeckComposition = new Dictionary<Card, int>
+        var defaultDeckComposition = new Dictionary<CardData, int>
         {
             // Card, Count
             { _allCards[0], 4 }, // 4 aces

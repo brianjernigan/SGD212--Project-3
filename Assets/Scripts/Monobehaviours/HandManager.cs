@@ -10,4 +10,25 @@ public class HandManager : MonoBehaviour
     
     private int _initialHandSize = 5;
     private Hand _playerHand;
+    private List<CardData> _onScreenCards = new();
+
+    private void Awake()
+    {
+        _playerHand = new Hand(_initialHandSize);
+    }
+
+    public bool DrawCard()
+    {
+        var drawnCard = _deckManager.CurrentDeck.DrawCard();
+
+        if (drawnCard is not null)
+        {
+            if (_playerHand.AddCardToHand(drawnCard))
+            {
+                var onScreenCard = Instantiate(_cardPrefab, _handArea);
+            }
+        }
+
+        return false;
+    }
 }

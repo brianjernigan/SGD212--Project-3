@@ -4,42 +4,37 @@ using UnityEngine;
 
 public class Hand
 {
-    private List<Card> _cardsInHand;
+    private List<CardData> _cardsInHand;
     private int _maxHandSize;
 
     public Hand(int initialHandSize)
     {
-        _cardsInHand = new List<Card>();
+        _cardsInHand = new List<CardData>();
         _maxHandSize = initialHandSize;
     }
 
-    public bool CanAddCardToHand()
+    public bool AddCardToHand(CardData cardDataToAdd)
     {
-        return _cardsInHand.Count < _maxHandSize;
-    }
-
-    public bool AddCardToHand(Card cardToAdd)
-    {
-        if (!CanAddCardToHand()) return false;
-        _cardsInHand.Add(cardToAdd);
+        if (HandIsFull()) return false;
+        _cardsInHand.Add(cardDataToAdd);
         return true;
     }
 
-    public bool DiscardCardFromHand(Card cardToDiscard)
+    public bool DiscardCardFromHand(CardData cardDataToDiscard)
     {
-        return _cardsInHand.Remove(cardToDiscard);
+        return _cardsInHand.Remove(cardDataToDiscard);
     }
 
-    public List<Card> GetCardsInHand()
+    public List<CardData> GetCardsInHand()
     {
-        return new List<Card>(_cardsInHand);
+        return new List<CardData>(_cardsInHand);
     }
 
     public int GetCurrentHandSize()
     {
         return _cardsInHand.Count;
     }
-
+    
     public bool HandIsFull()
     {
         return _cardsInHand.Count >= _maxHandSize;

@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 // Handles visual representation of card
-public class CardManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] private Image _cardImage;
     [SerializeField] private TMP_Text _cardRankText;
@@ -24,7 +24,7 @@ public class CardManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         _originalParent = transform.parent;
     }
     
-    public void InitializeCard(Card data)
+    public void InitializeCard(CardData data)
     {
         _cardImage = data.CardImage;
         _cardRankText.text = data.CardRank.ToString();

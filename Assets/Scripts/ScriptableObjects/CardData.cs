@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 // Handles all static data from card
 [CreateAssetMenu(fileName = "New Card", menuName = "Card")]
-public class Card : ScriptableObject
+public class CardData : ScriptableObject
 {
     [SerializeField] private string _cardName;
     [SerializeField] private Image _cardImage;

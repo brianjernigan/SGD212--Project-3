@@ -8,15 +8,15 @@ using Random = UnityEngine.Random;
 // Handles internal deck logic
 public class Deck
 {
-    private List<Card> _currentDeck;
+    private List<CardData> _currentDeck;
 
-    public Deck(Dictionary<Card, int> deckComposition)
+    public Deck(Dictionary<CardData, int> deckComposition)
     {
-        _currentDeck = new List<Card>();
+        _currentDeck = new List<CardData>();
         InitializeDeck(deckComposition);
     }
 
-    private void InitializeDeck(Dictionary<Card, int> deckComposition)
+    private void InitializeDeck(Dictionary<CardData, int> deckComposition)
     {
         foreach (var entry in deckComposition)
         {
@@ -38,7 +38,7 @@ public class Deck
         }
     }
 
-    public Card DrawCard()
+    public CardData DrawCard()
     {
         if (_currentDeck.Count == 0) return null;
 
