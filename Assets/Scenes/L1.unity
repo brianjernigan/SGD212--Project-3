@@ -899,6 +899,7 @@ GameObject:
   - component: {fileID: 849913158}
   - component: {fileID: 849913157}
   - component: {fileID: 849913156}
+  - component: {fileID: 849913159}
   m_Layer: 5
   m_Name: HandPanel
   m_TagString: Untagged
@@ -989,6 +990,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 849913153}
   m_CullTransparentMesh: 1
+--- !u!114 &849913159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 849913153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5772e91a83e92542b9588d282d20aa8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &870873925
 GameObject:
   m_ObjectHideFlags: 0
@@ -1493,6 +1506,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1567222275}
+  - component: {fileID: 1567222276}
   m_Layer: 0
   m_Name: DeckManager
   m_TagString: Untagged
@@ -1515,6 +1529,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1567222276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1567222274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2fc40f9c417b75449af11b3c479f3a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _allCards:
+  - {fileID: 11400000, guid: 17786846a5ae61e4a94dc3493f814eb3, type: 2}
+  - {fileID: 11400000, guid: a304bf1a13b20de4fba5e1d370ea6c26, type: 2}
+  - {fileID: 11400000, guid: 3875aab72f4b93a48a5073ebf6d65a0b, type: 2}
+  - {fileID: 11400000, guid: 69f27cb1c98a06948a15741d7b015b7b, type: 2}
+  - {fileID: 11400000, guid: 0f955a9bb3df0244ba912207b59ad0c1, type: 2}
+  - {fileID: 11400000, guid: 0d8a6bf7884b49b4bab8b04bbbdcd7fd, type: 2}
+  - {fileID: 11400000, guid: cd5c35934f29334458a7acf459ebcbe3, type: 2}
+  - {fileID: 11400000, guid: 4e887c794b16b6148a7f716e3ee2b870, type: 2}
+  - {fileID: 11400000, guid: b02948ed1e5f1b64bb773869c1b996a6, type: 2}
+  - {fileID: 11400000, guid: 99d5ad318ed992b4181439785fbb5829, type: 2}
+  _cardPrefab: {fileID: 1914818736850829395, guid: 65708ba52ffc49e45ac5e3f21ca094dc, type: 3}
 --- !u!1 &1731640584
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Handles all static data from card
 [CreateAssetMenu(fileName = "New Card", menuName = "Card")]
-public class CardData : ScriptableObject
+public class Card : ScriptableObject
 {
     [SerializeField] private string _cardName;
     [SerializeField] private Image _cardImage;
