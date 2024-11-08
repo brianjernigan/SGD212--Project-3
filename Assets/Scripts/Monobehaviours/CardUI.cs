@@ -12,19 +12,21 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     [SerializeField] private TMP_Text _cardRankText;
     [SerializeField] private TMP_Text _cardCostText;
     
-    private RectTransform _playArea;
-    private RectTransform _discardArea;
+    private RectTransform _playAreaRectTransform;
+    private RectTransform _discardAreaRectTransform;
     private Vector3 _originalPosition;
     private Transform _originalParent;
     private Canvas _canvas;
 
     private HandManager _handManager;
     private CardData _cardData;
+    private PlayAreaController _playAreaController;
 
     private void Start()
     {
-        _playArea = GameObject.FindGameObjectWithTag("PlayArea").GetComponent<RectTransform>();
-        _discardArea = GameObject.FindGameObjectWithTag("DiscardArea").GetComponent<RectTransform>();
+        _playAreaRectTransform = GameObject.FindGameObjectWithTag("PlayArea").GetComponent<RectTransform>();
+        _playAreaController = GameObject.FindGameObjectWithTag("PlayArea").GetComponent<PlayAreaController>();
+        _discardAreaRectTransform = GameObject.FindGameObjectWithTag("DiscardArea").GetComponent<RectTransform>();
         _canvas = GetComponentInParent<Canvas>();
         _originalParent = transform.parent;
     }
@@ -52,13 +54,13 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (_playArea is not null &&
-            RectTransformUtility.RectangleContainsScreenPoint(_playArea, Input.mousePosition, _canvas.worldCamera))
+        if (_playAreaRectTransform is not null &&
+            RectTransformUtility.RectangleContainsScreenPoint(_playAreaRectTransform, Input.mousePosition, _canvas.worldCamera))
         {
             PlayCard();
         }
-        else if (_discardArea is not null &&
-            RectTransformUtility.RectangleContainsScreenPoint(_discardArea, Input.mousePosition, _canvas.worldCamera))
+        else if (_discardAreaRectTransform is not null &&
+            RectTransformUtility.RectangleContainsScreenPoint(_discardAreaRectTransform, Input.mousePosition, _canvas.worldCamera))
         {
             DiscardCard(_cardData);
         }
@@ -77,6 +79,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     private void PlayCard()
     {
-        transform.SetParent(_playArea);
+        transform.SetParent(_playAreaRectTransform);
+        _playAreaController.AddCardToPlayArea(_cardData);
     }
 }

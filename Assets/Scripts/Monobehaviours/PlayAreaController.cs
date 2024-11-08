@@ -4,15 +4,10 @@ using UnityEngine;
 
 public class PlayAreaController : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    private List<CardData> _cardsInPlay = new();
 
-    // Update is called once per frame
-    void Update()
+    public void AddCardToPlayArea(CardData cardInPlay)
     {
-        
+        _cardsInPlay.Add(cardInPlay);
     }
 }

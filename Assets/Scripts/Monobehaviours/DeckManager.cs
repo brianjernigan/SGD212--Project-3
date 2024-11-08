@@ -16,6 +16,7 @@ public class DeckManager : MonoBehaviour
 
     private void InitializeDecks()
     {
+        // Default deck has 4 of every card, could create different decks if in scope
         _defaultDeckConfiguration = new Dictionary<CardData, int>();
         var allCards = GameManager.Instance.AllPossibleCards;
 
