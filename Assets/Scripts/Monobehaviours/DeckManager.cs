@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// Handles all visual aspects of the deck and game
+// Handles all visual aspects and interactions of the deck and game
 public class DeckManager : MonoBehaviour
 {
     private Dictionary<CardData, int> _defaultDeckConfiguration;

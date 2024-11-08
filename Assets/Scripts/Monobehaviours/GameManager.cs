@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+// Stores all possible cards for creating decks and starting the game
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Defines data and structure of a player's hand
 public class Hand
 {
     private const int BaseMaxHandSize = 5;

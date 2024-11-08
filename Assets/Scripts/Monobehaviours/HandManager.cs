@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Handles on screen interactions
 public class HandManager : MonoBehaviour
 {
     [SerializeField] private GameObject _cardPrefab;
