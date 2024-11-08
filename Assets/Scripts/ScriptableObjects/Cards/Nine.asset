@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: Nine
   m_EditorClassIdentifier: 
   _cardName: Nine
-  _cardSprite: {fileID: 0}
-  _cardCost: 0
+  _cardImage: {fileID: 0}
+  _cardCost: 3
   _cardRank: 9
-  _cardEffect: 0
-  _fishType: 0

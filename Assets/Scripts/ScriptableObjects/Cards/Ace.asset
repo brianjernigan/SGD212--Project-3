@@ -10,11 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8374cb81c79c2a34ab0e1921daf9353a, type: 3}
-  m_Name: Eight
+  m_Name: Ace
   m_EditorClassIdentifier: 
-  _cardName: Eight
-  _cardSprite: {fileID: 0}
+  _cardName: Ace
+  _cardImage: {fileID: 0}
   _cardCost: 0
-  _cardRank: 8
-  _cardEffect: 0
-  _fishType: 0
+  _cardRank: 1
