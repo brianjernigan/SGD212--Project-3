@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,6 +8,8 @@ public class DeckManager : MonoBehaviour
 {
     private Dictionary<CardData, int> _defaultDeckConfiguration;
     public Deck CurrentDeck { get; private set; }
+
+    public event Action<CardData> OnCardDrawn;
 
     private void Awake()
     {
@@ -24,5 +27,15 @@ public class DeckManager : MonoBehaviour
         {
             _defaultDeckConfiguration.Add(card, 4);
         }
+    }
+
+    public CardData DrawCard()
+    {
+        var card = CurrentDeck.DrawCardFromDeck();
+        if (card != null)
+        {
+            OnCardDrawn?.Invoke(card);
+        }
+        return card;
     }
 }

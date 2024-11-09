@@ -31,14 +31,35 @@ public class HandManager : MonoBehaviour
     private void DrawCardToHand()
     {
         var drawnCard = _currentDeck.DrawCardFromDeck();
+    }
+    
+    private void OnEnable()
+    {
+        _deckManager.OnCardDrawn += HandleCardDrawn;
+    }
 
-        if (drawnCard is null) return;
+    private void OnDisable()
+    {
+        _deckManager.OnCardDrawn -= HandleCardDrawn;
+    }
+
+    public void DrawCardToHand()
+    {
+        _deckManager.DrawCard();
+    }
+
+    private void HandleCardDrawn(CardData drawnCard)
+    {
+        if (drawnCard == null) return;
         if (!_playerHand.AddCardToHand(drawnCard)) return;
         
         var onScreenCard = Instantiate(_cardPrefab, _handArea);
         var cardUI = onScreenCard.GetComponent<CardUI>();
         cardUI.InitializeCard(drawnCard, this);
         _onScreenCards.Add(cardUI);
+
+        // Trigger draw effects and animations
+        cardUI.OnCardDrawn();
     }
 
     public void DiscardCardFromHand(CardData data)
