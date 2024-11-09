@@ -37,7 +37,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         _cardData = data;
         _handManager = handManager;
         _cardImage = data.CardImage;
-        _cardImage.sprite = data.CardImage.sprite; // Assuming CardImage is a Sprite
+        //_cardImage.sprite = data.CardImage.sprite; // Assuming CardImage is a Sprite
         _cardRankText.text = data.CardRank.ToString();
         _cardCostText.text = data.CardCost.ToString();
     }
@@ -84,10 +84,9 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     {
         transform.SetParent(_playAreaRectTransform);
         _playAreaController.AddCardToPlayArea(_cardData);
-        transform.SetParent(_playArea);
         // Trigger play animation via Animator
         _animator.SetTrigger("OnPlay");
-        // Play play particle effect
+        // Play particle effect
         CardEffectManager.Instance.PlayPlayEffect(transform.position);
     }
 

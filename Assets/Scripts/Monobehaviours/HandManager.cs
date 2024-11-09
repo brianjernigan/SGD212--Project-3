@@ -27,11 +27,6 @@ public class HandManager : MonoBehaviour
             DrawCardToHand();
         }
     }
-
-    private void DrawCardToHand()
-    {
-        var drawnCard = _currentDeck.DrawCardFromDeck();
-    }
     
     private void OnEnable()
     {

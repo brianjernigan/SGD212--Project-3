@@ -6578,7 +6578,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4662ab5ab21fbf458d438793bc8e802, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  particlePrefab: {fileID: 0}
+  particlePrefab: {fileID: 6613782509134707352, guid: c3322e6e2b406c74b94067d440a42eb7, type: 3}
   poolSize: 20
 --- !u!114 &1303470801
 MonoBehaviour:
@@ -6592,8 +6592,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45d322de2ed74fd4db927e761d530b92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardDrawEffectPrefab: {fileID: 0}
-  cardPlayEffectPrefab: {fileID: 0}
+  cardDrawEffectPrefab: {fileID: 1419332532472731830, guid: 99219bca20392c546811e64c2098393a, type: 3}
+  cardPlayEffectPrefab: {fileID: 6613782509134707352, guid: c3322e6e2b406c74b94067d440a42eb7, type: 3}
   animator: {fileID: 0}
 --- !u!1 &1314153299
 GameObject:
