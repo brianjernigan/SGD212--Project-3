@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Defines data and structure of a player's hand
 public class Hand
 {
     private const int BaseMaxHandSize = 5;
@@ -18,7 +19,7 @@ public class Hand
 
     public bool AddCardToHand(CardData cardDataToAdd)
     {
-        if (HandIsFull()) return false;
+        if (IsFull()) return false;
         _cardsInHand.Add(cardDataToAdd);
         return true;
     }
@@ -38,7 +39,7 @@ public class Hand
         return _cardsInHand.Count;
     }
     
-    public bool HandIsFull()
+    public bool IsFull()
     {
         return _cardsInHand.Count >= _currentMaxHandSize;
     }

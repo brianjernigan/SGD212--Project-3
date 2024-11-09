@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Handles all visual aspects and interactions of the deck and game
 public class DeckManager : MonoBehaviour
 {
     private Dictionary<CardData, int> _defaultDeckConfiguration;
@@ -13,15 +14,12 @@ public class DeckManager : MonoBehaviour
     private void Awake()
     {
         InitializeDecks();
-    }
-    
-    private void Start()
-    {
         CurrentDeck = new Deck(_defaultDeckConfiguration);
     }
 
     private void InitializeDecks()
     {
+        // Default deck has 4 of every card, could create different decks if in scope
         _defaultDeckConfiguration = new Dictionary<CardData, int>();
         var allCards = GameManager.Instance.AllPossibleCards;
 

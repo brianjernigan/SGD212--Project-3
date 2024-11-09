@@ -11,22 +11,32 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     [SerializeField] private TMP_Text _cardRankText;
     [SerializeField] private TMP_Text _cardCostText;
     
-    private RectTransform _playArea;
+    private RectTransform _playAreaRectTransform;
+    private RectTransform _discardAreaRectTransform;
     private Vector3 _originalPosition;
     private Transform _originalParent;
     private Canvas _canvas;
     private Animator _animator;
 
+    private HandManager _handManager;
+    private CardData _cardData;
+    private PlayAreaController _playAreaController;
+
     private void Start()
     {
-        _playArea = GameObject.FindGameObjectWithTag("PlayArea").GetComponent<RectTransform>();
+        _playAreaRectTransform = GameObject.FindGameObjectWithTag("PlayArea").GetComponent<RectTransform>();
+        _playAreaController = GameObject.FindGameObjectWithTag("PlayArea").GetComponent<PlayAreaController>();
+        _discardAreaRectTransform = GameObject.FindGameObjectWithTag("DiscardArea").GetComponent<RectTransform>();
         _canvas = GetComponentInParent<Canvas>();
         _originalParent = transform.parent;
         _animator = GetComponent<Animator>();
     }
     
-    public void InitializeCard(CardData data)
+    public void InitializeCard(CardData data, HandManager handManager)
     {
+        _cardData = data;
+        _handManager = handManager;
+        _cardImage = data.CardImage;
         _cardImage.sprite = data.CardImage.sprite; // Assuming CardImage is a Sprite
         _cardRankText.text = data.CardRank.ToString();
         _cardCostText.text = data.CardCost.ToString();
@@ -46,11 +56,16 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        transform.localScale = Vector3.one; // Reset scale
-        if (_playArea != null &&
-            RectTransformUtility.RectangleContainsScreenPoint(_playArea, Input.mousePosition, _canvas.worldCamera))
+        if (_playAreaRectTransform is not null &&
+            RectTransformUtility.RectangleContainsScreenPoint(_playAreaRectTransform, Input.mousePosition, _canvas.worldCamera))
         {
+            transform.localScale = Vector3.one; // Reset scale
             PlayCard();
+        }
+        else if (_discardAreaRectTransform is not null &&
+            RectTransformUtility.RectangleContainsScreenPoint(_discardAreaRectTransform, Input.mousePosition, _canvas.worldCamera))
+        {
+            DiscardCard(_cardData);
         }
         else
         {
@@ -59,8 +74,16 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         }
     }
 
+    private void DiscardCard(CardData data)
+    {
+        _handManager.DiscardCardFromHand(data);
+        Destroy(gameObject);
+    }
+
     private void PlayCard()
     {
+        transform.SetParent(_playAreaRectTransform);
+        _playAreaController.AddCardToPlayArea(_cardData);
         transform.SetParent(_playArea);
         // Trigger play animation via Animator
         _animator.SetTrigger("OnPlay");
