@@ -9,6 +9,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 {
     private GameObject _cardObject;
     private CardData _cardData;
+    private GameCard _gameCard;
 
     private Image _cardImage;
     
@@ -20,10 +21,11 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     private Transform _originalParent;
     private RectTransform _originalArea;
     
-    public void InitializeCard(CardData cardData, GameObject cardObject)
+    public void InitializeCard(CardData cardData, GameCard gameCard)
     {
         _cardData = cardData;
-        _cardObject = cardObject;
+        _gameCard = gameCard;
+        _cardObject = gameObject;
         SetCardUI();
     }
 
@@ -61,16 +63,27 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         
         if (dropArea != _originalArea && dropArea is not null)
         {
-            GameManager.Instance.OnCardDropped(dropArea, _cardData);
-            transform.SetParent(dropArea);
-            transform.localScale = _originalScale;
+            if (GameManager.Instance.OnCardDropped(dropArea, _gameCard))
+            {
+                transform.SetParent(dropArea);
+                transform.localScale = _originalScale;
+            }
+            else
+            {
+                ReturnToOrigin();
+            }
         }
         else
         {
-            transform.SetParent(_originalParent);
-            transform.localScale = _originalScale;
-            transform.position = _originalPosition;
+            ReturnToOrigin();
         }
+    }
+
+    private void ReturnToOrigin()
+    {
+        transform.SetParent(_originalParent);
+        transform.localScale = _originalScale;
+        transform.position = _originalPosition;
     }
 
     private RectTransform GetCurrentArea(PointerEventData eventData)

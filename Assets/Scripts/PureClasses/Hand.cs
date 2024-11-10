@@ -21,11 +21,6 @@ public class Hand
         if (gameCard is null || !_cardsInHand.Contains(gameCard)) return;
 
         _cardsInHand.Remove(gameCard);
-
-        if (gameCard.UI is not null)
-        {
-            Object.Destroy(gameCard.UI.gameObject);
-        }
     }
 
     public IEnumerable<GameCard> GetCardsInHand()

@@ -26,6 +26,8 @@ public class GameManager : MonoBehaviour
 
     private Deck _gameDeck;
     private Hand _playerHand;
+
+    private StageAreaController _stageAreaController;
     
     private void Awake()
     {
@@ -44,6 +46,8 @@ public class GameManager : MonoBehaviour
     {
         _gameDeck = new Deck(_allPossibleCards, _cardUIPrefab);
         _playerHand = new Hand();
+
+        _stageAreaController = _stageArea.gameObject.GetComponent<StageAreaController>();
     }
 
     public void DrawInitialHand()
@@ -63,19 +67,30 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void OnCardDropped(RectTransform dropArea, CardData cardData)
+    public bool OnCardDropped(RectTransform dropArea, GameCard gameCard)
     {
+        // Destage
         if (dropArea == HandArea)
         {
+            // Add to hand
+            // Remove from stage
             Debug.Log("Hand");
         }
+        
+        // Discard
         else if (dropArea == DiscardArea)
         {
-            Debug.Log("Discard");
+            _playerHand.RemoveCardFromHand(gameCard);
+            Destroy(gameCard.UI.gameObject);
         }
+        // Stage Card
         else if (dropArea == StageArea)
         {
-            Debug.Log("Stage");
+            if (!_stageAreaController.TryAddCardToStageArea(gameCard)) return false;
+            _playerHand.RemoveCardFromHand(gameCard);
+            return true;
         }
+
+        return false;
     }
 }

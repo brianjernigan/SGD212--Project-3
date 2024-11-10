@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class StageAreaController : MonoBehaviour
 {
-    private readonly List<CardData> _cardsStaged = new();
+    private readonly List<GameCard> _cardsStaged = new();
 
     private bool CanStageCard(CardData card)
     {
@@ -14,21 +14,23 @@ public class StageAreaController : MonoBehaviour
         if (cardsAreEmpty) return true;
         
         var cardsAreFull = _cardsStaged.Count >= 3;
-        var cardIsMatch = _cardsStaged[0].CardRank == card.CardRank;
+        var cardIsMatch = _cardsStaged[0].Data.CardRank == card.CardRank;
 
         return !cardsAreFull && cardIsMatch;
     }
 
-    public bool AddCardToStageArea(CardData card)
+    public bool TryAddCardToStageArea(GameCard gameCard)
     {
-        if (!CanStageCard(card)) return false;
+        var cardData = gameCard.Data;
+        
+        if (!CanStageCard(cardData)) return false;
 
-        _cardsStaged.Add(card);
+        _cardsStaged.Add(gameCard);
         return true;
     }
 
-    public bool RemoveCardFromStageArea(CardData card)
+    public bool TryRemoveCardFromStageArea(GameCard gameCard)
     {
-        return _cardsStaged.Remove(card);
+        return _cardsStaged.Remove(gameCard);
     }
 }

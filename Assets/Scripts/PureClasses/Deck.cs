@@ -55,9 +55,9 @@ public class Deck
 
         var cardUIObject = Object.Instantiate(_cardUIPrefab, _handArea);
         var cardUI = cardUIObject.GetComponent<CardUI>();
-        cardUI.InitializeCard(drawnCardData, cardUIObject);
 
         var gameCard = new GameCard(drawnCardData, cardUI);
+        cardUI.InitializeCard(drawnCardData, gameCard);
 
         return gameCard;
     }
