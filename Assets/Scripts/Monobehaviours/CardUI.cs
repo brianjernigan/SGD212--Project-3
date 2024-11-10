@@ -7,55 +7,45 @@ using UnityEngine.UI;
 
 public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    [SerializeField] private Image _cardImage;
-    [SerializeField] private TMP_Text _cardRankText;
-    [SerializeField] private TMP_Text _cardCostText;
+    private GameObject _cardObject;
+    private CardData _cardData;
+
+    private Image _cardImage;
     
-    private RectTransform _stageAreaRectTransform;
-    private RectTransform _discardAreaRectTransform;
-    private RectTransform _handAreaRectTransform;
+    private TMP_Text _cardRankText;
+    private TMP_Text _cardCostText;
     
     private Vector3 _originalPosition;
     private Vector3 _originalScale;
     private Transform _originalParent;
-    private Canvas _canvas;
 
-    private HandManager _handManager;
-    private CardData _cardData;
-    private StageAreaController _stageAreaController;
-
-    private void Start()
-    {
-        var stageArea = GameObject.FindGameObjectWithTag("StageArea");
-        
-        _stageAreaRectTransform = stageArea.GetComponent<RectTransform>();
-        _handAreaRectTransform = GameObject.FindGameObjectWithTag("HandArea").GetComponent<RectTransform>();
-        _discardAreaRectTransform = GameObject.FindGameObjectWithTag("DiscardArea").GetComponent<RectTransform>();
-        
-        _stageAreaController = stageArea.GetComponent<StageAreaController>();
-        
-        _canvas = GetComponentInParent<Canvas>();
-        _originalParent = transform.parent;
-        _originalScale = transform.localScale;
-        // _animator = GetComponent<Animator>();
-    }
+    private RectTransform _handArea;
+    private RectTransform _stageArea;
+    private RectTransform _discardArea;
     
-    public void InitializeCard(CardData data, HandManager handManager)
+    public void InitializeCard(CardData cardData, GameObject cardObject)
     {
-        _cardData = data;
-        _handManager = handManager;
-        _cardImage = data.CardImage;
-        //_cardImage.sprite = data.CardImage.sprite; // Assuming CardImage is a Sprite
-        _cardRankText.text = data.CardRank.ToString();
-        _cardCostText.text = data.CardCost.ToString();
+        _cardData = cardData;
+        _cardObject = cardObject;
+        SetCardUI();
+    }
+
+    private void SetCardUI()
+    {
+        _cardRankText = _cardObject.transform.GetChild(0).GetComponent<TMP_Text>();
+        _cardCostText = _cardObject.transform.GetChild(1).GetComponent<TMP_Text>();
+        _cardImage = _cardObject.transform.GetChild(2).GetComponent<Image>();
+
+        _cardRankText.text = _cardData.CardRank.ToString();
+        _cardCostText.text = _cardData.CardCost.ToString();
+        _cardImage.sprite = _cardData.CardSprite;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        _originalParent = transform.parent;
         _originalPosition = transform.position;
-        transform.SetParent(_canvas.transform);
-        transform.localScale *= 1.1f; // Slightly enlarge the card when dragging
+        _originalParent = transform.parent;
+        _originalScale = transform.localScale;
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -65,77 +55,6 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        var isInStageArea =
-            RectTransformUtility.RectangleContainsScreenPoint(_stageAreaRectTransform, Input.mousePosition,
-                _canvas.worldCamera);
-
-        var isInDiscardArea = RectTransformUtility.RectangleContainsScreenPoint(_discardAreaRectTransform,
-            Input.mousePosition, _canvas.worldCamera);
         
-        var isInHandArea = RectTransformUtility.RectangleContainsScreenPoint(_handAreaRectTransform,
-            Input.mousePosition, _canvas.worldCamera);
-        
-        if (_stageAreaRectTransform is not null && isInStageArea)
-        {
-            StageCard(_cardData);
-        }
-        else if (_discardAreaRectTransform is not null && isInDiscardArea)
-        {
-            DiscardCard(_cardData);
-        } 
-        else if (_handAreaRectTransform is not null & isInHandArea)
-        {
-            ReturnCardToHand(_cardData);
-        }
-        else
-        {
-            ReturnCardToOrigin(_cardData);
-        }
-    }
-
-    private void DiscardCard(CardData card)
-    {
-        _handManager.DiscardCardFromHand(card);
-        _handManager.DrawCard();
-        Destroy(gameObject);
-    }
-
-    private void StageCard(CardData card)
-    {
-        if (_stageAreaController.AddCardToStageArea(card))
-        {
-            transform.SetParent(_stageAreaRectTransform);
-            transform.localScale = _originalScale;
-        }
-        else
-        {
-            ReturnCardToOrigin(card);
-        }
-        // Trigger play animation via Animator
-        // _animator.SetTrigger("OnPlay");
-        // Play particle effect
-        // CardEffectManager.Instance.PlayPlayEffect(transform.position);
-    }
-
-    private void ReturnCardToHand(CardData card)
-    {
-        // Check for cards
-        transform.SetParent(_handAreaRectTransform);
-        transform.localScale = _originalScale;
-    }
-
-    private void ReturnCardToOrigin(CardData card)
-    {
-        transform.localScale = _originalScale;
-        transform.position = _originalPosition;
-        transform.SetParent(_originalParent);
-    }
-
-    public void OnCardDrawn()
-    {
-        // Trigger draw animation via Animator
-        // _animator.SetTrigger("OnDraw");
-        // Play draw particle effect
-        // CardEffectManager.Instance.PlayDrawEffect(transform.position);
     }
 }
