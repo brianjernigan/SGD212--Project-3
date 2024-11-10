@@ -18,10 +18,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     private Vector3 _originalPosition;
     private Vector3 _originalScale;
     private Transform _originalParent;
-
-    private RectTransform _handArea;
-    private RectTransform _stageArea;
-    private RectTransform _discardArea;
+    private RectTransform _originalArea;
     
     public void InitializeCard(CardData cardData, GameObject cardObject)
     {
@@ -46,6 +43,11 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         _originalPosition = transform.position;
         _originalParent = transform.parent;
         _originalScale = transform.localScale;
+        _originalArea = GetCurrentArea(eventData);
+
+        transform.localScale *= 1.1f;
+        
+        transform.SetParent(GameManager.Instance.GameCanvas.transform);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -55,6 +57,39 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        var dropArea = GetCurrentArea(eventData);
         
+        if (dropArea != _originalArea && dropArea is not null)
+        {
+            GameManager.Instance.OnCardDropped(dropArea, _cardData);
+            transform.SetParent(dropArea);
+            transform.localScale = _originalScale;
+        }
+        else
+        {
+            transform.SetParent(_originalParent);
+            transform.localScale = _originalScale;
+            transform.position = _originalPosition;
+        }
+    }
+
+    private RectTransform GetCurrentArea(PointerEventData eventData)
+    {
+        var dropAreas = new List<RectTransform>()
+        {
+            GameManager.Instance.HandArea,
+            GameManager.Instance.StageArea,
+            GameManager.Instance.DiscardArea
+        };
+
+        foreach (var area in dropAreas)
+        {
+            if (RectTransformUtility.RectangleContainsScreenPoint(area, Input.mousePosition, GameManager.Instance.GameCanvas.worldCamera))
+            {
+                return area; 
+            }
+        }
+
+        return null;
     }
 }

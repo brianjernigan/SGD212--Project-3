@@ -854,8 +854,8 @@ RectTransform:
   - {fileID: 1226257374}
   - {fileID: 849913154}
   - {fileID: 1731640585}
-  - {fileID: 1589098630}
   - {fileID: 1403079198}
+  - {fileID: 1589098630}
   m_Father: {fileID: 870873929}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1571,6 +1571,7 @@ MonoBehaviour:
   _handArea: {fileID: 849913154}
   _stageArea: {fileID: 1731640585}
   _discardArea: {fileID: 1403079198}
+  _gameCanvas: {fileID: 870873928}
 --- !u!4 &1303470799
 Transform:
   m_ObjectHideFlags: 0

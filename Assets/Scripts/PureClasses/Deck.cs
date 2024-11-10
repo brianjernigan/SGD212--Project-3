@@ -14,11 +14,11 @@ public class Deck
     private readonly GameObject _cardUIPrefab;
     private readonly RectTransform _handArea;
 
-    public Deck(IEnumerable<CardData> initialCards, GameObject uiPrefab, RectTransform handArea)
+    public Deck(IEnumerable<CardData> initialCards, GameObject uiPrefab)
     {
         _cardsInDeck = new List<CardData>(initialCards);
         _cardUIPrefab = uiPrefab;
-        _handArea = handArea;
+        _handArea = GameManager.Instance.HandArea;
 
         ShuffleDeck();
     }
