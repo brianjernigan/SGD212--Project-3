@@ -7,7 +7,7 @@ public class Hand
 {
     private const int BaseMaxHandSize = 5;
     private readonly List<CardData> _cardsInHand;
-    private Deck _currentDeck;
+    private readonly Deck _currentDeck;
     private int _currentMaxHandSize;
 
     public Hand(Deck currentDeck)
@@ -17,14 +17,32 @@ public class Hand
         _currentMaxHandSize = BaseMaxHandSize;
     }
 
-    public bool AddCardToHand(CardData cardDataToAdd)
+    public bool AddCardToHand(out CardData cardAdded)
     {
-        if (IsFull()) return false;
-        _cardsInHand.Add(cardDataToAdd);
+        if (HandIsFull())
+        {
+            cardAdded = null;
+            return false;
+        }
+
+        cardAdded = DrawFromDeck();
+
+        if (cardAdded is null) return false;
+
+        _cardsInHand.Add(cardAdded);
         return true;
     }
 
-    public bool DiscardCardFromHand(CardData cardDataToDiscard)
+    private CardData DrawFromDeck()
+    {
+        if (_currentDeck.IsEmpty()) return null;
+
+        var drawnCard = _currentDeck.CardsInDeck[0];
+        _currentDeck.CardsInDeck.RemoveAt(0);
+        return drawnCard;
+    }
+
+    public bool RemoveCardFromHand(CardData cardDataToDiscard)
     {
         return _cardsInHand.Remove(cardDataToDiscard);
     }
@@ -39,7 +57,7 @@ public class Hand
         return _cardsInHand.Count;
     }
     
-    public bool IsFull()
+    public bool HandIsFull()
     {
         return _cardsInHand.Count >= _currentMaxHandSize;
     }

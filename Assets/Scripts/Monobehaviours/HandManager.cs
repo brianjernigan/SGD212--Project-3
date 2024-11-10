@@ -11,54 +11,33 @@ public class HandManager : MonoBehaviour
     [SerializeField] private DeckManager _deckManager;
     
     private Hand _playerHand;
-    private Deck _currentDeck;
-    private List<CardUI> _onScreenCards = new();
-
+    private List<CardUI> _onScreenHand;
+    
     private void Awake()
     {
-        _currentDeck = _deckManager.CurrentDeck;
-        _playerHand = new Hand(_currentDeck);
-    }
-
-    public void DrawFullHand()
-    {
-        while (!_playerHand.IsFull())
-        {
-            DrawCardToHand();
-        }
+        _playerHand = new Hand(_deckManager.CurrentDeck);
     }
     
-    private void OnEnable()
+    public void DrawFullHand()
     {
-        _deckManager.OnCardDrawn += HandleCardDrawn;
+        while (!_playerHand.HandIsFull())
+        {
+            DrawCard();
+        }
     }
 
-    private void OnDisable()
+    public void DrawCard()
     {
-        _deckManager.OnCardDrawn -= HandleCardDrawn;
-    }
-
-    public void DrawCardToHand()
-    {
-        _deckManager.DrawCard();
-    }
-
-    private void HandleCardDrawn(CardData drawnCard)
-    {
-        if (drawnCard == null) return;
-        if (!_playerHand.AddCardToHand(drawnCard)) return;
+        if (!_playerHand.AddCardToHand(out var card)) return;
         
         var onScreenCard = Instantiate(_cardPrefab, _handArea);
         var cardUI = onScreenCard.GetComponent<CardUI>();
-        cardUI.InitializeCard(drawnCard, this);
-        _onScreenCards.Add(cardUI);
-
-        // Trigger draw effects and animations
-        cardUI.OnCardDrawn();
+        cardUI.InitializeCard(card, this);
+        // _onScreenCards.Add(cardUI);
     }
 
-    public void DiscardCardFromHand(CardData data)
+    public void DiscardCardFromHand(CardData card)
     {
-        _playerHand.DiscardCardFromHand(data);
+        _playerHand.RemoveCardFromHand(card);
     }
 }
