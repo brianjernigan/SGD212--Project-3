@@ -14,6 +14,8 @@ public class Deck
     private readonly GameObject _cardUIPrefab;
     private readonly RectTransform _handArea;
 
+    public bool IsEmpty => _cardsInDeck.Count == 0;
+
     public Deck(Dictionary<CardData, int> deckComposition, GameObject uiPrefab)
     {
         _cardsInDeck = new List<CardData>();

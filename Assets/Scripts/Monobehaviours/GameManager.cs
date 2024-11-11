@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Canvas")]
     [SerializeField] private Canvas _gameCanvas;
+    [SerializeField] private CanvasGroup _gameCanvasGroup;
 
     [Header("Texts")] 
     [SerializeField] private TMP_Text _scoreText;
@@ -31,6 +32,7 @@ public class GameManager : MonoBehaviour
     public int MaxCardsOnScreen { get; set; } = 5;
     
     public Canvas GameCanvas => _gameCanvas;
+    public CanvasGroup GameCanvasGroup => _gameCanvasGroup;
 
     private Deck _gameDeck;
     private Hand _playerHand;
@@ -85,6 +87,7 @@ public class GameManager : MonoBehaviour
             {7, new SwapAndDiscard(_playerHand, _gameDeck) },
             {8, new SwapAndDiscard(_playerHand, _gameDeck) },
             {9, new SwapAndDiscard(_playerHand, _gameDeck) },
+            {10, new SwapAndDiscard(_playerHand, _gameDeck) }
         };
     }
 
@@ -101,7 +104,9 @@ public class GameManager : MonoBehaviour
 
     public void DrawFullHand()
     {
-        while (CardsOnScreen < MaxCardsOnScreen)
+        if (_gameDeck.IsEmpty) return;
+        
+        while (CardsOnScreen < MaxCardsOnScreen && !_gameDeck.IsEmpty)
         {
             DrawCard();
         }

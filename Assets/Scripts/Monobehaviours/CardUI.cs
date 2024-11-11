@@ -5,16 +5,18 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
     private GameObject _cardObject;
     private CardData _cardData;
     private GameCard _gameCard;
+    private GameObject _descriptionBox;
 
     private Image _cardImage;
     
     private TMP_Text _cardRankText;
     private TMP_Text _cardCostText;
+    private TMP_Text _descriptionText;
     
     private Vector3 _originalPosition;
     private Vector3 _originalScale;
@@ -34,10 +36,13 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         _cardRankText = _cardObject.transform.GetChild(0).GetComponent<TMP_Text>();
         _cardCostText = _cardObject.transform.GetChild(1).GetComponent<TMP_Text>();
         _cardImage = _cardObject.transform.GetChild(2).GetComponent<Image>();
+        _descriptionBox = _cardObject.transform.GetChild(3).gameObject;
+        _descriptionText = _descriptionBox.GetComponentInChildren<TMP_Text>();
 
         _cardRankText.text = _cardData.CardRank.ToString();
         _cardCostText.text = _cardData.CardCost.ToString();
         _cardImage.sprite = _cardData.CardSprite;
+        _descriptionText.text = _gameCard.Description;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -48,8 +53,10 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         _originalArea = GetCurrentArea(eventData);
 
         transform.localScale *= 1.1f;
+        GameManager.Instance.GameCanvasGroup.alpha = 0.95f;
         
         transform.SetParent(GameManager.Instance.GameCanvas.transform);
+        _descriptionBox.gameObject.SetActive(false);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -76,6 +83,16 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         else
         {
             ReturnToOrigin();
+        }
+        
+        GameManager.Instance.GameCanvasGroup.alpha = 1.0f;
+    }
+    
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Right)
+        {
+            _descriptionBox.gameObject.SetActive(!_descriptionBox.gameObject.activeSelf);
         }
     }
 

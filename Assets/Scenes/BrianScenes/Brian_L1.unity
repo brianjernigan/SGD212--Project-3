@@ -831,6 +831,7 @@ GameObject:
   - component: {fileID: 787005783}
   - component: {fileID: 787005785}
   - component: {fileID: 787005784}
+  - component: {fileID: 787005786}
   m_Layer: 5
   m_Name: GamePanel
   m_TagString: Untagged
@@ -902,6 +903,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 787005782}
   m_CullTransparentMesh: 1
+--- !u!225 &787005786
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 787005782}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &806260147
 GameObject:
   m_ObjectHideFlags: 0
@@ -1428,7 +1441,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -100, y: 633}
+  m_AnchoredPosition: {x: -1806, y: 423}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1226257375
@@ -1573,6 +1586,7 @@ MonoBehaviour:
   _stageArea: {fileID: 1731640585}
   _discardArea: {fileID: 1403079198}
   _gameCanvas: {fileID: 870873928}
+  _gameCanvasGroup: {fileID: 787005786}
   _scoreText: {fileID: 1625524900}
 --- !u!4 &1303470799
 Transform:
@@ -1908,7 +1922,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 863, y: 192.2702}
+  m_AnchoredPosition: {x: 850, y: 158}
   m_SizeDelta: {x: 160, y: 133.50002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1625524898
@@ -1945,7 +1959,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -843, y: 134}
+  m_AnchoredPosition: {x: -843, y: 180}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1625524900
@@ -2003,7 +2017,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
