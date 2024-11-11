@@ -9,8 +9,9 @@ namespace HunterScripts
         [Header("Card Settings")]
         [SerializeField] private GameObject hunterCardPrefab;
         [SerializeField] private Transform handArea;
-        [SerializeField] private float cardSpacing = 0.5f; // Adjust spacing between cards
-        [SerializeField] private float curveAngle = 15f; // Angle for fan layout (optional)
+        [SerializeField] private float cardSpacing = 2f; // Base spacing between cards
+        [SerializeField] private float maxCurveAngle = 45f; // Maximum angle for fan layout
+        [SerializeField] private float radius = 5f; // Radius of the arc for card positioning
 
         private List<HunterCardUI> onScreenCards = new List<HunterCardUI>();
 
@@ -98,35 +99,38 @@ namespace HunterScripts
             }
         }
 
-        // Method to position cards in a spread-out layout within the hand area
+        // Improved method to position cards in an arc to prevent overlapping
         private void PositionCardsInHand()
         {
             int cardCount = onScreenCards.Count;
             if (cardCount == 0) return; // No cards to position
 
-            float totalWidth = (cardCount - 1) * cardSpacing;
+            // Clamp the curve angle based on the number of cards
+            float curveAngle = Mathf.Clamp(maxCurveAngle / (cardCount > 1 ? cardCount - 1 : 1), 15f, maxCurveAngle);
+
+            // Calculate the total angle span
+            float totalAngle = Mathf.Min(maxCurveAngle, (cardCount - 1) * curveAngle);
+
+            // Starting angle
+            float startAngle = -totalAngle / 2;
 
             for (int i = 0; i < cardCount; i++)
             {
                 HunterCardUI card = onScreenCards[i];
 
-                // Calculate the x-offset for each card based on its position in the list
-                float offsetX = -totalWidth / 2 + i * cardSpacing;
-                Vector3 targetPosition = new Vector3(offsetX, 0, 0);
+                // Calculate the angle for the current card
+                float angle = startAngle + i * curveAngle;
+                float rad = angle * Mathf.Deg2Rad;
 
-                // Avoid applying rotation if there’s only one card to prevent NaN errors
-                Quaternion targetRotation = Quaternion.identity;
-                if (cardCount > 1)
-                {
-                    float angle = -curveAngle / 2 + (curveAngle / (cardCount - 1)) * i;
-                    targetRotation = Quaternion.Euler(0, 0, angle);
-                }
+                // Calculate the position along the arc
+                Vector3 targetPosition = new Vector3(Mathf.Sin(rad) * radius, Mathf.Cos(rad) * radius, 0);
 
-                // Assign position and rotation to each card
+                // Assign position to each card
                 card.transform.localPosition = targetPosition;
-                card.transform.localRotation = targetRotation;
+
+                // Assign rotation to make the card face the center of the arc
+                card.transform.localRotation = Quaternion.Euler(0, 0, angle);
             }
         }
-
     }
 }
