@@ -37,5 +37,7 @@ public class Hand
                 Object.Destroy(gameCard.UI.gameObject);
             }
         }
+        
+        _cardsInHand.Clear();
     }
 }

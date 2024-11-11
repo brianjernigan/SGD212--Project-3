@@ -121,14 +121,10 @@ public class GameManager : MonoBehaviour
         // Destage
         if (dropArea == HandArea)
         {
-            if (_playerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStageArea(gameCard))
-            {
-                return true;
-            }
+            return _playerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStageArea(gameCard);
         }
-        
         // Discard
-        else if (dropArea == DiscardArea)
+        if (dropArea == DiscardArea)
         {
             if (!_playerHand.TryRemoveCardFromHand(gameCard) &&
                 !_stageAreaController.TryRemoveCardFromStageArea(gameCard)) return false;
@@ -137,11 +133,9 @@ public class GameManager : MonoBehaviour
 
         }
         // Stage Card
-        else if (dropArea == StageArea)
+        if (dropArea == StageArea)
         {
-            if (!_stageAreaController.TryAddCardToStageArea(gameCard)) return false;
-            _playerHand.TryRemoveCardFromHand(gameCard);
-            return true;
+            return _stageAreaController.TryAddCardToStageArea(gameCard) && _playerHand.TryRemoveCardFromHand(gameCard);
         }
 
         return false;
@@ -169,9 +163,8 @@ public class GameManager : MonoBehaviour
         var firstStagedCard = _stageAreaController.GetFirstStagedCard();
         if (firstStagedCard is null) return;
 
-        var effect = GetEffectForRank(firstStagedCard.Data.CardRank);
-        effect?.ActivateEffect();
-
+        firstStagedCard.ActivateEffect();
+        
         _stageAreaController.ClearStagedCards();
     }
 
