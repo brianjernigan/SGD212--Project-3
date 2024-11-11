@@ -43,9 +43,17 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
         _cardRankText.text = _cardData.CardRank.ToString();
         _cardCostText.text = _cardData.CardCost.ToString();
-        _cardImage.sprite = _cardData.CardSprite;
         _descriptionText.text = _gameCard.Description;
-        _descriptionBoxImage.sprite = _cardData.DescriptionBoxSprite;
+
+        if (_cardData.CardSprite is not null)
+        {
+            _cardImage.sprite = _cardData.CardSprite;
+        }
+
+        if (_cardData.DescriptionBoxSprite is not null)
+        {
+            _descriptionBoxImage.sprite = _cardData.DescriptionBoxSprite;
+        }
     }
 
     public void OnBeginDrag(PointerEventData eventData)

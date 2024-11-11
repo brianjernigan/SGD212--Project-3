@@ -16,12 +16,12 @@ public class Deck
 
     public bool IsEmpty => _cardsInDeck.Count == 0;
 
-    public Deck(Dictionary<CardData, int> deckComposition, GameObject uiPrefab)
+    public Deck(Dictionary<CardData, int> deckComposition, GameObject uiPrefab, RectTransform handArea)
     {
         _cardsInDeck = new List<CardData>();
         ConfigureDeck(deckComposition);
         _cardUIPrefab = uiPrefab;
-        _handArea = GameManager.Instance.HandArea;
+        _handArea = handArea;
 
         ShuffleDeck();
     }

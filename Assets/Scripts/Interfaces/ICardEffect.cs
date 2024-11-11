@@ -4,6 +4,6 @@ using UnityEngine;
 
 public interface ICardEffect
 {
-    string Description { get; }
+    string EffectDescription { get; }
     void ActivateEffect();
 }

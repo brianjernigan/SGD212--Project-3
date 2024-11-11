@@ -94,12 +94,19 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         InitializeDeckComposition();
-        InitializeCardEffects();
-        
-        _gameDeck = new Deck(_defaultDeckComposition, _cardUIPrefab);
-        _playerHand = new Hand();
 
         _stageAreaController = _stageArea.gameObject.GetComponent<StageAreaController>();
+        
+        _gameDeck = new Deck(_defaultDeckComposition, _cardUIPrefab, _handArea);
+        _playerHand = new Hand();
+        
+        InitializeCardEffects();
+    }
+
+    private void Update()
+    {
+        Debug.Log($"Num cards in hand: {_playerHand.NumCardsInHand}");
+        Debug.Log($"Num cards staged: {_stageAreaController.NumCardsStaged}");
     }
 
     public void DrawFullHand()
@@ -148,18 +155,18 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        var action = _stageAreaController.CheckStagedCards();
+        var numCardsStaged = _stageAreaController.NumCardsStaged;
 
-        switch (action)
+        switch (numCardsStaged)
         {
-            case 2:
-                return;
             case 1:
                 TriggerCardEffect();
                 break;
             case 3:
                 ScoreSet();
                 break;
+            default:
+                return;
         }
     }
 
@@ -167,17 +174,17 @@ public class GameManager : MonoBehaviour
     {
         var firstStagedCard = _stageAreaController.GetFirstStagedCard();
         if (firstStagedCard is null) return;
+        
+        _stageAreaController.ClearStageArea();
 
         firstStagedCard.ActivateEffect();
-        
-        _stageAreaController.ClearStagedCards();
     }
 
     private void ScoreSet()
     {
         var score = _stageAreaController.Score;
         UpdateScoreText(score);
-        _stageAreaController.ClearStagedCards();
+        _stageAreaController.ClearStageArea();
     }
 
     public ICardEffect GetEffectForRank(int rank)

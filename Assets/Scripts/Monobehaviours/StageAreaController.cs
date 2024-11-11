@@ -42,16 +42,14 @@ public class StageAreaController : MonoBehaviour
         return _cardsStaged.Count > 0 ? _cardsStaged[0] : null;
     }
 
-    public int CheckStagedCards()
+    public void ClearStageArea()
     {
-        return _cardsStaged.Count;
-    }
-
-    public void ClearStagedCards()
-    {
-        foreach (var card in _cardsStaged.ToList())
+        foreach (var gameCard in _cardsStaged.ToList())
         {
-            Destroy(card.UI.gameObject);
+            if (gameCard.UI is not null)
+            {
+                Destroy(gameCard.UI.gameObject);
+            }
         }
         
         _cardsStaged.Clear();

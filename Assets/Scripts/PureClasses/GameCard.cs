@@ -15,7 +15,7 @@ public class GameCard
         _cardEffect = effect;
     }
 
-    public string Description => _cardEffect?.Description ?? "No effect";
+    public string Description => _cardEffect?.EffectDescription ?? "No effect";
 
     public void ActivateEffect()
     {
