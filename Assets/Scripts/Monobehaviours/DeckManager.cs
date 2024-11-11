@@ -1,18 +1,28 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class DeckManager : MonoBehaviour
 {
+    public static DeckManager Instance { get; private set; }
+
     private Dictionary<CardData, int> _defaultDeckConfiguration;
     public Deck CurrentDeck { get; private set; }
+    public List<CardData> DiscardPile { get; private set; } = new List<CardData>();
 
     public event Action<CardData> OnCardDrawn;
 
     private void Awake()
     {
-        InitializeDecks();
+        if (Instance == null)
+        {
+            Instance = this;
+            InitializeDecks();
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
     
     private void Start()
@@ -27,7 +37,7 @@ public class DeckManager : MonoBehaviour
 
         foreach (var card in allCards)
         {
-            _defaultDeckConfiguration.Add(card, 4);
+            _defaultDeckConfiguration.Add(card, 4); // Adjust quantity as needed
         }
     }
 
@@ -38,6 +48,23 @@ public class DeckManager : MonoBehaviour
         {
             OnCardDrawn?.Invoke(card);
         }
+        else
+        {
+            Debug.LogWarning("Deck is empty!");
+        }
         return card;
+    }
+
+    public void DiscardCard(CardData card)
+    {
+        if (card != null)
+        {
+            DiscardPile.Add(card);
+            Debug.Log($"Card Discarded: {card.CardName}");
+        }
+        else
+        {
+            Debug.LogWarning("Attempted to discard a null card.");
+        }
     }
 }

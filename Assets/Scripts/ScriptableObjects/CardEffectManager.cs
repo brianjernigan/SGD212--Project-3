@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CardEffectManager : MonoBehaviour
@@ -16,7 +15,6 @@ public class CardEffectManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            // Initialize poolers if necessary
         } 
         else
         {
@@ -28,7 +26,7 @@ public class CardEffectManager : MonoBehaviour
     {
         if (cardDrawEffectPrefab != null)
         {
-            ParticleSystem instance = ParticlePooler.Instance.GetPooledParticle();
+            ParticleSystem instance = ParticlePooler.Instance.GetPooledParticle(cardDrawEffectPrefab);
             instance.transform.position = position;
             instance.Play();
             StartCoroutine(ReturnParticleToPool(instance));
@@ -39,7 +37,7 @@ public class CardEffectManager : MonoBehaviour
     {
         if (cardPlayEffectPrefab != null)
         {
-            ParticleSystem instance = ParticlePooler.Instance.GetPooledParticle();
+            ParticleSystem instance = ParticlePooler.Instance.GetPooledParticle(cardPlayEffectPrefab);
             instance.transform.position = position;
             instance.Play();
             StartCoroutine(ReturnParticleToPool(instance));

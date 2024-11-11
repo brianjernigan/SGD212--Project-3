@@ -5,17 +5,16 @@ public class ParticlePooler : MonoBehaviour
 {
     public static ParticlePooler Instance { get; private set; }
 
-    [SerializeField] private ParticleSystem particlePrefab;
     [SerializeField] private int poolSize = 20;
 
-    private Queue<ParticleSystem> poolQueue = new Queue<ParticleSystem>();
+    private Dictionary<ParticleSystem, Queue<ParticleSystem>> poolDictionary = new Dictionary<ParticleSystem, Queue<ParticleSystem>>();
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            InitializePool();
+            // Do not destroy on load if needed
         }
         else
         {
@@ -23,34 +22,40 @@ public class ParticlePooler : MonoBehaviour
         }
     }
 
-    private void InitializePool()
+    public ParticleSystem GetPooledParticle(ParticleSystem prefab)
     {
-        for(int i = 0; i < poolSize; i++)
+        if (!poolDictionary.ContainsKey(prefab))
         {
-            ParticleSystem obj = Instantiate(particlePrefab);
-            obj.gameObject.SetActive(false);
-            poolQueue.Enqueue(obj);
+            poolDictionary[prefab] = new Queue<ParticleSystem>();
+            InitializePool(prefab);
         }
-    }
 
-    public ParticleSystem GetPooledParticle()
-    {
-        if(poolQueue.Count > 0)
+        if (poolDictionary[prefab].Count > 0)
         {
-            ParticleSystem obj = poolQueue.Dequeue();
+            ParticleSystem obj = poolDictionary[prefab].Dequeue();
             obj.gameObject.SetActive(true);
             return obj;
         }
         else
         {
-            ParticleSystem obj = Instantiate(particlePrefab);
+            ParticleSystem obj = Instantiate(prefab);
             return obj;
+        }
+    }
+
+    private void InitializePool(ParticleSystem prefab)
+    {
+        for (int i = 0; i < poolSize; i++)
+        {
+            ParticleSystem obj = Instantiate(prefab);
+            obj.gameObject.SetActive(false);
+            poolDictionary[prefab].Enqueue(obj);
         }
     }
 
     public void ReturnToPool(ParticleSystem obj)
     {
         obj.gameObject.SetActive(false);
-        poolQueue.Enqueue(obj);
+        poolDictionary[obj].Enqueue(obj);
     }
 }
