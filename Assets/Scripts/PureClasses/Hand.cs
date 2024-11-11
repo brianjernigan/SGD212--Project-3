@@ -5,72 +5,37 @@ using UnityEngine;
 // Defines data and structure of a player's hand
 public class Hand
 {
-    private const int BaseMaxHandSize = 5;
-    private readonly List<CardData> _cardsInHand;
-    private readonly Deck _currentDeck;
-    private int _currentMaxHandSize;
+    private readonly List<GameCard> _cardsInHand = new();
+    public int NumCardsInHand => _cardsInHand.Count;
 
-    public Hand(Deck currentDeck)
+    public bool TryAddCardToHand(GameCard gameCard)
     {
-        _cardsInHand = new List<CardData>();
-        _currentDeck = currentDeck;
-        _currentMaxHandSize = BaseMaxHandSize;
-    }
-
-    public bool AddCardToHand(out CardData cardAdded)
-    {
-        if (HandIsFull())
-        {
-            cardAdded = null;
-            return false;
-        }
-
-        cardAdded = DrawFromDeck();
-
-        if (cardAdded is null) return false;
-
-        _cardsInHand.Add(cardAdded);
+        if (gameCard is null) return false;
+        _cardsInHand.Add(gameCard);
         return true;
     }
 
-    private CardData DrawFromDeck()
+    public bool TryRemoveCardFromHand(GameCard gameCard)
     {
-        if (_currentDeck.IsEmpty()) return null;
+        if (gameCard is null || !_cardsInHand.Contains(gameCard)) return false;
 
-        var drawnCard = _currentDeck.CardsInDeck[0];
-        _currentDeck.CardsInDeck.RemoveAt(0);
-        return drawnCard;
+        _cardsInHand.Remove(gameCard);
+        return true;
     }
 
-    public bool RemoveCardFromHand(CardData cardDataToDiscard)
+    public IEnumerable<GameCard> GetCardsInHand()
     {
-        return _cardsInHand.Remove(cardDataToDiscard);
+        return _cardsInHand;
     }
 
-    public List<CardData> GetCardsInHand()
+    public void ClearHand()
     {
-        return new List<CardData>(_cardsInHand);
-    }
-
-    public int GetCurrentHandSize()
-    {
-        return _cardsInHand.Count;
-    }
-    
-    public bool HandIsFull()
-    {
-        return _cardsInHand.Count >= _currentMaxHandSize;
-    }
-
-    public void SetMaxHandSize(int newMaxHandSize)
-    {
-        _currentMaxHandSize = newMaxHandSize;
-        
-        // May want to discard far-right or far-left card if shrinking hand size
-    }
-
-    public int GetMaxHandSize()
-    {
-        return _currentMaxHandSize;
+        foreach (var gameCard in _cardsInHand)
+        {
+            if (gameCard.UI is not null)
+            {
+                Object.Destroy(gameCard.UI.gameObject);
+            }
+        }
     }
 }

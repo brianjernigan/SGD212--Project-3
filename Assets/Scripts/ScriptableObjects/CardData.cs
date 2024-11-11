@@ -9,14 +9,14 @@ using UnityEngine.UI;
 public class CardData : ScriptableObject
 {
     [SerializeField] private string _cardName;
-    [SerializeField] private Image _cardImage;
-    [SerializeField] private Image _backOfCardImage;
+    [SerializeField] private Sprite _cardSprite;
+    [SerializeField] private Sprite _backOfCardSprite;
     [SerializeField] private int _cardCost;
     [SerializeField] private int _cardRank;
 
     public string CardName => _cardName;
-    public Image CardImage => _cardImage;
-    public Image BackOfCardImage => _backOfCardImage;
+    public Sprite CardSprite => _cardSprite;
+    public Sprite BackOfCardSprite => _backOfCardSprite;
     public int CardCost => _cardCost;
     public int CardRank => _cardRank;
 }

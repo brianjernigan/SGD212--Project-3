@@ -225,9 +225,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03a69d4c5aa751548ab8032ee92b2220, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cardImage: {fileID: 3544415528229642477}
-  _cardRankText: {fileID: 5116549070859970164}
-  _cardCostText: {fileID: 8509968330693237564}
 --- !u!1 &4993888544048803376
 GameObject:
   m_ObjectHideFlags: 0

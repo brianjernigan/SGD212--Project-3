@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class StageAreaController : MonoBehaviour
 {
-    private readonly List<CardData> _cardsStaged = new();
-
+    private readonly List<GameCard> _cardsStaged = new();
+    public int NumCardsStaged => _cardsStaged.Count;
+    public int Score => _cardsStaged.Sum(card => card.Data.CardRank);
+    
     private bool CanStageCard(CardData card)
     {
         var cardsAreEmpty = _cardsStaged.Count == 0;
@@ -14,21 +17,38 @@ public class StageAreaController : MonoBehaviour
         if (cardsAreEmpty) return true;
         
         var cardsAreFull = _cardsStaged.Count >= 3;
-        var cardIsMatch = _cardsStaged[0].CardRank == card.CardRank;
+        var cardIsMatch = _cardsStaged[0].Data.CardRank == card.CardRank;
 
         return !cardsAreFull && cardIsMatch;
     }
 
-    public bool AddCardToStageArea(CardData card)
+    public bool TryAddCardToStageArea(GameCard gameCard)
     {
-        if (!CanStageCard(card)) return false;
+        var cardData = gameCard.Data;
+        
+        if (!CanStageCard(cardData)) return false;
 
-        _cardsStaged.Add(card);
+        _cardsStaged.Add(gameCard);
         return true;
     }
 
-    public bool RemoveCardFromStageArea(CardData card)
+    public bool TryRemoveCardFromStageArea(GameCard gameCard)
     {
-        return _cardsStaged.Remove(card);
+        return _cardsStaged.Contains(gameCard) && _cardsStaged.Remove(gameCard);
+    }
+
+    public int CheckStagedCards()
+    {
+        return _cardsStaged.Count;
+    }
+
+    public void ClearStagedCards()
+    {
+        foreach (var card in _cardsStaged.ToList())
+        {
+            Destroy(card.UI.gameObject);
+        }
+        
+        _cardsStaged.Clear();
     }
 }
