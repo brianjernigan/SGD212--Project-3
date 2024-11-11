@@ -36,6 +36,8 @@ public class GameManager : MonoBehaviour
     private Hand _playerHand;
 
     private Dictionary<CardData, int> _defaultDeckComposition;
+    private Dictionary<int, ICardEffect> _cardEffects;
+    
     private StageAreaController _stageAreaController;
     
     private void Awake()
@@ -51,7 +53,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void SetDeckCompositions()
+    private void InitializeDeckComposition()
     {
         _defaultDeckComposition = new Dictionary<CardData, int>
         {
@@ -70,9 +72,26 @@ public class GameManager : MonoBehaviour
         // Define other decks? 
     }
 
+    private void InitializeCardEffects()
+    {
+        _cardEffects = new Dictionary<int, ICardEffect>
+        {
+            {1, new SwapAndDiscard(_playerHand, _gameDeck) },
+            {2, new SwapAndDiscard(_playerHand, _gameDeck) },
+            {3, new SwapAndDiscard(_playerHand, _gameDeck) },
+            {4, new SwapAndDiscard(_playerHand, _gameDeck) },
+            {5, new SwapAndDiscard(_playerHand, _gameDeck) },
+            {6, new SwapAndDiscard(_playerHand, _gameDeck) },
+            {7, new SwapAndDiscard(_playerHand, _gameDeck) },
+            {8, new SwapAndDiscard(_playerHand, _gameDeck) },
+            {9, new SwapAndDiscard(_playerHand, _gameDeck) },
+        };
+    }
+
     private void Start()
     {
-        SetDeckCompositions();
+        InitializeDeckComposition();
+        InitializeCardEffects();
         
         _gameDeck = new Deck(_defaultDeckComposition, _cardUIPrefab);
         _playerHand = new Hand();
@@ -147,7 +166,12 @@ public class GameManager : MonoBehaviour
 
     private void TriggerCardEffect()
     {
-        Debug.Log("Triggering");
+        var firstStagedCard = _stageAreaController.GetFirstStagedCard();
+        if (firstStagedCard is null) return;
+
+        var effect = GetEffectForRank(firstStagedCard.Data.CardRank);
+        effect?.ActivateEffect();
+
         _stageAreaController.ClearStagedCards();
     }
 
@@ -156,6 +180,11 @@ public class GameManager : MonoBehaviour
         var score = _stageAreaController.Score;
         UpdateScoreText(score);
         _stageAreaController.ClearStagedCards();
+    }
+
+    public ICardEffect GetEffectForRank(int rank)
+    {
+        return _cardEffects.GetValueOrDefault(rank);
     }
 
     private void UpdateScoreText(int score)

@@ -37,6 +37,11 @@ public class StageAreaController : MonoBehaviour
         return _cardsStaged.Contains(gameCard) && _cardsStaged.Remove(gameCard);
     }
 
+    public GameCard GetFirstStagedCard()
+    {
+        return _cardsStaged.Count > 0 ? _cardsStaged[0] : null;
+    }
+
     public int CheckStagedCards()
     {
         return _cardsStaged.Count;

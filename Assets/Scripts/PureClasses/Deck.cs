@@ -51,10 +51,11 @@ public class Deck
         var drawnCardData = _cardsInDeck[0];
         _cardsInDeck.RemoveAt(0);
 
+        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
         var cardUIObject = Object.Instantiate(_cardUIPrefab, _handArea);
         var cardUI = cardUIObject.GetComponent<CardUI>();
 
-        var gameCard = new GameCard(drawnCardData, cardUI);
+        var gameCard = new GameCard(drawnCardData, cardUI, cardEffect);
         cardUI.InitializeCard(drawnCardData, gameCard);
 
         return gameCard;
