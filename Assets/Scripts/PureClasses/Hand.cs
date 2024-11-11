@@ -5,22 +5,22 @@ using UnityEngine;
 // Defines data and structure of a player's hand
 public class Hand
 {
-    private const int MaxHandSize = 5;
     private readonly List<GameCard> _cardsInHand = new();
-    private int NumCardsInHand => _cardsInHand.Count;
-    public bool IsFull => NumCardsInHand >= MaxHandSize;
+    public int NumCardsInHand => _cardsInHand.Count;
 
-    public void TryAddCardToHand(GameCard gameCard)
+    public bool TryAddCardToHand(GameCard gameCard)
     {
-        if (gameCard is null) return;
+        if (gameCard is null) return false;
         _cardsInHand.Add(gameCard);
+        return true;
     }
 
-    public void RemoveCardFromHand(GameCard gameCard)
+    public bool TryRemoveCardFromHand(GameCard gameCard)
     {
-        if (gameCard is null || !_cardsInHand.Contains(gameCard)) return;
+        if (gameCard is null || !_cardsInHand.Contains(gameCard)) return false;
 
         _cardsInHand.Remove(gameCard);
+        return true;
     }
 
     public IEnumerable<GameCard> GetCardsInHand()

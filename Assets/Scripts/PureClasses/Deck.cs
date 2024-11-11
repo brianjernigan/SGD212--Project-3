@@ -14,28 +14,26 @@ public class Deck
     private readonly GameObject _cardUIPrefab;
     private readonly RectTransform _handArea;
 
-    public Deck(IEnumerable<CardData> initialCards, GameObject uiPrefab)
+    public Deck(Dictionary<CardData, int> deckComposition, GameObject uiPrefab)
     {
-        _cardsInDeck = new List<CardData>(initialCards);
+        _cardsInDeck = new List<CardData>();
+        ConfigureDeck(deckComposition);
         _cardUIPrefab = uiPrefab;
         _handArea = GameManager.Instance.HandArea;
 
         ShuffleDeck();
     }
 
-    // private void InitializeDeck(Dictionary<CardData, int> deckComposition)
-    // {
-    //     foreach (var entry in deckComposition)
-    //     {
-    //         for (var i = 0; i < entry.Value; i++)
-    //         {
-    //             CardsInDeck.Add(entry.Key);
-    //         }
-    //     }
-    //
-    //     ShuffleDeck();
-    // }
-    //
+    private void ConfigureDeck(Dictionary<CardData, int> composition)
+    {
+        foreach (var entry in composition)
+        {
+            for (var i = 0; i < entry.Value; i++)
+            {
+                _cardsInDeck.Add(entry.Key);
+            }
+        }
+    }
     
     private void ShuffleDeck()
     {
