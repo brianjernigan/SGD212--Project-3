@@ -10,32 +10,76 @@ namespace HunterScripts
         [SerializeField] private Button drawButton;
         [SerializeField] private Button discardButton;
 
-        private HunterGameManager gameManager;
         private HunterHandManager handManager;
+        private HunterDeckManager deckManager;
 
         private void Start()
         {
-            gameManager = HunterGameManager.Instance;
+            // Ensure we have references to the necessary managers
             handManager = HunterHandManager.Instance;
+            deckManager = handManager != null ? handManager.GetComponent<HunterDeckManager>() : null;
 
+            if (handManager == null)
+            {
+                Debug.LogError("HunterUIManager: HunterHandManager instance not found.");
+            }
+
+            if (deckManager == null)
+            {
+                Debug.LogError("HunterUIManager: HunterDeckManager instance not found.");
+            }
+
+            // Assign button listeners
             playButton.onClick.AddListener(OnPlayButtonClicked);
             drawButton.onClick.AddListener(OnDrawButtonClicked);
             discardButton.onClick.AddListener(OnDiscardButtonClicked);
         }
 
-        public void OnPlayButtonClicked()
+        // Play selected card
+        private void OnPlayButtonClicked()
         {
-            handManager.PlaySelectedCard();
+            if (handManager != null)
+            {
+                HunterCardUI selectedCard = handManager.GetSelectedCard();
+                if (selectedCard != null)
+                {
+                    handManager.PlayCard(selectedCard);
+                }
+                else
+                {
+                    Debug.Log("OnPlayButtonClicked: No card selected to play.");
+                }
+            }
         }
 
-        public void OnDrawButtonClicked()
+        // Draw a new card
+        private void OnDrawButtonClicked()
         {
-            gameManager.DrawCard();
+            if (deckManager != null)
+            {
+                handManager.DrawCardsToHand(1); // Draws one card at a time
+            }
+            else
+            {
+                Debug.LogWarning("OnDrawButtonClicked: DeckManager is not available.");
+            }
         }
 
-        public void OnDiscardButtonClicked()
+        // Discard selected card
+        private void OnDiscardButtonClicked()
         {
-            handManager.DiscardSelectedCard();
+            if (handManager != null)
+            {
+                HunterCardUI selectedCard = handManager.GetSelectedCard();
+                if (selectedCard != null)
+                {
+                    handManager.DiscardCard(selectedCard);
+                }
+                else
+                {
+                    Debug.Log("OnDiscardButtonClicked: No card selected to discard.");
+                }
+            }
         }
     }
 }
