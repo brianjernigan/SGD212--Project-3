@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: SharkCardData
   m_EditorClassIdentifier: 
   cardName: 
-  cardImage: {fileID: 0}
+  cardMaterial: {fileID: 2100000, guid: 39e354b9ff54bf64ba5882dad6a938f6, type: 2}
   cardCost: 5
   cardRank: 9
-  cardMaterial: {fileID: 0}
-  effectType: 8

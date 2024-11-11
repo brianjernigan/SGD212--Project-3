@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: Orca
   m_EditorClassIdentifier: 
   cardName: 
-  cardImage: {fileID: 0}
+  cardMaterial: {fileID: 2100000, guid: 08af9a0a67355f648b8c23d59cd0e99f, type: 2}
   cardCost: 7
   cardRank: 10
-  cardMaterial: {fileID: 0}
-  effectType: 9

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: ElECardData
   m_EditorClassIdentifier: 
   cardName: 
-  cardMaterial: {fileID: 0}
+  cardMaterial: {fileID: 2100000, guid: 73d9be7968616a442aa899c73d6d0be0, type: 2}
   cardCost: 0
   cardRank: 0

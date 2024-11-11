@@ -1,5 +1,7 @@
 using UnityEngine;
-using UnityEngine.UI;
+using System.Collections.Generic; // For List<>
+using UnityEngine.UI; // For Button and other UI elements
+
 
 namespace HunterScripts
 {
@@ -45,7 +47,7 @@ namespace HunterScripts
                 Debug.LogWarning("OnDrawButtonClicked: DeckManager is not available.");
             }
         }
-        
+
         private void OnPlayButtonClicked()
         {
             if (handManager != null)

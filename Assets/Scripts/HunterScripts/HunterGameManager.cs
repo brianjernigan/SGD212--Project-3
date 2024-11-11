@@ -1,5 +1,6 @@
 using UnityEngine;
-using System.Collections.Generic;
+using System.Collections.Generic; // For List<>
+using UnityEngine.UI; // For Button and other UI elements
 
 namespace HunterScripts
 {
@@ -34,33 +35,30 @@ namespace HunterScripts
             if (hunterDeckManager != null)
             {
                 hunterDeckManager.InitializeDeck(allPossibleCards); // Pass allPossibleCards as an argument
+                hunterDeckManager.OnCardDrawn += hunterHandManager.HandleCardDrawn; // Subscribe to card drawn event
             }
             else
             {
                 Debug.LogError("HunterGameManager: HunterDeckManager is not assigned.");
             }
+
+            DrawFullHand(); // Start the game with a full hand
         }
 
-
-        private void InitializeGame()
+        private void DrawFullHand()
         {
-            hunterDeckManager.InitializeDeck(allPossibleCards);
-            hunterHandManager.DrawCardsToHand(5);
+            for (int i = 0; i < 5; i++)
+            {
+                hunterDeckManager.DrawCard();
+            }
         }
 
-        public void EndGame()
+        private void OnDestroy()
         {
-            // Implement end game logic here
-        }
-
-        public void DrawCard()
-        {
-            hunterDeckManager.DrawCard();
-        }
-
-        public void DiscardFromHand(HunterCardData card = null)
-        {
-            hunterDeckManager.DiscardFromHand(card);
+            if (hunterDeckManager != null)
+            {
+                hunterDeckManager.OnCardDrawn -= hunterHandManager.HandleCardDrawn; // Unsubscribe on destroy
+            }
         }
     }
 }

@@ -1,5 +1,9 @@
-using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using TMPro;
+using System.Collections.Generic;
+
 
 namespace HunterScripts
 {
@@ -23,12 +27,6 @@ namespace HunterScripts
 
         public void InitializeDeck(List<HunterCardData> allPossibleCards)
         {
-            if (allPossibleCards == null || allPossibleCards.Count == 0)
-            {
-                Debug.LogWarning("InitializeDeck: allPossibleCards is empty or null. Please assign cards in the Inspector.");
-                return;
-            }
-
             Dictionary<HunterCardData, int> deckComposition = new Dictionary<HunterCardData, int>();
 
             foreach (var card in allPossibleCards)
@@ -37,7 +35,6 @@ namespace HunterScripts
             }
 
             CurrentDeck = new HunterDeck(deckComposition);
-            Debug.Log($"Deck initialized with {CurrentDeck.RemainingCards()} cards.");
         }
 
         public void DrawCard()
@@ -49,19 +46,14 @@ namespace HunterScripts
             }
 
             var drawnCard = CurrentDeck.DrawCard();
-
             if (drawnCard == null)
             {
-                Debug.LogWarning("Attempted to draw a card, but the deck is empty!");
+                Debug.LogWarning("Deck is empty!");
                 return;
             }
 
+            // Invoke the event to notify that a card has been drawn
             OnCardDrawn?.Invoke(drawnCard);
-        }
-
-        public void DiscardFromHand(HunterCardData card)
-        {
-            // Implement discard logic if necessary
         }
     }
 }

@@ -19,7 +19,6 @@ namespace HunterScripts
         private Canvas canvas;
 
         private Animator animator;
-
         private bool isSelected = false;
         public bool IsSelected => isSelected;
 
@@ -33,24 +32,56 @@ namespace HunterScripts
 
         public void InitializeCard(HunterCardData data)
         {
-            cardData = data;
-            cardMeshRenderer.material = data.cardMaterial;
-            cardRankText.text = data.cardRank.ToString();
-            cardCostText.text = data.cardCost.ToString();
-            animator.SetTrigger("DrawCard");
-        }
+            if (data == null)
+            {
+                Debug.LogError("InitializeCard: cardData is null.");
+                return;
+            }
 
+            cardData = data;
+
+            if (cardMeshRenderer != null)
+            {
+                cardMeshRenderer.material = data.cardMaterial;
+            }
+            else
+            {
+                Debug.LogError("InitializeCard: cardMeshRenderer is not assigned.");
+            }
+
+            if (cardRankText != null)
+            {
+                cardRankText.text = data.cardRank.ToString();
+            }
+            else
+            {
+                Debug.LogError("InitializeCard: cardRankText is not assigned.");
+            }
+
+            if (cardCostText != null)
+            {
+                cardCostText.text = data.cardCost.ToString();
+            }
+            else
+            {
+                Debug.LogError("InitializeCard: cardCostText is not assigned.");
+            }
+
+            if (animator != null)
+            {
+                animator.SetTrigger("DrawCard");
+            }
+        }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
             originalPosition = transform.position;
             transform.SetParent(canvas.transform, true);
-            animator.SetTrigger("StartDrag");
+            animator?.SetTrigger("StartDrag");
         }
 
         public void OnDrag(PointerEventData eventData)
         {
-            // Convert screen position to world position using raycasting
             Ray ray = Camera.main.ScreenPointToRay(eventData.position);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
@@ -70,7 +101,6 @@ namespace HunterScripts
                 }
             }
 
-            // Return to Hand Area if not dropped over Action Zone
             ReturnToHand();
         }
 
@@ -82,24 +112,26 @@ namespace HunterScripts
         private void ToggleSelection()
         {
             isSelected = !isSelected;
-            animator.SetBool("IsSelected", isSelected);
+            if (animator != null)
+            {
+                animator.SetBool("IsSelected", isSelected);
+            }
         }
 
         private void PlayCard()
         {
-            if (HunterHandManager.Instance != null)
-            {
-                HunterHandManager.Instance.PlayCard(this);
-            }
-
-            HunterCardEffectManager.Instance.PlayPlayEffect(transform.position);
-            animator.SetTrigger("PlayCard");
+            HunterHandManager.Instance?.PlayCard(this);
+            HunterCardEffectManager.Instance?.PlayPlayEffect(transform.position);
+            animator?.SetTrigger("PlayCard");
             Destroy(gameObject);
         }
 
         private void ReturnToHand()
         {
-            animator.SetTrigger("ReturnToHand");
+            if (animator != null)
+            {
+                animator.SetTrigger("ReturnToHand");
+            }
             transform.position = originalPosition;
             transform.SetParent(originalParent, true);
         }
