@@ -11,12 +11,14 @@ public class CardData : ScriptableObject
     [SerializeField] private string _cardName;
     [SerializeField] private Sprite _cardSprite;
     [SerializeField] private Sprite _backOfCardSprite;
+    [SerializeField] private Sprite _descriptionBoxSprite;
     [SerializeField] private int _cardCost;
     [SerializeField] private int _cardRank;
 
     public string CardName => _cardName;
     public Sprite CardSprite => _cardSprite;
     public Sprite BackOfCardSprite => _backOfCardSprite;
+    public Sprite DescriptionBoxSprite => _descriptionBoxSprite;
     public int CardCost => _cardCost;
     public int CardRank => _cardRank;
 }

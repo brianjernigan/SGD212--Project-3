@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Ten
   m_EditorClassIdentifier: 
   _cardName: Ten
-  _cardImage: {fileID: 0}
+  _cardSprite: {fileID: 21300000, guid: 8b308c3fda17a5140a28195393cfc417, type: 3}
+  _backOfCardSprite: {fileID: 0}
+  _descriptionBoxSprite: {fileID: 2126485045, guid: 0c3046ed6ba393a4286118876b24f994, type: 3}
   _cardCost: 3
   _cardRank: 10

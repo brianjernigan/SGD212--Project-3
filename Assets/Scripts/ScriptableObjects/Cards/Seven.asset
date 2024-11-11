@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Seven
   m_EditorClassIdentifier: 
   _cardName: Seven
-  _cardImage: {fileID: 0}
+  _cardSprite: {fileID: 21300000, guid: 6fdacbec065992e4d87f1a72112e8cc1, type: 3}
+  _backOfCardSprite: {fileID: 0}
+  _descriptionBoxSprite: {fileID: -390513020, guid: 8251ade544c564245bd4388dd744ad63, type: 3}
   _cardCost: 2
   _cardRank: 7

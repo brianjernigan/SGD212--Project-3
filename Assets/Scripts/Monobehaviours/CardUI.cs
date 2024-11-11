@@ -13,6 +13,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     private GameObject _descriptionBox;
 
     private Image _cardImage;
+    private Image _descriptionBoxImage;
     
     private TMP_Text _cardRankText;
     private TMP_Text _cardCostText;
@@ -35,14 +36,16 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     {
         _cardRankText = _cardObject.transform.GetChild(0).GetComponent<TMP_Text>();
         _cardCostText = _cardObject.transform.GetChild(1).GetComponent<TMP_Text>();
-        _cardImage = _cardObject.transform.GetChild(2).GetComponent<Image>();
-        _descriptionBox = _cardObject.transform.GetChild(3).gameObject;
+        _descriptionBox = _cardObject.transform.GetChild(2).gameObject;
         _descriptionText = _descriptionBox.GetComponentInChildren<TMP_Text>();
+        _cardImage = _cardObject.GetComponent<Image>();
+        _descriptionBoxImage = _descriptionBox.GetComponent<Image>();
 
         _cardRankText.text = _cardData.CardRank.ToString();
         _cardCostText.text = _cardData.CardCost.ToString();
         _cardImage.sprite = _cardData.CardSprite;
         _descriptionText.text = _gameCard.Description;
+        _descriptionBoxImage.sprite = _cardData.DescriptionBoxSprite;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
