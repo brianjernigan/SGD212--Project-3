@@ -3,79 +3,46 @@ using UnityEngine;
 
 namespace HunterScripts
 {
-    public class HunterDeck
+    public class HunterDeckManager : MonoBehaviour
     {
-        private List<HunterCardData> currentDeck;
+        public static HunterDeckManager Instance { get; private set; }
+        public HunterDeck CurrentDeck { get; private set; }
 
-        public HunterDeck(Dictionary<HunterCardData, int> deckComposition)
+        public delegate void CardDrawnHandler(HunterCardData drawnCard);
+        public event CardDrawnHandler OnCardDrawn;
+
+        private void Awake()
         {
-            currentDeck = new List<HunterCardData>();
-            InitializeDeck(deckComposition);
+            if (Instance == null)
+                Instance = this;
+            else
+                Destroy(gameObject);
         }
 
-        private void InitializeDeck(Dictionary<HunterCardData, int> deckComposition)
+        public void InitializeDeck(List<HunterCardData> allPossibleCards)
         {
-            foreach (var entry in deckComposition)
+            Dictionary<HunterCardData, int> deckComposition = new Dictionary<HunterCardData, int>();
+
+            foreach (var card in allPossibleCards)
             {
-                for (int i = 0; i < entry.Value; i++)
-                {
-                    currentDeck.Add(entry.Key);
-                }
+                deckComposition.Add(card, 1); // Adjust quantity as needed
             }
 
-            ShuffleDeck();
+            CurrentDeck = new HunterDeck(deckComposition);
         }
 
-        public void ShuffleDeck()
+        public void DrawCard()
         {
-            for (int i = currentDeck.Count - 1; i > 0; i--)
+            if (CurrentDeck != null)
             {
-                int j = Random.Range(0, i + 1);
-                (currentDeck[i], currentDeck[j]) = (currentDeck[j], currentDeck[i]);
+                var drawnCard = CurrentDeck.DrawCard();
+                OnCardDrawn?.Invoke(drawnCard);
             }
         }
 
-        public HunterCardData DrawCard()
+        public void DiscardFromHand(HunterCardData card)
         {
-            if (currentDeck.Count == 0)
-            {
-                Debug.LogWarning("Deck is empty!");
-                return null;
-            }
-
-            HunterCardData drawnCard = currentDeck[0];
-            currentDeck.RemoveAt(0);
-            return drawnCard;
-        }
-
-        public List<HunterCardData> DrawMultipleCards(int numberOfCards)
-        {
-            List<HunterCardData> drawnCards = new List<HunterCardData>();
-
-            for (int i = 0; i < numberOfCards; i++)
-            {
-                HunterCardData card = DrawCard();
-                if (card != null)
-                {
-                    drawnCards.Add(card);
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return drawnCards;
-        }
-
-        public bool IsEmpty()
-        {
-            return currentDeck.Count == 0;
-        }
-
-        public int RemainingCards()
-        {
-            return currentDeck.Count;
+            // Implement discard logic if necessary
         }
     }
 }

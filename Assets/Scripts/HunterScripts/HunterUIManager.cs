@@ -12,22 +12,17 @@ namespace HunterScripts
 
         private HunterGameManager gameManager;
         private HunterHandManager handManager;
-        private HunterDeckManager deckManager;
 
         private void Start()
         {
-            // Initialize references
             gameManager = HunterGameManager.Instance;
-            handManager = HunterHandManager.Instance; // Ensure HunterHandManager uses Singleton
-            deckManager = HunterDeckManager.Instance;
+            handManager = HunterHandManager.Instance;
 
-            // Optional: Assign button listeners via script
             playButton.onClick.AddListener(OnPlayButtonClicked);
-             drawButton.onClick.AddListener(OnDrawButtonClicked);
-             discardButton.onClick.AddListener(OnDiscardButtonClicked);
+            drawButton.onClick.AddListener(OnDrawButtonClicked);
+            discardButton.onClick.AddListener(OnDiscardButtonClicked);
         }
 
-        // Public methods to be linked to buttons
         public void OnPlayButtonClicked()
         {
             handManager.PlaySelectedCard();
@@ -35,7 +30,7 @@ namespace HunterScripts
 
         public void OnDrawButtonClicked()
         {
-            deckManager.DrawCard();
+            gameManager.DrawCard();
         }
 
         public void OnDiscardButtonClicked()

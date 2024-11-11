@@ -37,9 +37,9 @@ namespace HunterScripts
             cardMeshRenderer.material = data.cardMaterial;
             cardRankText.text = data.cardRank.ToString();
             cardCostText.text = data.cardCost.ToString();
-
             animator.SetTrigger("DrawCard");
         }
+
 
         public void OnBeginDrag(PointerEventData eventData)
         {

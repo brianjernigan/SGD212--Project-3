@@ -9,6 +9,7 @@ TagManager:
   - DeckManager
   - GameManager
   - DiscardArea
+  - ActionZone
   layers:
   - Default
   - TransparentFX

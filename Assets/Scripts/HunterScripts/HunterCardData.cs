@@ -9,5 +9,8 @@ namespace HunterScripts
         public Material cardMaterial;
         public int cardCost;
         public int cardRank;
+
+        // If CardEffect is not defined, comment out or remove this line
+        // public CardEffect effect;
     }
 }

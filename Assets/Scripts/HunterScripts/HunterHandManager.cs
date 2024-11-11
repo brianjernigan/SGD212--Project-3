@@ -1,15 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HunterScripts
 {
     public class HunterHandManager : MonoBehaviour
     {
+        [Header("Card Settings")]
         [SerializeField] private GameObject hunterCardPrefab;
         [SerializeField] private RectTransform handArea; // Should have Horizontal Layout Group
         [SerializeField] private HunterDeckManager hunterDeckManager;
         [SerializeField] private float spawnDelay = 0.2f; // Delay between spawns
+        [SerializeField] private float animationDuration = 0.3f; // Duration for entrance animation
 
         private HunterHand playerHand;
         public HunterHand PlayerHand => playerHand;
@@ -17,7 +20,6 @@ namespace HunterScripts
         private HunterDeck currentDeck;
         private List<HunterCardUI> onScreenCards = new List<HunterCardUI>();
 
-        // Singleton Pattern
         public static HunterHandManager Instance { get; private set; }
 
         private void Awake()
@@ -25,7 +27,15 @@ namespace HunterScripts
             if (Instance == null)
                 Instance = this;
             else
+            {
                 Destroy(gameObject);
+                return;
+            }
+
+            if (hunterDeckManager == null)
+            {
+                Debug.LogError("HunterHandManager: 'hunterDeckManager' is not assigned in the Inspector.");
+            }
 
             currentDeck = hunterDeckManager.CurrentDeck;
             playerHand = new HunterHand(currentDeck);
@@ -33,12 +43,22 @@ namespace HunterScripts
 
         private void OnEnable()
         {
-            hunterDeckManager.OnCardDrawn += HandleCardDrawn;
+            if (hunterDeckManager != null)
+            {
+                hunterDeckManager.OnCardDrawn += HandleCardDrawn;
+            }
+            else
+            {
+                Debug.LogError("HunterHandManager: 'hunterDeckManager' is null in OnEnable.");
+            }
         }
 
         private void OnDisable()
         {
-            hunterDeckManager.OnCardDrawn -= HandleCardDrawn;
+            if (hunterDeckManager != null)
+            {
+                hunterDeckManager.OnCardDrawn -= HandleCardDrawn;
+            }
         }
 
         public void DrawCardsToHand(int numberOfCards)
@@ -57,47 +77,63 @@ namespace HunterScripts
 
         private void HandleCardDrawn(HunterCardData drawnCard)
         {
-            if (drawnCard == null) return;
-            if (!playerHand.AddCard(drawnCard)) return;
+            if (drawnCard == null)
+            {
+                Debug.LogWarning("HandleCardDrawn: 'drawnCard' is null.");
+                return;
+            }
+
+            if (!playerHand.AddCard(drawnCard))
+            {
+                Debug.LogWarning("HandleCardDrawn: Player's hand is full. Cannot add more cards.");
+                return;
+            }
 
             // Instantiate the card prefab as a child of the hand area
-            var onScreenCard = Instantiate(hunterCardPrefab, handArea);
-            var cardUI = onScreenCard.GetComponent<HunterCardUI>();
-            if (cardUI != null)
+            GameObject onScreenCard = Instantiate(hunterCardPrefab, handArea);
+            HunterCardUI cardUI = onScreenCard.GetComponent<HunterCardUI>();
+
+            if (cardUI == null)
             {
-                cardUI.InitializeCard(drawnCard);
-                onScreenCards.Add(cardUI);
+                Debug.LogError("HandleCardDrawn: 'HunterCardUI' component is missing on the instantiated card prefab.");
+                Destroy(onScreenCard);
+                return;
+            }
 
-                // Optional: Play a draw effect at the card's position
+            // Initialize the card with its data
+            cardUI.InitializeCard(drawnCard);
+            onScreenCards.Add(cardUI);
+
+            // Play draw effect
+            if (HunterCardEffectManager.Instance != null)
+            {
                 HunterCardEffectManager.Instance.PlayDrawEffect(onScreenCard.transform.position);
-
-                // Optional: Animate card entrance
-                StartCoroutine(AnimateCardEntrance(cardUI));
             }
             else
             {
-                Debug.LogError("HunterCardUI component is missing on the card prefab.");
+                Debug.LogError("HandleCardDrawn: 'HunterCardEffectManager.Instance' is null.");
             }
+
+            // Start the entrance animation
+            StartCoroutine(AnimateCardEntrance(onScreenCard.transform));
         }
 
-        private IEnumerator AnimateCardEntrance(HunterCardUI cardUI)
+        private IEnumerator AnimateCardEntrance(Transform cardTransform)
         {
-            // Optional: Animate scaling from 0 to 1 for a pop-in effect
-            Vector3 originalScale = cardUI.transform.localScale;
-            cardUI.transform.localScale = Vector3.zero;
-            float duration = 0.3f;
+            // Store original scale
+            Vector3 targetScale = cardTransform.localScale;
+            cardTransform.localScale = Vector3.zero;
+
             float elapsed = 0f;
 
-            while (elapsed < duration)
+            while (elapsed < animationDuration)
             {
-                cardUI.transform.localScale = Vector3.Lerp(Vector3.zero, originalScale, elapsed / duration);
+                cardTransform.localScale = Vector3.Lerp(Vector3.zero, targetScale, elapsed / animationDuration);
                 elapsed += Time.deltaTime;
                 yield return null;
             }
-            cardUI.transform.localScale = originalScale;
 
-            // Optionally, wait for a short delay before allowing the next card to spawn
-            yield return new WaitForSeconds(spawnDelay);
+            cardTransform.localScale = targetScale;
         }
 
         public void PlayCard(HunterCardUI cardUI)
@@ -109,21 +145,54 @@ namespace HunterScripts
 
             playerHand.RemoveCard(cardUI.CardData);
 
-            // Activate card effect
-            // Ensure that 'effect' is properly defined and accessible in HunterCardData
-            if (cardUI.CardData.effectType != 0) // Replace with your actual effect activation logic
+            // Activate card effect if any (implementation depends on your game logic)
+            // Example:
+            // cardUI.CardData.effect.ActivateEffect();
+
+            // Play play effect
+            if (HunterCardEffectManager.Instance != null)
             {
-                // Example: ActivateEffect method based on effectType
-                // cardUI.CardData.effect.ActivateEffect(HunterGameManager.Instance);
-                // Replace the above line with your actual effect activation code
+                HunterCardEffectManager.Instance.PlayPlayEffect(cardUI.transform.position);
+            }
+            else
+            {
+                Debug.LogError("PlayCard: 'HunterCardEffectManager.Instance' is null.");
             }
 
-            // Optionally, trigger animations or particle effects here
+            // Start play card animation (optional)
+            StartCoroutine(AnimateCardPlay(cardUI.transform));
 
             Destroy(cardUI.gameObject);
         }
 
-        // New Methods for UI Manager
+        private IEnumerator AnimateCardPlay(Transform cardTransform)
+        {
+            Vector3 initialScale = cardTransform.localScale;
+            Vector3 targetScale = initialScale * 1.2f; // Example: Scale up slightly
+            float halfDuration = animationDuration / 2f;
+            float elapsed = 0f;
+
+            // Scale up
+            while (elapsed < halfDuration)
+            {
+                cardTransform.localScale = Vector3.Lerp(initialScale, targetScale, elapsed / halfDuration);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            cardTransform.localScale = targetScale;
+            elapsed = 0f;
+
+            // Scale down to zero
+            while (elapsed < halfDuration)
+            {
+                cardTransform.localScale = Vector3.Lerp(targetScale, Vector3.zero, elapsed / halfDuration);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            cardTransform.localScale = Vector3.zero;
+        }
 
         public void PlaySelectedCard()
         {
@@ -135,7 +204,7 @@ namespace HunterScripts
             }
             else
             {
-                Debug.Log("No card selected to play.");
+                Debug.Log("PlaySelectedCard: No card selected to play.");
             }
         }
 
@@ -149,7 +218,7 @@ namespace HunterScripts
             }
             else
             {
-                Debug.Log("No card selected to discard.");
+                Debug.Log("DiscardSelectedCard: No card selected to discard.");
             }
         }
 
@@ -171,13 +240,32 @@ namespace HunterScripts
             }
 
             playerHand.RemoveCard(cardUI.CardData);
-
-            // Add to discard pile
             hunterDeckManager.DiscardFromHand(cardUI.CardData);
 
-            // Optionally, trigger animations or particle effects here
+            // Play discard effect if any (implementation depends on your game logic)
+            // Example:
+            // HunterCardEffectManager.Instance.PlayDiscardEffect(cardUI.transform.position);
+
+            // Start discard animation (optional)
+            StartCoroutine(AnimateCardDiscard(cardUI.transform));
 
             Destroy(cardUI.gameObject);
+        }
+
+        private IEnumerator AnimateCardDiscard(Transform cardTransform)
+        {
+            Vector3 initialScale = cardTransform.localScale;
+            Vector3 targetScale = Vector3.zero;
+            float elapsed = 0f;
+
+            while (elapsed < animationDuration)
+            {
+                cardTransform.localScale = Vector3.Lerp(initialScale, targetScale, elapsed / animationDuration);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            cardTransform.localScale = targetScale;
         }
     }
 }
