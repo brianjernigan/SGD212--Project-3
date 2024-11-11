@@ -15,15 +15,14 @@ namespace HunterScripts
 
         private void Start()
         {
-            // Ensure we have references to the necessary managers
+            // Find the instances of hand and deck managers
             handManager = HunterHandManager.Instance;
-            deckManager = handManager != null ? handManager.GetComponent<HunterDeckManager>() : null;
-
             if (handManager == null)
             {
                 Debug.LogError("HunterUIManager: HunterHandManager instance not found.");
             }
 
+            deckManager = HunterDeckManager.Instance;
             if (deckManager == null)
             {
                 Debug.LogError("HunterUIManager: HunterDeckManager instance not found.");
@@ -35,7 +34,18 @@ namespace HunterScripts
             discardButton.onClick.AddListener(OnDiscardButtonClicked);
         }
 
-        // Play selected card
+        private void OnDrawButtonClicked()
+        {
+            if (deckManager != null)
+            {
+                handManager.DrawCardsToHand(1); // Draws one card at a time
+            }
+            else
+            {
+                Debug.LogWarning("OnDrawButtonClicked: DeckManager is not available.");
+            }
+        }
+        
         private void OnPlayButtonClicked()
         {
             if (handManager != null)
@@ -49,19 +59,6 @@ namespace HunterScripts
                 {
                     Debug.Log("OnPlayButtonClicked: No card selected to play.");
                 }
-            }
-        }
-
-        // Draw a new card
-        private void OnDrawButtonClicked()
-        {
-            if (deckManager != null)
-            {
-                handManager.DrawCardsToHand(1); // Draws one card at a time
-            }
-            else
-            {
-                Debug.LogWarning("OnDrawButtonClicked: DeckManager is not available.");
             }
         }
 

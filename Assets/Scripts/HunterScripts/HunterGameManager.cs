@@ -30,8 +30,17 @@ namespace HunterScripts
 
         private void Start()
         {
-            InitializeGame();
+            // Initialize the deck at the start of the game
+            if (hunterDeckManager != null)
+            {
+                hunterDeckManager.InitializeDeck(allPossibleCards); // Pass allPossibleCards as an argument
+            }
+            else
+            {
+                Debug.LogError("HunterGameManager: HunterDeckManager is not assigned.");
+            }
         }
+
 
         private void InitializeGame()
         {

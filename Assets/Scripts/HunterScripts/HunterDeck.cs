@@ -63,7 +63,7 @@ namespace HunterScripts
                 }
                 else
                 {
-                    break;
+                    break; // Stop drawing if deck is empty
                 }
             }
 
