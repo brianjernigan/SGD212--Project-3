@@ -9,6 +9,8 @@ namespace HunterScripts
         [Header("Card Settings")]
         [SerializeField] private GameObject hunterCardPrefab;
         [SerializeField] private Transform handArea;
+        [SerializeField] private float cardSpacing = 0.5f; // Adjust spacing between cards
+        [SerializeField] private float curveAngle = 15f; // Angle for fan layout (optional)
 
         private List<HunterCardUI> onScreenCards = new List<HunterCardUI>();
 
@@ -27,7 +29,6 @@ namespace HunterScripts
 
         public void DrawCardsToHand(int numberOfCards)
         {
-            // Call to draw multiple cards
             StartCoroutine(DrawCardsCoroutine(numberOfCards));
         }
 
@@ -59,6 +60,7 @@ namespace HunterScripts
                 onScreenCards.Remove(card);
                 HunterCardEffectManager.Instance?.PlayPlayEffect(card.transform.position);
                 Destroy(card.gameObject);
+                PositionCardsInHand(); // Reposition remaining cards
             }
         }
 
@@ -68,6 +70,7 @@ namespace HunterScripts
             {
                 onScreenCards.Remove(card);
                 Destroy(card.gameObject);
+                PositionCardsInHand(); // Reposition remaining cards
             }
         }
 
@@ -80,10 +83,13 @@ namespace HunterScripts
             }
 
             GameObject onScreenCard = Instantiate(hunterCardPrefab, handArea);
+            onScreenCard.transform.localScale = Vector3.one;
+
             if (onScreenCard.TryGetComponent(out HunterCardUI cardUI))
             {
                 cardUI.InitializeCard(drawnCard);
                 onScreenCards.Add(cardUI);
+                PositionCardsInHand(); // Arrange cards after adding
             }
             else
             {
@@ -91,5 +97,36 @@ namespace HunterScripts
                 Destroy(onScreenCard);
             }
         }
+
+        // Method to position cards in a spread-out layout within the hand area
+        private void PositionCardsInHand()
+        {
+            int cardCount = onScreenCards.Count;
+            if (cardCount == 0) return; // No cards to position
+
+            float totalWidth = (cardCount - 1) * cardSpacing;
+
+            for (int i = 0; i < cardCount; i++)
+            {
+                HunterCardUI card = onScreenCards[i];
+
+                // Calculate the x-offset for each card based on its position in the list
+                float offsetX = -totalWidth / 2 + i * cardSpacing;
+                Vector3 targetPosition = new Vector3(offsetX, 0, 0);
+
+                // Avoid applying rotation if there’s only one card to prevent NaN errors
+                Quaternion targetRotation = Quaternion.identity;
+                if (cardCount > 1)
+                {
+                    float angle = -curveAngle / 2 + (curveAngle / (cardCount - 1)) * i;
+                    targetRotation = Quaternion.Euler(0, 0, angle);
+                }
+
+                // Assign position and rotation to each card
+                card.transform.localPosition = targetPosition;
+                card.transform.localRotation = targetRotation;
+            }
+        }
+
     }
 }
