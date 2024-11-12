@@ -37,6 +37,8 @@ namespace HunterScripts
         [SerializeField] private Vector3 selectedRotation = new Vector3(0, 0, 0); // Rotation when selected
         [SerializeField] private Vector3 deselectedRotation = new Vector3(0, 0, 0); // Rotation when not selected
         [SerializeField] private float rotationSpeed = 0.3f; // Speed of rotation animation
+        [SerializeField] private Vector3 selectedOffset = new Vector3(0, 0.5f, 0); // Offset when selected
+
 
         private bool isHovered = false;
         private Coroutine hoverCoroutine;
@@ -287,29 +289,50 @@ namespace HunterScripts
             }
         }
 
-        private void ToggleSelection()
+       public void ToggleSelection()
         {
             isSelected = !isSelected;
-            Debug.Log("HunterCardUI: Card " + gameObject.name + " selected: " + isSelected);
-            animator?.SetBool("IsSelected", isSelected);
 
+            // Stop any existing coroutine for positioning and rotation
             if (rotationCoroutine != null)
             {
                 StopCoroutine(rotationCoroutine);
-                Debug.Log("HunterCardUI: Stopped existing rotation coroutine.");
             }
 
             if (isSelected)
             {
-                rotationCoroutine = StartCoroutine(RotateCard(selectedRotation));
-                Debug.Log("HunterCardUI: Starting RotateCard coroutine to selectedRotation.");
+                // Move the card up with the selected rotation
+                StartCoroutine(MoveCardToPosition(originalLocalPosition + selectedOffset, Quaternion.Euler(selectedRotation)));
+
+                // Deselect other cards in hand
+                HunterHandManager.Instance.DeselectOtherCards(this);
             }
             else
             {
-                rotationCoroutine = StartCoroutine(RotateCard(deselectedRotation));
-                Debug.Log("HunterCardUI: Starting RotateCard coroutine to deselectedRotation.");
+                // If deselected, return to the original position and rotation
+                StartCoroutine(ReturnToOriginalPosition());
             }
         }
+
+
+        private IEnumerator MoveCardToPosition(Vector3 targetPosition, Quaternion targetRotation)
+        {
+            Vector3 startPosition = transform.localPosition;
+            Quaternion startRotation = transform.localRotation;
+            float elapsed = 0f;
+
+            while (elapsed < animationSpeed)
+            {
+                transform.localPosition = Vector3.Lerp(startPosition, targetPosition, elapsed / animationSpeed);
+                transform.localRotation = Quaternion.Slerp(startRotation, targetRotation, elapsed / animationSpeed);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            transform.localPosition = targetPosition;
+            transform.localRotation = targetRotation;
+        }
+
 
         private IEnumerator RotateCard(Vector3 targetEulerAngles)
         {
@@ -370,5 +393,13 @@ namespace HunterScripts
             Debug.Log("HunterCardUI: OnMouseDown detected on " + gameObject.name);
             ToggleSelection();
         }
+
+        private IEnumerator ReturnToOriginalPosition()
+        {
+            yield return MoveCardToPosition(originalLocalPosition, originalLocalRotation); // Reuse the updated coroutine for consistency
+        }
+
+
+
     }
 }

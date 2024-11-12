@@ -132,5 +132,18 @@ namespace HunterScripts
                 card.transform.localRotation = Quaternion.Euler(0, 0, angle);
             }
         }
+
+        public void DeselectOtherCards(HunterCardUI selectedCard)
+        {
+            foreach (var card in onScreenCards)
+            {
+                if (card != selectedCard && card.IsSelected)
+                {
+                    card.ToggleSelection(); // This will trigger the card to return to its original position
+                }
+            }
+        }
+
     }
+
 }
