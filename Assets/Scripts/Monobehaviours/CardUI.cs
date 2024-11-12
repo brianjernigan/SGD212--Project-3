@@ -23,6 +23,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     private Vector3 _originalScale;
     private Transform _originalParent;
     private RectTransform _originalArea;
+    private int _originalSiblingIndex;
     
     public void InitializeCard(CardData cardData, GameCard gameCard)
     {
@@ -62,10 +63,11 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         _originalParent = transform.parent;
         _originalScale = transform.localScale;
         _originalArea = GetCurrentArea(eventData);
+        _originalSiblingIndex = transform.GetSiblingIndex();
 
         transform.localScale *= 1.1f;
-        GameManager.Instance.GameCanvasGroup.alpha = 0.95f;
-        
+        GameManager.Instance.GameCanvasGroup.alpha = 0.9f;
+
         transform.SetParent(GameManager.Instance.GameCanvas.transform);
         _descriptionBox.gameObject.SetActive(false);
     }
@@ -73,6 +75,8 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     public void OnDrag(PointerEventData eventData)
     {
         transform.position = eventData.position;
+        
+        Debug.Log(GetCurrentArea(eventData));
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -112,6 +116,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         transform.SetParent(_originalParent);
         transform.localScale = _originalScale;
         transform.position = _originalPosition;
+        transform.SetSiblingIndex(_originalSiblingIndex);
     }
 
     private RectTransform GetCurrentArea(PointerEventData eventData)
@@ -120,7 +125,8 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         {
             GameManager.Instance.HandArea,
             GameManager.Instance.StageArea,
-            GameManager.Instance.DiscardArea
+            GameManager.Instance.DiscardArea,
+            GameManager.Instance.GamePanel
         };
 
         foreach (var area in dropAreas)

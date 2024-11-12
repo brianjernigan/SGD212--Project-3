@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private RectTransform _handArea;
     [SerializeField] private RectTransform _stageArea;
     [SerializeField] private RectTransform _discardArea;
+    [SerializeField] private RectTransform _gamePanel;
 
     [Header("Canvas")]
     [SerializeField] private Canvas _gameCanvas;
@@ -27,6 +28,7 @@ public class GameManager : MonoBehaviour
     public RectTransform HandArea => _handArea;
     public RectTransform StageArea => _stageArea;
     public RectTransform DiscardArea => _discardArea;
+    public RectTransform GamePanel => _gamePanel;
 
     public int CardsOnScreen => _playerHand.NumCardsInHand + _stageAreaController.NumCardsStaged;
     public int MaxCardsOnScreen { get; set; } = 5;
@@ -142,7 +144,6 @@ public class GameManager : MonoBehaviour
                 !_stageAreaController.TryRemoveCardFromStageArea(gameCard)) return false;
             Destroy(gameCard.UI.gameObject);
             return true;
-
         }
         // Stage Card
         if (dropArea == StageArea)
@@ -156,6 +157,8 @@ public class GameManager : MonoBehaviour
     public void OnClickPlayButton()
     {
         var numCardsStaged = _stageAreaController.NumCardsStaged;
+        
+        // Check cards in hand? 
 
         switch (numCardsStaged)
         {

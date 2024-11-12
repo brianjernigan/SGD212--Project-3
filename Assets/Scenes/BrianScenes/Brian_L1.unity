@@ -1450,6 +1450,7 @@ MonoBehaviour:
   _handArea: {fileID: 849913154}
   _stageArea: {fileID: 1731640585}
   _discardArea: {fileID: 1403079198}
+  _gamePanel: {fileID: 787005783}
   _gameCanvas: {fileID: 870873928}
   _gameCanvasGroup: {fileID: 787005786}
   _scoreText: {fileID: 1625524900}

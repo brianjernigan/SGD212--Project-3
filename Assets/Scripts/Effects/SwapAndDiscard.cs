@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class SwapAndDiscard : ICardEffect
 {
-    private Hand _playerHand;
-    private Deck _gameDeck;
+    private readonly Hand _playerHand;
+    private readonly Deck _gameDeck;
     
-    public string EffectDescription  => "Discard one card from your hand and swap it with the deck's top card.";
+    public string EffectDescription  => "Discards a random card from your hand and draws a card from the deck.";
 
     public SwapAndDiscard(Hand playerHand, Deck gameDeck)
     {

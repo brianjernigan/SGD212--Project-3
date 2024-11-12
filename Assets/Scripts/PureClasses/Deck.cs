@@ -62,4 +62,22 @@ public class Deck
 
         return gameCard;
     }
+
+    public GameCard DrawRandomCard()
+    {
+        if (_cardsInDeck.Count == 0) return null;
+
+        var randomIndex = Random.Range(0, _cardsInDeck.Count);
+        var drawnCardData = _cardsInDeck[randomIndex];
+        _cardsInDeck.RemoveAt(randomIndex);
+        
+        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
+        var cardUIObject = Object.Instantiate(_cardUIPrefab, _handArea);
+        var cardUI = cardUIObject.GetComponent<CardUI>();
+
+        var gameCard = new GameCard(drawnCardData, cardUI, cardEffect);
+        cardUI.InitializeCard(drawnCardData, gameCard);
+
+        return gameCard;
+    }
 }
