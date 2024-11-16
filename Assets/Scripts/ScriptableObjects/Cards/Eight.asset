@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Eight
   m_EditorClassIdentifier: 
   _cardName: Eight
-  _cardImage: {fileID: 0}
+  _cardSprite: {fileID: 21300000, guid: fa894cd08b76ecb4badb89c454f224db, type: 3}
+  _backOfCardSprite: {fileID: 0}
+  _descriptionBoxSprite: {fileID: -761718911, guid: 8b4108141f02ad04499f566dc62073a3, type: 3}
   _cardCost: 3
   _cardRank: 8

@@ -1,59 +1,83 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 // Handles internal deck logic
 public class Deck
 {
-    private List<CardData> _currentDeck;
+    private readonly List<CardData> _cardsInDeck;
+    private readonly GameObject _cardUIPrefab;
+    private readonly RectTransform _handArea;
 
-    public Deck(Dictionary<CardData, int> deckComposition)
-    {
-        _currentDeck = new List<CardData>();
-        InitializeDeck(deckComposition);
-    }
+    public bool IsEmpty => _cardsInDeck.Count == 0;
 
-    private void InitializeDeck(Dictionary<CardData, int> deckComposition)
+    public Deck(Dictionary<CardData, int> deckComposition, GameObject uiPrefab, RectTransform handArea)
     {
-        foreach (var entry in deckComposition)
-        {
-            for (var i = 0; i < entry.Value; i++)
-            {
-                _currentDeck.Add(entry.Key);
-            }
-        }
+        _cardsInDeck = new List<CardData>();
+        ConfigureDeck(deckComposition);
+        _cardUIPrefab = uiPrefab;
+        _handArea = handArea;
 
         ShuffleDeck();
     }
 
+    private void ConfigureDeck(Dictionary<CardData, int> composition)
+    {
+        foreach (var entry in composition)
+        {
+            for (var i = 0; i < entry.Value; i++)
+            {
+                _cardsInDeck.Add(entry.Key);
+            }
+        }
+    }
+    
     private void ShuffleDeck()
     {
-        for (var i = _currentDeck.Count - 1; i > 0; i--)
+        for (var i = _cardsInDeck.Count - 1; i > 0; i--)
         {
             var j = Random.Range(0, i + 1);
-            (_currentDeck[i], _currentDeck[j]) = (_currentDeck[j], _currentDeck[i]);
+            (_cardsInDeck[i], _cardsInDeck[j]) = (_cardsInDeck[j], _cardsInDeck[i]);
         }
     }
 
-    public CardData DrawCardFromDeck()
+    public GameCard DrawCard()
     {
-        if (_currentDeck.Count == 0) return null;
+        if (_cardsInDeck.Count == 0) return null;
 
-        var drawnCard = _currentDeck[0];
-        _currentDeck.RemoveAt(0);
-        return drawnCard;
+        var drawnCardData = _cardsInDeck[0];
+        _cardsInDeck.RemoveAt(0);
+
+        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
+        var cardUIObject = Object.Instantiate(_cardUIPrefab, _handArea);
+        var cardUI = cardUIObject.GetComponent<CardUI>();
+
+        var gameCard = new GameCard(drawnCardData, cardUI, cardEffect);
+        cardUI.InitializeCard(drawnCardData, gameCard);
+
+        return gameCard;
     }
 
-    public bool DeckIsEmpty()
+    public GameCard DrawRandomCard()
     {
-        return _currentDeck.Count == 0;
-    }
+        if (_cardsInDeck.Count == 0) return null;
 
-    public int RemainingCardsInDeck()
-    {
-        return _currentDeck.Count;
+        var randomIndex = Random.Range(0, _cardsInDeck.Count);
+        var drawnCardData = _cardsInDeck[randomIndex];
+        _cardsInDeck.RemoveAt(randomIndex);
+        
+        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
+        var cardUIObject = Object.Instantiate(_cardUIPrefab, _handArea);
+        var cardUI = cardUIObject.GetComponent<CardUI>();
+
+        var gameCard = new GameCard(drawnCardData, cardUI, cardEffect);
+        cardUI.InitializeCard(drawnCardData, gameCard);
+
+        return gameCard;
     }
 }

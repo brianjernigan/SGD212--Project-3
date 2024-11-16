@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Three
   m_EditorClassIdentifier: 
   _cardName: Three
-  _cardImage: {fileID: 0}
+  _cardSprite: {fileID: 21300000, guid: 77f2663438ed38f4f958e4d42edb2e2d, type: 3}
+  _backOfCardSprite: {fileID: 0}
   _cardCost: 1
   _cardRank: 3

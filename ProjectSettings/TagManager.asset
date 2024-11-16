@@ -4,11 +4,13 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - PlayArea
   - GameManager
   - DiscardArea
   - DeckArea
   - HandArea
+  - HandManager
+  - DeckManager
+  - StageArea
   layers:
   - Default
   - TransparentFX

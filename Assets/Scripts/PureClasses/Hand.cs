@@ -1,58 +1,49 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 // Defines data and structure of a player's hand
 public class Hand
 {
-    private const int BaseMaxHandSize = 5;
-    private readonly List<CardData> _cardsInHand;
-    private Deck _currentDeck;
-    private int _currentMaxHandSize;
+    private readonly List<GameCard> _cardsInHand = new();
+    public List<GameCard> CardsInHand => _cardsInHand;
+    public int NumCardsInHand => _cardsInHand.Count;
 
-    public Hand(Deck currentDeck)
+    public bool TryAddCardToHand(GameCard gameCard)
     {
-        _cardsInHand = new List<CardData>();
-        _currentDeck = currentDeck;
-        _currentMaxHandSize = BaseMaxHandSize;
-    }
-
-    public bool AddCardToHand(CardData cardDataToAdd)
-    {
-        if (IsFull()) return false;
-        _cardsInHand.Add(cardDataToAdd);
+        if (gameCard is null) return false;
+        _cardsInHand.Add(gameCard);
         return true;
     }
 
-    public bool DiscardCardFromHand(CardData cardDataToDiscard)
+    // Does NOT destroy card object
+    public bool TryRemoveCardFromHand(GameCard gameCard)
     {
-        return _cardsInHand.Remove(cardDataToDiscard);
+        return _cardsInHand.Contains(gameCard) && _cardsInHand.Remove(gameCard);
     }
 
-    public List<CardData> GetCardsInHand()
+    // Destroys card objects
+    public bool TryDiscardCardFromHand(GameCard gameCard)
     {
-        return new List<CardData>(_cardsInHand);
+        if (gameCard is null || !_cardsInHand.Contains(gameCard)) return false;
+
+        _cardsInHand.Remove(gameCard);
+        Object.Destroy(gameCard.UI.gameObject);
+        return true;
     }
 
-    public int GetCurrentHandSize()
+    public void ClearHandArea()
     {
-        return _cardsInHand.Count;
-    }
-    
-    public bool IsFull()
-    {
-        return _cardsInHand.Count >= _currentMaxHandSize;
-    }
-
-    public void SetMaxHandSize(int newMaxHandSize)
-    {
-        _currentMaxHandSize = newMaxHandSize;
+        foreach (var gameCard in _cardsInHand.ToList())
+        {
+            if (gameCard.UI is not null)
+            {
+                Object.Destroy(gameCard.UI.gameObject);
+            }
+        }
         
-        // May want to discard far-right or far-left card if shrinking hand size
-    }
-
-    public int GetMaxHandSize()
-    {
-        return _currentMaxHandSize;
+        _cardsInHand.Clear();
     }
 }

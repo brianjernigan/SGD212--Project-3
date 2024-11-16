@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Ace
   m_EditorClassIdentifier: 
   _cardName: Ace
-  _cardImage: {fileID: 0}
+  _cardSprite: {fileID: 21300000, guid: 87cec97b3b0b9a44fa99b4b64847a93d, type: 3}
+  _backOfCardSprite: {fileID: 0}
   _cardCost: 0
   _cardRank: 1
