@@ -10,31 +10,19 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private List<CardData> _allPossibleCards;
-    [SerializeField] private GameObject _cardUIPrefab;
+    [SerializeField] private GameObject _cardPrefab;
+    [SerializeField] private List<Transform> _cardPositions;
+
+    [Header("Areas")]
+    [SerializeField] private GameObject _stage;
+    [SerializeField] private GameObject _deck;
+    [SerializeField] private GameObject _discard;
+    [SerializeField] private GameObject _hand;
     
-    [Header("Drop Areas")]
-    [SerializeField] private RectTransform _handArea;
-    [SerializeField] private RectTransform _stageArea;
-    [SerializeField] private RectTransform _discardArea;
-    [SerializeField] private RectTransform _gamePanel;
-
-    [Header("Canvas")]
-    [SerializeField] private Canvas _gameCanvas;
-    [SerializeField] private CanvasGroup _gameCanvasGroup;
-
-    [Header("Texts")] 
-    [SerializeField] private TMP_Text _scoreText;
+    public List<Transform> DropZones { get; set; }
     
-    public RectTransform HandArea => _handArea;
-    public RectTransform StageArea => _stageArea;
-    public RectTransform DiscardArea => _discardArea;
-    public RectTransform GamePanel => _gamePanel;
-
     public int CardsOnScreen => _playerHand.NumCardsInHand + _stageAreaController.NumCardsStaged;
     public int MaxCardsOnScreen { get; set; } = 5;
-    
-    public Canvas GameCanvas => _gameCanvas;
-    public CanvasGroup GameCanvasGroup => _gameCanvasGroup;
 
     private Deck _gameDeck;
     private Hand _playerHand;
@@ -93,22 +81,29 @@ public class GameManager : MonoBehaviour
         };
     }
 
+    private void InitializeDropZones()
+    {
+        DropZones = new List<Transform>()
+        {
+            _stage.transform,
+            _discard.transform,
+            _hand.transform
+        };
+    }
+
     private void Start()
     {
+        InitializeDropZones();
         InitializeDeckComposition();
 
-        _stageAreaController = _stageArea.gameObject.GetComponent<StageAreaController>();
+        _stageAreaController = _stage.GetComponent<StageAreaController>();
         
-        _gameDeck = new Deck(_defaultDeckComposition, _cardUIPrefab, _handArea);
+        _gameDeck = new Deck(_defaultDeckComposition, _cardPrefab, _cardPositions);
         _playerHand = new Hand();
         
         InitializeCardEffects();
-    }
-
-    private void Update()
-    {
-        Debug.Log($"Num cards in hand: {_playerHand.NumCardsInHand}");
-        Debug.Log($"Num cards staged: {_stageAreaController.NumCardsStaged}");
+        
+        DrawFullHand();
     }
 
     public void DrawFullHand()
@@ -130,15 +125,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public bool OnCardDropped(RectTransform dropArea, GameCard gameCard)
+    public bool OnCardDropped(Transform dropArea, GameCard gameCard)
     {
         // Destage
-        if (dropArea == HandArea)
+        if (dropArea == _hand.transform)
         {
             return _playerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStageArea(gameCard);
         }
         // Discard
-        if (dropArea == DiscardArea)
+        if (dropArea == _discard.transform)
         {
             if (!_playerHand.TryRemoveCardFromHand(gameCard) &&
                 !_stageAreaController.TryRemoveCardFromStageArea(gameCard)) return false;
@@ -146,11 +141,11 @@ public class GameManager : MonoBehaviour
             return true;
         }
         // Stage Card
-        if (dropArea == StageArea)
+        if (dropArea == _stage.transform)
         {
             return _stageAreaController.TryAddCardToStageArea(gameCard) && _playerHand.TryRemoveCardFromHand(gameCard);
         }
-
+    
         return false;
     }
 
@@ -186,17 +181,11 @@ public class GameManager : MonoBehaviour
     private void ScoreSet()
     {
         var score = _stageAreaController.Score;
-        UpdateScoreText(score);
         _stageAreaController.ClearStageArea();
     }
 
     public ICardEffect GetEffectForRank(int rank)
     {
         return _cardEffects.GetValueOrDefault(rank);
-    }
-
-    private void UpdateScoreText(int score)
-    {
-        _scoreText.text = $"Score: {score}";
     }
 }

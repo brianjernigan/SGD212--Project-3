@@ -7,36 +7,37 @@ using UnityEngine;
 // Defines data and structure of a player's hand
 public class Hand
 {
-    private readonly List<GameCard> _cardsInHand = new();
-    public List<GameCard> CardsInHand => _cardsInHand;
-    public int NumCardsInHand => _cardsInHand.Count;
+    public List<GameCard> CardsInHand { get; } = new();
+    public int NumCardsInHand => CardsInHand.Count;
 
     public bool TryAddCardToHand(GameCard gameCard)
     {
         if (gameCard is null) return false;
-        _cardsInHand.Add(gameCard);
+        CardsInHand.Add(gameCard);
         return true;
     }
 
     // Does NOT destroy card object
     public bool TryRemoveCardFromHand(GameCard gameCard)
     {
-        return _cardsInHand.Contains(gameCard) && _cardsInHand.Remove(gameCard);
+        if (gameCard is null) return false;
+        
+        return CardsInHand.Contains(gameCard) && CardsInHand.Remove(gameCard);
     }
 
     // Destroys card objects
     public bool TryDiscardCardFromHand(GameCard gameCard)
     {
-        if (gameCard is null || !_cardsInHand.Contains(gameCard)) return false;
+        if (gameCard is null || !CardsInHand.Contains(gameCard)) return false;
 
-        _cardsInHand.Remove(gameCard);
+        CardsInHand.Remove(gameCard);
         Object.Destroy(gameCard.UI.gameObject);
         return true;
     }
 
     public void ClearHandArea()
     {
-        foreach (var gameCard in _cardsInHand.ToList())
+        foreach (var gameCard in CardsInHand.ToList())
         {
             if (gameCard.UI is not null)
             {
@@ -44,6 +45,6 @@ public class Hand
             }
         }
         
-        _cardsInHand.Clear();
+        CardsInHand.Clear();
     }
 }
