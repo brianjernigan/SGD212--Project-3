@@ -11,17 +11,17 @@ using Random = UnityEngine.Random;
 public class Deck
 {
     private readonly List<CardData> _cardsInDeck;
-    private readonly GameObject _cardUIPrefab;
-    private readonly RectTransform _handArea;
+    private readonly GameObject _cardPrefab;
+    private List<Transform> _cardPositions;
 
     public bool IsEmpty => _cardsInDeck.Count == 0;
 
-    public Deck(Dictionary<CardData, int> deckComposition, GameObject uiPrefab, RectTransform handArea)
+    public Deck(Dictionary<CardData, int> deckComposition, GameObject prefab, List<Transform> cardPositions)
     {
         _cardsInDeck = new List<CardData>();
         ConfigureDeck(deckComposition);
-        _cardUIPrefab = uiPrefab;
-        _handArea = handArea;
+        _cardPrefab = prefab;
+        _cardPositions = cardPositions;
 
         ShuffleDeck();
     }
@@ -45,7 +45,7 @@ public class Deck
             (_cardsInDeck[i], _cardsInDeck[j]) = (_cardsInDeck[j], _cardsInDeck[i]);
         }
     }
-
+    
     public GameCard DrawCard()
     {
         if (_cardsInDeck.Count == 0) return null;
@@ -53,13 +53,16 @@ public class Deck
         var drawnCardData = _cardsInDeck[0];
         _cardsInDeck.RemoveAt(0);
 
-        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
-        var cardUIObject = Object.Instantiate(_cardUIPrefab, _handArea);
+        var cardUIObject = Object.Instantiate(_cardPrefab);
+        
         var cardUI = cardUIObject.GetComponent<CardUI>();
+        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
 
         var gameCard = new GameCard(drawnCardData, cardUI, cardEffect);
         cardUI.InitializeCard(drawnCardData, gameCard);
 
+        GameManager.Instance.PlaceCardInHand(gameCard, true);
+        
         return gameCard;
     }
 
@@ -72,7 +75,7 @@ public class Deck
         _cardsInDeck.RemoveAt(randomIndex);
         
         var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
-        var cardUIObject = Object.Instantiate(_cardUIPrefab, _handArea);
+        var cardUIObject = Object.Instantiate(_cardPrefab);
         var cardUI = cardUIObject.GetComponent<CardUI>();
 
         var gameCard = new GameCard(drawnCardData, cardUI, cardEffect);

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Six
   m_EditorClassIdentifier: 
   _cardName: Six
-  _cardImage: {fileID: 0}
+  _cardMat: {fileID: 2100000, guid: c4c01f8d26153c74ea64efce9b419cb9, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
+  _descriptionBoxSprite: {fileID: -115751106, guid: b895bdee4b0cb844088284eaa82c434a, type: 3}
   _cardCost: 2
   _cardRank: 6
