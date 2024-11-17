@@ -21,18 +21,29 @@ public class Hand
     public bool TryRemoveCardFromHand(GameCard gameCard)
     {
         if (gameCard is null) return false;
-        
-        return CardsInHand.Contains(gameCard) && CardsInHand.Remove(gameCard);
+
+        if (CardsInHand.Contains(gameCard) && CardsInHand.Remove(gameCard))
+        {
+            GameManager.Instance.RearrangeHand();
+            return true;
+        }
+
+        return false;
     }
 
     // Destroys card objects
     public bool TryDiscardCardFromHand(GameCard gameCard)
     {
-        if (gameCard is null || !CardsInHand.Contains(gameCard)) return false;
+        if (gameCard is null) return false;
 
-        CardsInHand.Remove(gameCard);
-        Object.Destroy(gameCard.UI.gameObject);
-        return true;
+        if (CardsInHand.Contains(gameCard) && CardsInHand.Remove(gameCard))
+        {
+            Object.Destroy(gameCard.UI.gameObject);
+            GameManager.Instance.RearrangeHand();
+            return true;
+        }
+
+        return false;
     }
 
     public void ClearHandArea()

@@ -69,7 +69,14 @@ public class CardUI : MonoBehaviour
 
         Transform validZone = null;
 
-        foreach (var zone in GameManager.Instance.DropZones)
+        var zones = new List<Transform>()
+        {
+            GameManager.Instance.Hand.transform,
+            GameManager.Instance.Stage.transform,
+            GameManager.Instance.Discard.transform
+        };
+
+        foreach (var zone in zones)
         {
             if (IsWithinDropZone(zone))
             {
@@ -80,11 +87,10 @@ public class CardUI : MonoBehaviour
 
         if (validZone is not null)
         {
-            transform.position = validZone.position;
-            var position = transform.position;
-            position.y = _yPos;
-            transform.position = position;
-            GameManager.Instance.OnCardDropped(validZone, _gameCard);
+            if (!GameManager.Instance.TryDropCard(validZone, _gameCard))
+            {
+                transform.position = _originalPosition;
+            }
         }
         else
         {
@@ -99,22 +105,6 @@ public class CardUI : MonoBehaviour
 
         return _mainCamera.ScreenToWorldPoint(mouseScreenPosition);
     }
-
-    // private void OnTriggerEnter(Collider other)
-    // {
-    //     if (GameManager.Instance.DropZones.Contains(other.transform))
-    //     {
-    //         _currentDropZone = other.transform;
-    //     }
-    // }
-    //
-    // private void OnTriggerExit(Collider other)
-    // {
-    //     if (_currentDropZone == other.transform)
-    //     {
-    //         _currentDropZone = null;
-    //     }
-    // }
 
     private bool IsWithinDropZone(Transform zone)
     {

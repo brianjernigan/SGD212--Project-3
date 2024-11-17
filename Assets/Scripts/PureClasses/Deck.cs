@@ -16,8 +16,6 @@ public class Deck
 
     public bool IsEmpty => _cardsInDeck.Count == 0;
 
-    private int _cardPositionIndex;
-
     public Deck(Dictionary<CardData, int> deckComposition, GameObject prefab, List<Transform> cardPositions)
     {
         _cardsInDeck = new List<CardData>();
@@ -47,22 +45,24 @@ public class Deck
             (_cardsInDeck[i], _cardsInDeck[j]) = (_cardsInDeck[j], _cardsInDeck[i]);
         }
     }
-
+    
     public GameCard DrawCard()
     {
-        if (_cardsInDeck.Count == 0 || _cardPositionIndex >= _cardPositions.Count) return null;
+        if (_cardsInDeck.Count == 0) return null;
 
         var drawnCardData = _cardsInDeck[0];
         _cardsInDeck.RemoveAt(0);
 
-        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
-        var cardUIObject = Object.Instantiate(_cardPrefab, _cardPositions[_cardPositionIndex].position, _cardPositions[_cardPositionIndex].rotation);
-        _cardPositionIndex++;
+        var cardUIObject = Object.Instantiate(_cardPrefab);
+        
         var cardUI = cardUIObject.GetComponent<CardUI>();
+        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
 
         var gameCard = new GameCard(drawnCardData, cardUI, cardEffect);
         cardUI.InitializeCard(drawnCardData, gameCard);
 
+        GameManager.Instance.PlaceCardInHand(gameCard, true);
+        
         return gameCard;
     }
 
