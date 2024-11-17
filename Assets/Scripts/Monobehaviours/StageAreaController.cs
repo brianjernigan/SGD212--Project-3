@@ -6,45 +6,52 @@ using UnityEngine;
 
 public class StageAreaController : MonoBehaviour
 {
-    private readonly List<GameCard> _cardsStaged = new();
-    public int NumCardsStaged => _cardsStaged.Count;
-    public int Score => _cardsStaged.Sum(card => card.Data.CardRank);
+    public List<GameCard> CardStaged { get; } = new();
+
+    public int NumCardsStaged => CardStaged.Count;
+    public int Score => CardStaged.Sum(card => card.Data.CardRank);
     
     private bool CanStageCard(CardData card)
     {
-        var cardsAreEmpty = _cardsStaged.Count == 0;
+        var cardsAreEmpty = CardStaged.Count == 0;
 
         if (cardsAreEmpty) return true;
         
-        var cardsAreFull = _cardsStaged.Count >= 3;
-        var cardIsMatch = _cardsStaged[0].Data.CardRank == card.CardRank;
+        var cardsAreFull = CardStaged.Count >= 3;
+        var cardIsMatch = CardStaged[0].Data.CardRank == card.CardRank;
 
         return !cardsAreFull && cardIsMatch;
     }
 
-    public bool TryAddCardToStageArea(GameCard gameCard)
+    public bool TryAddCardToStage(GameCard gameCard)
     {
         var cardData = gameCard.Data;
         
         if (!CanStageCard(cardData)) return false;
 
-        _cardsStaged.Add(gameCard);
+        CardStaged.Add(gameCard);
         return true;
     }
 
-    public bool TryRemoveCardFromStageArea(GameCard gameCard)
+    public bool TryRemoveCardFromStage(GameCard gameCard)
     {
-        return _cardsStaged.Contains(gameCard) && _cardsStaged.Remove(gameCard);
+        if (CardStaged.Contains(gameCard) && CardStaged.Remove(gameCard))
+        {
+            GameManager.Instance.RearrangeStage();
+            return true;
+        }
+
+        return false;
     }
 
     public GameCard GetFirstStagedCard()
     {
-        return _cardsStaged.Count > 0 ? _cardsStaged[0] : null;
+        return CardStaged.Count > 0 ? CardStaged[0] : null;
     }
 
-    public void ClearStageArea()
+    public void ClearStage()
     {
-        foreach (var gameCard in _cardsStaged.ToList())
+        foreach (var gameCard in CardStaged.ToList())
         {
             if (gameCard.UI is not null)
             {
@@ -52,6 +59,6 @@ public class StageAreaController : MonoBehaviour
             }
         }
         
-        _cardsStaged.Clear();
+        CardStaged.Clear();
     }
 }

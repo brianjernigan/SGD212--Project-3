@@ -1,142 +1,119 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
-public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
+public class CardUI : MonoBehaviour
 {
+    [Header("Rank Texts")]
+    [SerializeField] private TMP_Text _topRankText;
+    [SerializeField] private TMP_Text _bottomRankText;
+
+    private Camera _mainCamera;
+    private bool _isDragging;
+    private Vector3 _offset;
+    private float _yPos;
+
     private GameObject _cardObject;
     private CardData _cardData;
     private GameCard _gameCard;
-    private GameObject _descriptionBox;
 
-    private Image _cardImage;
-    private Image _descriptionBoxImage;
-    
-    private TMP_Text _cardRankText;
-    private TMP_Text _cardCostText;
-    private TMP_Text _descriptionText;
-    
     private Vector3 _originalPosition;
     private Vector3 _originalScale;
-    private Transform _originalParent;
-    private RectTransform _originalArea;
-    private int _originalSiblingIndex;
-    
-    public void InitializeCard(CardData cardData, GameCard gameCard)
+    private Transform _currentDropZone;
+
+    private void Start()
     {
-        _cardData = cardData;
+        _mainCamera = Camera.main;
+    }
+    
+    public void InitializeCard(CardData data, GameCard gameCard)
+    {
+        _cardData = data;
         _gameCard = gameCard;
-        _cardObject = gameObject;
         SetCardUI();
     }
 
     private void SetCardUI()
     {
-        _cardRankText = _cardObject.transform.GetChild(0).GetComponent<TMP_Text>();
-        _cardCostText = _cardObject.transform.GetChild(1).GetComponent<TMP_Text>();
-        _descriptionBox = _cardObject.transform.GetChild(2).gameObject;
-        _descriptionText = _descriptionBox.GetComponentInChildren<TMP_Text>();
-        _cardImage = _cardObject.GetComponent<Image>();
-        _descriptionBoxImage = _descriptionBox.GetComponent<Image>();
-
-        _cardRankText.text = _cardData.CardRank.ToString();
-        _cardCostText.text = _cardData.CardCost.ToString();
-        _descriptionText.text = _gameCard.Description;
-
-        if (_cardData.CardSprite is not null)
-        {
-            _cardImage.sprite = _cardData.CardSprite;
-        }
-
-        if (_cardData.DescriptionBoxSprite is not null)
-        {
-            _descriptionBoxImage.sprite = _cardData.DescriptionBoxSprite;
-        }
+        _topRankText.text = _cardData.CardRank.ToString();
+        _bottomRankText.text = _cardData.CardRank.ToString();
+        GetComponent<MeshRenderer>().material = _cardData.CardMat;
     }
 
-    public void OnBeginDrag(PointerEventData eventData)
+    private void OnMouseDown()
     {
+        _isDragging = true;
+
         _originalPosition = transform.position;
-        _originalParent = transform.parent;
         _originalScale = transform.localScale;
-        _originalArea = GetCurrentArea(eventData);
-        _originalSiblingIndex = transform.GetSiblingIndex();
 
-        transform.localScale *= 1.1f;
-        GameManager.Instance.GameCanvasGroup.alpha = 0.9f;
+        _yPos = transform.position.y;
 
-        transform.SetParent(GameManager.Instance.GameCanvas.transform);
-        _descriptionBox.gameObject.SetActive(false);
+        var mouseWorldPosition = GetMouseWorldPosition();
+        _offset = transform.position - mouseWorldPosition;
     }
 
-    public void OnDrag(PointerEventData eventData)
+    private void OnMouseDrag()
     {
-        transform.position = eventData.position;
-        
-        Debug.Log(GetCurrentArea(eventData));
+        if (!_isDragging) return;
+
+        var mouseWorldPosition = GetMouseWorldPosition();
+        transform.position = new Vector3(mouseWorldPosition.x + _offset.x, _yPos, mouseWorldPosition.z + _offset.z);
     }
 
-    public void OnEndDrag(PointerEventData eventData)
+    private void OnMouseUp()
     {
-        var dropArea = GetCurrentArea(eventData);
-        
-        if (dropArea != _originalArea && dropArea is not null)
+        _isDragging = false;
+
+        Transform validZone = null;
+
+        var zones = new List<Transform>()
         {
-            if (GameManager.Instance.OnCardDropped(dropArea, _gameCard))
+            GameManager.Instance.Hand.transform,
+            GameManager.Instance.Stage.transform,
+            GameManager.Instance.Discard.transform
+        };
+
+        foreach (var zone in zones)
+        {
+            if (IsWithinDropZone(zone))
             {
-                transform.SetParent(dropArea);
-                transform.localScale = _originalScale;
+                validZone = zone;
+                break;
             }
-            else
+        }
+
+        if (validZone is not null)
+        {
+            if (!GameManager.Instance.TryDropCard(validZone, _gameCard))
             {
-                ReturnToOrigin();
+                transform.position = _originalPosition;
             }
         }
         else
         {
-            ReturnToOrigin();
-        }
-        
-        GameManager.Instance.GameCanvasGroup.alpha = 1.0f;
-    }
-    
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (eventData.button == PointerEventData.InputButton.Right)
-        {
-            _descriptionBox.gameObject.SetActive(!_descriptionBox.gameObject.activeSelf);
+            transform.position = _originalPosition;
         }
     }
 
-    private void ReturnToOrigin()
+    private Vector3 GetMouseWorldPosition()
     {
-        transform.SetParent(_originalParent);
-        transform.localScale = _originalScale;
-        transform.position = _originalPosition;
-        transform.SetSiblingIndex(_originalSiblingIndex);
+        var mouseScreenPosition = Input.mousePosition;
+        mouseScreenPosition.z = _mainCamera.WorldToScreenPoint(transform.position).z;
+
+        return _mainCamera.ScreenToWorldPoint(mouseScreenPosition);
     }
 
-    private RectTransform GetCurrentArea(PointerEventData eventData)
+    private bool IsWithinDropZone(Transform zone)
     {
-        var dropAreas = new List<RectTransform>()
+        var zoneCollider = zone.GetComponent<Collider>();
+        if (zoneCollider is not null)
         {
-            GameManager.Instance.HandArea,
-            GameManager.Instance.StageArea,
-            GameManager.Instance.DiscardArea,
-            GameManager.Instance.GamePanel
-        };
-
-        foreach (var area in dropAreas)
-        {
-            if (RectTransformUtility.RectangleContainsScreenPoint(area, Input.mousePosition, GameManager.Instance.GameCanvas.worldCamera))
-            {
-                return area; 
-            }
+            return zoneCollider.bounds.Contains(transform.position);
         }
 
-        return null;
+        return false;
     }
 }

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Four
   m_EditorClassIdentifier: 
   _cardName: Four
-  _cardSprite: {fileID: 21300000, guid: 86c12f126c4802040ab6412c9db07640, type: 3}
-  _backOfCardSprite: {fileID: 0}
-  _descriptionBoxSprite: {fileID: 2010005858, guid: ccd875d6844720642ab93c21e486e548, type: 3}
+  _cardMat: {fileID: 2100000, guid: 11020452b2375924d9c8d876d3bf056e, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
+  _descriptionBoxSprite: {fileID: -390513020, guid: 8251ade544c564245bd4388dd744ad63, type: 3}
   _cardCost: 1
   _cardRank: 4

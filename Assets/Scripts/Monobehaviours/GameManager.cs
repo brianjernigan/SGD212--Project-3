@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -10,31 +11,23 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private List<CardData> _allPossibleCards;
-    [SerializeField] private GameObject _cardUIPrefab;
+    [SerializeField] private GameObject _cardPrefab;
     
-    [Header("Drop Areas")]
-    [SerializeField] private RectTransform _handArea;
-    [SerializeField] private RectTransform _stageArea;
-    [SerializeField] private RectTransform _discardArea;
-    [SerializeField] private RectTransform _gamePanel;
+    [Header("Card Positions")]
+    [SerializeField] private List<Transform> _handPositions;
+    [SerializeField] private List<Transform> _stagePositions;
 
-    [Header("Canvas")]
-    [SerializeField] private Canvas _gameCanvas;
-    [SerializeField] private CanvasGroup _gameCanvasGroup;
+    [Header("Areas")]
+    [SerializeField] private GameObject _stage;
+    [SerializeField] private GameObject _discard;
+    [SerializeField] private GameObject _hand;
 
-    [Header("Texts")] 
-    [SerializeField] private TMP_Text _scoreText;
+    public GameObject Stage => _stage;
+    public GameObject Discard => _discard;
+    public GameObject Hand => _hand;
     
-    public RectTransform HandArea => _handArea;
-    public RectTransform StageArea => _stageArea;
-    public RectTransform DiscardArea => _discardArea;
-    public RectTransform GamePanel => _gamePanel;
-
     public int CardsOnScreen => _playerHand.NumCardsInHand + _stageAreaController.NumCardsStaged;
     public int MaxCardsOnScreen { get; set; } = 5;
-    
-    public Canvas GameCanvas => _gameCanvas;
-    public CanvasGroup GameCanvasGroup => _gameCanvasGroup;
 
     private Deck _gameDeck;
     private Hand _playerHand;
@@ -43,6 +36,8 @@ public class GameManager : MonoBehaviour
     private Dictionary<int, ICardEffect> _cardEffects;
     
     private StageAreaController _stageAreaController;
+
+    private Camera _mainCamera;
     
     private void Awake()
     {
@@ -95,11 +90,13 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        _mainCamera = Camera.main;
+        
         InitializeDeckComposition();
 
-        _stageAreaController = _stageArea.gameObject.GetComponent<StageAreaController>();
+        _stageAreaController = _stage.GetComponent<StageAreaController>();
         
-        _gameDeck = new Deck(_defaultDeckComposition, _cardUIPrefab, _handArea);
+        _gameDeck = new Deck(_defaultDeckComposition, _cardPrefab, _handPositions);
         _playerHand = new Hand();
         
         InitializeCardEffects();
@@ -107,8 +104,32 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log($"Num cards in hand: {_playerHand.NumCardsInHand}");
-        Debug.Log($"Num cards staged: {_stageAreaController.NumCardsStaged}");
+        if (Input.GetMouseButtonDown(0))
+        {
+            HandleMouseClick();
+        }
+    }
+
+    private void HandleMouseClick()
+    {
+        if (_mainCamera is null) return;
+
+        var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out var hit))
+        {
+            var clickedObject = hit.collider.gameObject;
+
+            if (clickedObject.CompareTag("DrawButton"))
+            {
+                DrawFullHand();
+            }
+
+            if (clickedObject.CompareTag("PlayButton"))
+            {
+                OnClickPlayButton();
+            }
+        }
     }
 
     public void DrawFullHand()
@@ -130,28 +151,53 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public bool OnCardDropped(RectTransform dropArea, GameCard gameCard)
+    public bool TryDropCard(Transform dropArea, GameCard gameCard)
     {
         // Destage
-        if (dropArea == HandArea)
+        if (dropArea == _hand.transform)
         {
-            return _playerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStageArea(gameCard);
-        }
-        // Discard
-        if (dropArea == DiscardArea)
-        {
-            if (!_playerHand.TryRemoveCardFromHand(gameCard) &&
-                !_stageAreaController.TryRemoveCardFromStageArea(gameCard)) return false;
-            Destroy(gameCard.UI.gameObject);
-            return true;
+            if (_playerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStage(gameCard))
+            {
+                PlaceCardInHand(gameCard, false);
+                return true;
+            }
         }
         // Stage Card
-        if (dropArea == StageArea)
+        if (dropArea == _stage.transform)
         {
-            return _stageAreaController.TryAddCardToStageArea(gameCard) && _playerHand.TryRemoveCardFromHand(gameCard);
+            if (_stageAreaController.TryAddCardToStage(gameCard) && _playerHand.TryRemoveCardFromHand(gameCard))
+            {
+                PlaceCardInStage(gameCard);
+                return true;
+            }
         }
-
+        // Discard
+        if (dropArea == _discard.transform)
+        {
+            if (_playerHand.TryRemoveCardFromHand(gameCard) || _stageAreaController.TryRemoveCardFromStage(gameCard))
+            {
+                Destroy(gameCard.UI.gameObject);
+                return true;
+            }
+        }
+    
         return false;
+    }
+
+    public void RearrangeHand()
+    {
+        for (var i = 0; i < _playerHand.NumCardsInHand; i++)
+        {
+            _playerHand.CardsInHand[i].UI.transform.position = _handPositions[i].position;
+        }
+    }
+
+    public void RearrangeStage()
+    {
+        for (var i = 0; i < _stageAreaController.NumCardsStaged; i++)
+        {
+            _stageAreaController.CardStaged[i].UI.transform.position = _stagePositions[i].position;
+        }
     }
 
     public void OnClickPlayButton()
@@ -178,7 +224,7 @@ public class GameManager : MonoBehaviour
         var firstStagedCard = _stageAreaController.GetFirstStagedCard();
         if (firstStagedCard is null) return;
         
-        _stageAreaController.ClearStageArea();
+        _stageAreaController.ClearStage();
 
         firstStagedCard.ActivateEffect();
     }
@@ -186,8 +232,7 @@ public class GameManager : MonoBehaviour
     private void ScoreSet()
     {
         var score = _stageAreaController.Score;
-        UpdateScoreText(score);
-        _stageAreaController.ClearStageArea();
+        _stageAreaController.ClearStage();
     }
 
     public ICardEffect GetEffectForRank(int rank)
@@ -195,8 +240,16 @@ public class GameManager : MonoBehaviour
         return _cardEffects.GetValueOrDefault(rank);
     }
 
-    private void UpdateScoreText(int score)
+    public void PlaceCardInHand(GameCard gameCard, bool isDrawing)
     {
-        _scoreText.text = $"Score: {score}";
+        // Drawing creates card before placing in hand -> 0 index
+        // Dragging adds card to hand then places -> -1 index
+        var index = isDrawing ? _playerHand.NumCardsInHand : _playerHand.NumCardsInHand - 1;
+        gameCard.UI.transform.position = _handPositions[index].transform.position;
+    }
+
+    private void PlaceCardInStage(GameCard gameCard)
+    {
+        gameCard.UI.transform.position = _stagePositions[_stageAreaController.NumCardsStaged - 1].transform.position;
     }
 }

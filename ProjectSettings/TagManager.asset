@@ -11,6 +11,11 @@ TagManager:
   - HandManager
   - DeckManager
   - StageArea
+  - PlayArea
+  - Card
+  - PlayButton
+  - DrawButton
+  - EndTurnButton
   layers:
   - Default
   - TransparentFX
@@ -18,8 +23,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - Cards
+  - HandArea
   - 
   - 
   - 
@@ -47,4 +52,10 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: ObjectLayer
+    uniqueID: 3182583315
+    locked: 0
+  - name: CanvasLayer
+    uniqueID: 797437667
     locked: 0
