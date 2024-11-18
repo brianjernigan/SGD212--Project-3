@@ -61,7 +61,7 @@ public class Deck
         var gameCard = new GameCard(drawnCardData, cardUI, cardEffect);
         cardUI.InitializeCard(drawnCardData, gameCard);
 
-        GameManager.Instance.PlaceCardInHand(gameCard, true);
+        // GameManager.Instance.PlaceCardInHand(gameCard, true);
         
         return gameCard;
     }

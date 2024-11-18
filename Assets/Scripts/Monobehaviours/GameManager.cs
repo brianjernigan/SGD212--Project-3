@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _stage;
     [SerializeField] private GameObject _discard;
     [SerializeField] private GameObject _hand;
+    [SerializeField] private GameObject _deck;
 
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
@@ -148,7 +149,35 @@ public class GameManager : MonoBehaviour
         if (gameCard is not null)
         {
             _playerHand.TryAddCardToHand(gameCard);
+
+            var targetPosition = _handPositions[_playerHand.NumCardsInHand - 1].position;
+
+            StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
         }
+    }
+
+    private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
+    {
+        var cardTransform = gameCard.UI.transform;
+
+        cardTransform.position = _deck.transform.position;
+
+        var duration = 0.5f;
+        var elapsed = 0f;
+
+        var startPosition = cardTransform.position;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            var t = Mathf.Clamp01(elapsed / duration);
+
+            cardTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
+
+            yield return null;
+        }
+
+        cardTransform.position = targetPosition;
     }
 
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
@@ -196,7 +225,7 @@ public class GameManager : MonoBehaviour
     {
         for (var i = 0; i < _stageAreaController.NumCardsStaged; i++)
         {
-            _stageAreaController.CardStaged[i].UI.transform.position = _stagePositions[i].position;
+            _stageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position;
         }
     }
 
