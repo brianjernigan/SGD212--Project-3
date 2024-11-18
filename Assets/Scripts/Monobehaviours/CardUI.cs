@@ -21,11 +21,16 @@ public class CardUI : MonoBehaviour
 
     private Vector3 _originalPosition;
     private Vector3 _originalScale;
+    private Quaternion _originalRotation;
     private Transform _currentDropZone;
+
+    private const float CardScaleFactor = 1.25f;
 
     private void Start()
     {
         _mainCamera = Camera.main;
+        _originalScale = transform.localScale;
+        _originalRotation = transform.rotation;
     }
     
     public void InitializeCard(CardData data, GameCard gameCard)
@@ -42,13 +47,42 @@ public class CardUI : MonoBehaviour
         GetComponent<MeshRenderer>().material = _cardData.CardMat;
     }
 
+    private void OnMouseEnter()
+    {
+        transform.localScale *= CardScaleFactor;
+    }
+
+    private void OnMouseExit()
+    {
+        transform.localScale = _originalScale;
+        transform.rotation = Quaternion.Euler(90f, 0f, 180f);
+    }
+
+    // private void OnMouseOver()
+    // {
+    //     var mouseWorldPosition = GetMouseWorldPosition();
+    //
+    //     var cardCenter = GetComponent<Collider>().bounds.center;
+    //     var offset = mouseWorldPosition - cardCenter;
+    //
+    //     var normalizedOffset = new Vector2(offset.x, offset.z).normalized;
+    //
+    //     var maxTiltAngle = 10f;
+    //     var tiltX = -normalizedOffset.y * maxTiltAngle;
+    //     var tiltZ = normalizedOffset.x * maxTiltAngle;
+    //
+    //     var targetRotation = Quaternion.Euler(tiltX, _originalRotation.eulerAngles.y, tiltZ);
+    //     transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
+    // }
+
     private void OnMouseDown()
     {
         _isDragging = true;
 
         _originalPosition = transform.position;
-        _originalScale = transform.localScale;
-
+        transform.localScale = _originalScale;
+        transform.localScale *= CardScaleFactor;
+        
         _yPos = transform.position.y;
 
         var mouseWorldPosition = GetMouseWorldPosition();
@@ -96,6 +130,8 @@ public class CardUI : MonoBehaviour
         {
             transform.position = _originalPosition;
         }
+
+        transform.localScale = _originalScale;
     }
 
     private Vector3 GetMouseWorldPosition()
