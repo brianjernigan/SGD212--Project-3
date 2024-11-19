@@ -23,6 +23,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _hand;
     [SerializeField] private GameObject _deck;
 
+    [Header("Texts")] 
+    [SerializeField] private TMP_Text _scoreText;
+
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
     public GameObject Hand => _hand;
@@ -266,8 +269,8 @@ public class GameManager : MonoBehaviour
         {
             // Bonus for set of 4?
         }
-        
-        var score = _stageAreaController.Score;
+
+        _scoreText.text = $"Score: {_stageAreaController.Score}";
         _stageAreaController.ClearStage();
     }
 
