@@ -22,7 +22,9 @@ public class CardUI : MonoBehaviour
     private Vector3 _originalPosition;
     private Vector3 _originalScale;
     private Quaternion _originalRotation;
-    private Transform _currentDropZone;
+    private Transform _lastDropZone;
+
+    private List<Transform> _dropZones;
 
     private const float CardScaleFactor = 1.25f;
 
@@ -31,6 +33,13 @@ public class CardUI : MonoBehaviour
         _mainCamera = Camera.main;
         _originalScale = transform.localScale;
         _originalRotation = transform.rotation;
+
+        _dropZones = new List<Transform>()
+        {
+            GameManager.Instance.Hand.transform,
+            GameManager.Instance.Stage.transform,
+            GameManager.Instance.Discard.transform
+        };
     }
     
     public void InitializeCard(CardData data, GameCard gameCard)
@@ -87,6 +96,15 @@ public class CardUI : MonoBehaviour
 
         var mouseWorldPosition = GetMouseWorldPosition();
         _offset = transform.position - mouseWorldPosition;
+        
+        foreach (var zone in _dropZones)
+        {
+            if (IsWithinDropZone(zone))
+            {
+                _lastDropZone = zone;
+                break;
+            }
+        }
     }
 
     private void OnMouseDrag()
@@ -101,29 +119,26 @@ public class CardUI : MonoBehaviour
     {
         _isDragging = false;
 
-        Transform validZone = null;
+        Transform newDropZone = null;
 
-        var zones = new List<Transform>()
-        {
-            GameManager.Instance.Hand.transform,
-            GameManager.Instance.Stage.transform,
-            GameManager.Instance.Discard.transform
-        };
-
-        foreach (var zone in zones)
+        foreach (var zone in _dropZones)
         {
             if (IsWithinDropZone(zone))
             {
-                validZone = zone;
+                newDropZone = zone;
                 break;
             }
         }
 
-        if (validZone is not null)
+        if (newDropZone is not null && _lastDropZone != newDropZone)
         {
-            if (!GameManager.Instance.TryDropCard(validZone, _gameCard))
+            if (!GameManager.Instance.TryDropCard(newDropZone, _gameCard))
             {
                 transform.position = _originalPosition;
+            }
+            else
+            {
+                _lastDropZone = newDropZone;
             }
         }
         else

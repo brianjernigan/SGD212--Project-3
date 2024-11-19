@@ -17,7 +17,7 @@ public class StageAreaController : MonoBehaviour
 
         if (cardsAreEmpty) return true;
         
-        var cardsAreFull = CardsStaged.Count >= 3;
+        var cardsAreFull = CardsStaged.Count >= 4;
         var cardIsMatch = CardsStaged[0].Data.CardRank == card.CardRank;
 
         return !cardsAreFull && cardIsMatch;
