@@ -42,6 +42,8 @@ public class GameManager : MonoBehaviour
     private StageAreaController _stageAreaController;
 
     private Camera _mainCamera;
+
+    private bool _isDrawingCards;
     
     private void Awake()
     {
@@ -112,9 +114,6 @@ public class GameManager : MonoBehaviour
         {
             HandleMouseClick();
         }
-        
-        Debug.Log($"Num cards in hand: {_playerHand.NumCardsInHand}");
-        Debug.Log($"Num cards staged: {_stageAreaController.NumCardsStaged}");
     }
 
     private void HandleMouseClick()
@@ -141,25 +140,30 @@ public class GameManager : MonoBehaviour
 
     public void DrawFullHand()
     {
-        if (_gameDeck.IsEmpty) return;
-        
-        while (CardsOnScreen < MaxCardsOnScreen && !_gameDeck.IsEmpty)
+        if (!_isDrawingCards)
         {
-            DrawCard();
+            StartCoroutine(DrawFullHandCoroutine());
         }
     }
 
-    private void DrawCard()
+    private IEnumerator DrawFullHandCoroutine()
     {
-        var gameCard = _gameDeck.DrawCard();
-        if (gameCard is not null)
+        _isDrawingCards = true;
+        
+        while (CardsOnScreen < MaxCardsOnScreen && !_gameDeck.IsEmpty)
         {
-            _playerHand.TryAddCardToHand(gameCard);
+            var gameCard = _gameDeck.DrawCard();
+            if (gameCard is not null)
+            {
+                _playerHand.TryAddCardToHand(gameCard);
 
-            var targetPosition = _handPositions[_playerHand.NumCardsInHand - 1].position;
+                var targetPosition = _handPositions[_playerHand.NumCardsInHand - 1].position;
 
-            StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
+                yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
+            }
         }
+
+        _isDrawingCards = false;
     }
 
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
@@ -168,7 +172,7 @@ public class GameManager : MonoBehaviour
 
         cardTransform.position = _deck.transform.position;
 
-        var duration = 0.5f;
+        var duration = 0.4f;
         var elapsed = 0f;
 
         var startPosition = cardTransform.position;
@@ -211,12 +215,18 @@ public class GameManager : MonoBehaviour
         {
             if (_playerHand.TryRemoveCardFromHand(gameCard) || _stageAreaController.TryRemoveCardFromStage(gameCard))
             {
-                Destroy(gameCard.UI.gameObject);
+                DiscardCard(gameCard);
                 return true;
             }
         }
     
         return false;
+    }
+
+    private void DiscardCard(GameCard gameCard)
+    {
+        // Add to discard pile?
+        Destroy(gameCard.UI.gameObject);
     }
 
     public void RearrangeHand()
