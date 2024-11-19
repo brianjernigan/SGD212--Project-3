@@ -58,11 +58,13 @@ public class CardUI : MonoBehaviour
 
     private void OnMouseEnter()
     {
+        if (GameManager.Instance.IsDraggingCard) return;
         transform.localScale *= CardScaleFactor;
     }
 
     private void OnMouseExit()
     {
+        if (GameManager.Instance.IsDraggingCard) return;
         transform.localScale = _originalScale;
         transform.rotation = Quaternion.Euler(90f, 0f, 180f);
     }
@@ -87,6 +89,7 @@ public class CardUI : MonoBehaviour
     private void OnMouseDown()
     {
         _isDragging = true;
+        GameManager.Instance.IsDraggingCard = true;
 
         _originalPosition = transform.position;
         transform.localScale = _originalScale;
@@ -118,7 +121,8 @@ public class CardUI : MonoBehaviour
     private void OnMouseUp()
     {
         _isDragging = false;
-
+        GameManager.Instance.IsDraggingCard = false;
+        
         Transform newDropZone = null;
 
         foreach (var zone in _dropZones)

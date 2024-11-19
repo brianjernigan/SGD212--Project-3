@@ -44,6 +44,9 @@ public class GameManager : MonoBehaviour
     private Camera _mainCamera;
 
     private bool _isDrawingCards;
+    public bool IsDraggingCard { get; set; }
+    
+    private int _currentScore;
     
     private void Awake()
     {
@@ -279,8 +282,9 @@ public class GameManager : MonoBehaviour
         {
             // Bonus for set of 4?
         }
-
-        _scoreText.text = $"Score: {_stageAreaController.Score}";
+        
+        _currentScore += _stageAreaController.Score;
+        _scoreText.text = $"Score: {_currentScore}";
         _stageAreaController.ClearStage();
     }
 
