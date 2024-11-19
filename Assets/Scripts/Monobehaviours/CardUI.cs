@@ -13,7 +13,7 @@ public class CardUI : MonoBehaviour
     private Camera _mainCamera;
     private bool _isDragging;
     private Vector3 _offset;
-    private float _yPos;
+    private float _originalYPosition;
 
     private GameObject _cardObject;
     private CardData _cardData;
@@ -92,7 +92,7 @@ public class CardUI : MonoBehaviour
         transform.localScale = _originalScale;
         transform.localScale *= CardScaleFactor;
         
-        _yPos = transform.position.y;
+        _originalYPosition = transform.position.y;
 
         var mouseWorldPosition = GetMouseWorldPosition();
         _offset = transform.position - mouseWorldPosition;
@@ -112,7 +112,7 @@ public class CardUI : MonoBehaviour
         if (!_isDragging) return;
 
         var mouseWorldPosition = GetMouseWorldPosition();
-        transform.position = new Vector3(mouseWorldPosition.x + _offset.x, _yPos, mouseWorldPosition.z + _offset.z);
+        transform.position = new Vector3(mouseWorldPosition.x + _offset.x, _originalYPosition, mouseWorldPosition.z + _offset.z);
     }
 
     private void OnMouseUp()
