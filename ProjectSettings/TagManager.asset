@@ -16,6 +16,7 @@ TagManager:
   - PlayButton
   - DrawButton
   - EndTurnButton
+  - AudioManager
   layers:
   - Default
   - TransparentFX

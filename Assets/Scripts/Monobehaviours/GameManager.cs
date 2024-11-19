@@ -109,6 +109,9 @@ public class GameManager : MonoBehaviour
         {
             HandleMouseClick();
         }
+        
+        Debug.Log($"Num cards in hand: {_playerHand.NumCardsInHand}");
+        Debug.Log($"Num cards staged: {_stageAreaController.NumCardsStaged}");
     }
 
     private void HandleMouseClick()
@@ -231,16 +234,15 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        var numCardsStaged = _stageAreaController.NumCardsStaged;
-        
         // Check cards in hand? 
 
-        switch (numCardsStaged)
+        switch (_stageAreaController.NumCardsStaged)
         {
             case 1:
                 TriggerCardEffect();
                 break;
             case 3:
+            case 4:
                 ScoreSet();
                 break;
             default:
@@ -260,6 +262,11 @@ public class GameManager : MonoBehaviour
 
     private void ScoreSet()
     {
+        if (_stageAreaController.NumCardsStaged == 4)
+        {
+            // Bonus for set of 4?
+        }
+        
         var score = _stageAreaController.Score;
         _stageAreaController.ClearStage();
     }
