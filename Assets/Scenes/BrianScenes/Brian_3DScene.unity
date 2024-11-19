@@ -3387,6 +3387,7 @@ MonoBehaviour:
   _discard: {fileID: 625124731}
   _hand: {fileID: 160446909}
   _deck: {fileID: 1539583394}
+  _scoreText: {fileID: 806817771}
 --- !u!4 &2026720658
 Transform:
   m_ObjectHideFlags: 0

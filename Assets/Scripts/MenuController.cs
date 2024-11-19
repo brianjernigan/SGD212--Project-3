@@ -10,9 +10,14 @@ public class MenuController : MonoBehaviour
         SceneManager.LoadScene("L1");
     }
 
+    public void OnClickHelpButton()
+    {
+        SceneManager.LoadScene("HelpMenu");
+    }
+
     public void OnClickCreditsButton()
     {
-        SceneManager.LoadScene("Credits");
+        SceneManager.LoadScene("CreditsMenu");
     }
 
     public void OnClickQuitButton()
