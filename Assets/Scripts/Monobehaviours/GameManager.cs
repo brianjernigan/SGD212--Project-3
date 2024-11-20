@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour
     private Hand _playerHand;
 
     private Dictionary<CardData, int> _defaultDeckComposition;
-    private Dictionary<int, ICardEffect> _cardEffects;
+    private Dictionary<string, ICardEffect> _cardEffects;
     
     private StageAreaController _stageAreaController;
 
@@ -74,7 +74,13 @@ public class GameManager : MonoBehaviour
             { _allPossibleCards[6], 4 },
             { _allPossibleCards[7], 4 },
             { _allPossibleCards[8], 4 },
-            { _allPossibleCards[9], 4 }
+            { _allPossibleCards[9], 4 },
+            { _allPossibleCards[10], 2 },
+            { _allPossibleCards[11], 2 },
+            { _allPossibleCards[12], 2 },
+            { _allPossibleCards[13], 2 },
+            { _allPossibleCards[14], 2 },
+            { _allPossibleCards[15], 2 }
         };
         
         // Define other decks? 
@@ -82,18 +88,24 @@ public class GameManager : MonoBehaviour
 
     private void InitializeCardEffects()
     {
-        _cardEffects = new Dictionary<int, ICardEffect>
+        _cardEffects = new Dictionary<string, ICardEffect>
         {
-            {1, new SwapAndDiscard(_playerHand, _gameDeck) },
-            {2, new SwapAndDiscard(_playerHand, _gameDeck) },
-            {3, new SwapAndDiscard(_playerHand, _gameDeck) },
-            {4, new SwapAndDiscard(_playerHand, _gameDeck) },
-            {5, new SwapAndDiscard(_playerHand, _gameDeck) },
-            {6, new SwapAndDiscard(_playerHand, _gameDeck) },
-            {7, new SwapAndDiscard(_playerHand, _gameDeck) },
-            {8, new SwapAndDiscard(_playerHand, _gameDeck) },
-            {9, new SwapAndDiscard(_playerHand, _gameDeck) },
-            {10, new SwapAndDiscard(_playerHand, _gameDeck) }
+            {"Plankton", new PlanktonEffect(_playerHand, _gameDeck) },
+            {"FishEggs", new FishEggsEffect(_playerHand, _gameDeck) },
+            {"Seahorse", new SeahorseEffect(_playerHand, _gameDeck) },
+            {"ClownFish", new ClownFishEffect(_playerHand, _gameDeck) },
+            {"CookieCutter", new CookieCutterEffect(_playerHand, _gameDeck) },
+            {"Turtle", new TurtleEffect(_playerHand, _gameDeck) },
+            {"Stingray", new StingrayEffect(_playerHand, _gameDeck) },
+            {"Bullshark", new BullsharkEffect(_playerHand, _gameDeck) },
+            {"Hammerhead", new HammerheadEffect(_playerHand, _gameDeck) },
+            {"Orca", new OrcaEffect(_playerHand, _gameDeck) },
+            {"Anemone", new AnemoneEffect(_playerHand, _gameDeck) },
+            {"Kraken", new KrakenEffect(_playerHand, _gameDeck) },
+            {"Treasure", new TreasureEffect(_playerHand, _gameDeck) },
+            {"Moray", new MorayEffect(_playerHand, _gameDeck) },
+            {"Net", new NetEffect(_playerHand, _gameDeck) },
+            {"Whaleshark", new WhaleSharkEffect(_playerHand, _gameDeck) }
         };
     }
 
@@ -115,11 +127,16 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            HandleMouseClick();
+            HandleLeftMouseClick();
+        }
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            HandleRightMouseClick();
         }
     }
 
-    private void HandleMouseClick()
+    private void HandleLeftMouseClick()
     {
         if (_mainCamera is null) return;
 
@@ -139,6 +156,11 @@ public class GameManager : MonoBehaviour
                 OnClickPlayButton();
             }
         }
+    }
+    
+    private void HandleRightMouseClick()
+    {
+        throw new NotImplementedException();
     }
 
     public void DrawFullHand()
@@ -288,9 +310,9 @@ public class GameManager : MonoBehaviour
         _stageAreaController.ClearStage();
     }
 
-    public ICardEffect GetEffectForRank(int rank)
+    public ICardEffect GetEffectForRank(string name)
     {
-        return _cardEffects.GetValueOrDefault(rank);
+        return _cardEffects.GetValueOrDefault(name);
     }
 
     public void PlaceCardInHand(GameCard gameCard, bool isDrawing)

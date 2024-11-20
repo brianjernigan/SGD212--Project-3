@@ -30,6 +30,7 @@ public class StageAreaController : MonoBehaviour
         if (!CanStageCard(cardData)) return false;
 
         CardsStaged.Add(gameCard);
+        GameManager.Instance.RearrangeStage();
         return true;
     }
 

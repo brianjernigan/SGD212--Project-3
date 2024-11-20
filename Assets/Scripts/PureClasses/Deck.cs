@@ -48,15 +48,20 @@ public class Deck
     
     public GameCard DrawCard()
     {
-        if (_cardsInDeck.Count == 0) return null;
+        if (_cardsInDeck.Count == 0)
+        {
+            Debug.Log("Deck is empty!");
+            // Level over? 
+            return null;
+        }
 
         var drawnCardData = _cardsInDeck[0];
         _cardsInDeck.RemoveAt(0);
 
         var cardUIObject = Object.Instantiate(_cardPrefab);
-        
+
         var cardUI = cardUIObject.GetComponent<CardUI>();
-        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
+        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardName);
 
         var gameCard = new GameCard(drawnCardData, cardUI, cardEffect);
         cardUI.InitializeCard(drawnCardData, gameCard);
@@ -74,7 +79,7 @@ public class Deck
         var drawnCardData = _cardsInDeck[randomIndex];
         _cardsInDeck.RemoveAt(randomIndex);
         
-        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
+        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardName);
         var cardUIObject = Object.Instantiate(_cardPrefab);
         var cardUI = cardUIObject.GetComponent<CardUI>();
 
