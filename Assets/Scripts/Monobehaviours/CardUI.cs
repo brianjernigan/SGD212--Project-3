@@ -14,14 +14,12 @@ public class CardUI : MonoBehaviour
     private bool _isDragging;
     private Vector3 _offset;
     private float _originalYPosition;
-
-    private GameObject _cardObject;
+    
     private CardData _cardData;
     private GameCard _gameCard;
 
     private Vector3 _originalPosition;
     private Vector3 _originalScale;
-    private Quaternion _originalRotation;
     private Transform _lastDropZone;
 
     private List<Transform> _dropZones;
@@ -32,7 +30,6 @@ public class CardUI : MonoBehaviour
     {
         _mainCamera = Camera.main;
         _originalScale = transform.localScale;
-        _originalRotation = transform.rotation;
 
         _dropZones = new List<Transform>()
         {
@@ -51,7 +48,7 @@ public class CardUI : MonoBehaviour
 
     private void SetCardUI()
     {
-        if (_cardData.CardRank == 0)
+        if (_cardData.Type == CardType.Unranked)
         {
             _topRankText.text = "";
             _bottomRankText.text = "";
@@ -75,7 +72,6 @@ public class CardUI : MonoBehaviour
     {
         if (GameManager.Instance.IsDraggingCard) return;
         transform.localScale = _originalScale;
-        transform.rotation = Quaternion.Euler(90f, 0f, 180f);
     }
 
     // private void OnMouseOver()
