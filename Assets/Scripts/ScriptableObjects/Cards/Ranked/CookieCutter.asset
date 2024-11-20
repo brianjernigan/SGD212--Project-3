@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8374cb81c79c2a34ab0e1921daf9353a, type: 3}
+  m_Name: CookieCutter
+  m_EditorClassIdentifier: 
+  _cardName: CookieCutter
+  _cardMat: {fileID: 2100000, guid: c4c01f8d26153c74ea64efce9b419cb9, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
+  _textBoxSprite: {fileID: -115751106, guid: b895bdee4b0cb844088284eaa82c434a, type: 3}
+  _cardRank: 5

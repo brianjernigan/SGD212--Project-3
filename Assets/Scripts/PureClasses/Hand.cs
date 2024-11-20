@@ -14,6 +14,7 @@ public class Hand
     {
         if (gameCard is null) return false;
         CardsInHand.Add(gameCard);
+        GameManager.Instance.RearrangeHand();
         return true;
     }
 

@@ -59,9 +59,9 @@ public class Deck
         _cardsInDeck.RemoveAt(0);
 
         var cardUIObject = Object.Instantiate(_cardPrefab);
-        
+
         var cardUI = cardUIObject.GetComponent<CardUI>();
-        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
+        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardName);
 
         var gameCard = new GameCard(drawnCardData, cardUI, cardEffect);
         cardUI.InitializeCard(drawnCardData, gameCard);
@@ -79,7 +79,7 @@ public class Deck
         var drawnCardData = _cardsInDeck[randomIndex];
         _cardsInDeck.RemoveAt(randomIndex);
         
-        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardRank);
+        var cardEffect = GameManager.Instance.GetEffectForRank(drawnCardData.CardName);
         var cardUIObject = Object.Instantiate(_cardPrefab);
         var cardUI = cardUIObject.GetComponent<CardUI>();
 

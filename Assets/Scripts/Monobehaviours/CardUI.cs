@@ -51,8 +51,17 @@ public class CardUI : MonoBehaviour
 
     private void SetCardUI()
     {
-        _topRankText.text = _cardData.CardRank.ToString();
-        _bottomRankText.text = _cardData.CardRank.ToString();
+        if (_cardData.CardRank == 0)
+        {
+            _topRankText.text = "";
+            _bottomRankText.text = "";
+        }
+        else
+        {
+            _topRankText.text = _cardData.CardRank.ToString();
+            _bottomRankText.text = _cardData.CardRank.ToString();
+        }
+        
         GetComponent<MeshRenderer>().material = _cardData.CardMat;
     }
 
