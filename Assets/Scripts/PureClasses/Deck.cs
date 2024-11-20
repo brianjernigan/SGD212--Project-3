@@ -48,7 +48,12 @@ public class Deck
     
     public GameCard DrawCard()
     {
-        if (_cardsInDeck.Count == 0) return null;
+        if (_cardsInDeck.Count == 0)
+        {
+            Debug.Log("Deck is empty!");
+            // Level over? 
+            return null;
+        }
 
         var drawnCardData = _cardsInDeck[0];
         _cardsInDeck.RemoveAt(0);
