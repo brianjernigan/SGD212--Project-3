@@ -18,6 +18,10 @@ public class StageAreaController : MonoBehaviour
         if (cardsAreEmpty) return true;
         
         var cardsAreFull = CardsStaged.Count >= 4;
+        
+        // Kraken card
+        if (card.CardRank == 12 && !cardsAreFull) return true;
+        
         var cardIsMatch = CardsStaged[0].Data.CardRank == card.CardRank;
 
         return !cardsAreFull && cardIsMatch;

@@ -74,23 +74,6 @@ public class CardUI : MonoBehaviour
         transform.localScale = _originalScale;
     }
 
-    // private void OnMouseOver()
-    // {
-    //     var mouseWorldPosition = GetMouseWorldPosition();
-    //
-    //     var cardCenter = GetComponent<Collider>().bounds.center;
-    //     var offset = mouseWorldPosition - cardCenter;
-    //
-    //     var normalizedOffset = new Vector2(offset.x, offset.z).normalized;
-    //
-    //     var maxTiltAngle = 10f;
-    //     var tiltX = -normalizedOffset.y * maxTiltAngle;
-    //     var tiltZ = normalizedOffset.x * maxTiltAngle;
-    //
-    //     var targetRotation = Quaternion.Euler(tiltX, _originalRotation.eulerAngles.y, tiltZ);
-    //     transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
-    // }
-
     private void OnMouseDown()
     {
         _isDragging = true;
