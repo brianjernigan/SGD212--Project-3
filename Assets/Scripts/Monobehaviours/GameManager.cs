@@ -182,13 +182,35 @@ public class GameManager : MonoBehaviour
             {
                 _playerHand.TryAddCardToHand(gameCard);
 
-                var targetPosition = _handPositions[_playerHand.NumCardsInHand - 1].position;
+                var dockCenter = _hand.transform.position;
+                var targetPosition = CalculateCardPosition(
+                    _playerHand.NumCardsInHand - 1,
+                    _playerHand.NumCardsInHand,
+                    750f,
+                    0.5f,
+                    dockCenter
+                );
+                
+                // var targetPosition = _handPositions[_playerHand.NumCardsInHand - 1].position;
 
                 yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
             }
         }
 
         _isDrawingCards = false;
+    }
+
+    private Vector3 CalculateCardPosition(int cardIndex, int totalCards, float dockWidth, float curveStrength, Vector3 dockCenter)
+    {
+        totalCards = Mathf.Max(totalCards, 1);
+
+        var totalSpacing = Mathf.Max(dockWidth, 0.1f);
+        var startX = -totalSpacing / 2f;
+        var xPosition = startX + (cardIndex * (dockWidth / Mathf.Max(1, totalCards - 1)));
+
+        var zPosition = Mathf.Pow(xPosition / Mathf.Max(totalSpacing, 1f), 2) * curveStrength;
+
+        return dockCenter + new Vector3(xPosition, 25 + cardIndex, zPosition);
     }
 
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
@@ -256,10 +278,20 @@ public class GameManager : MonoBehaviour
 
     public void RearrangeHand()
     {
+        var dockCenter = _hand.transform.position;
+
         for (var i = 0; i < _playerHand.NumCardsInHand; i++)
         {
-            _playerHand.CardsInHand[i].UI.transform.position = _handPositions[i].position;
+            var card = _playerHand.CardsInHand[i];
+            var targetPosition = CalculateCardPosition(i, _playerHand.NumCardsInHand, 750f, 0.5f, dockCenter);
+
+            card.UI.transform.position = targetPosition;
         }
+
+        // for (var i = 0; i < _playerHand.NumCardsInHand; i++)
+        // {
+        //     _playerHand.CardsInHand[i].UI.transform.position = _handPositions[i].position;
+        // }
     }
 
     public void RearrangeStage()
