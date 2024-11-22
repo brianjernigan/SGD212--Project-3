@@ -23,6 +23,10 @@ public class GameManager : MonoBehaviour
 
     [Header("Texts")] 
     [SerializeField] private TMP_Text _scoreText;
+    [SerializeField] private TMP_Text _moneyText;
+    [SerializeField] private TMP_Text _playText;
+    [SerializeField] private TMP_Text _discardText;
+    [SerializeField] private TMP_Text _multiplierText;
 
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
@@ -49,6 +53,10 @@ public class GameManager : MonoBehaviour
     private const float DockWidth = 750f;
     // If we want curved hand layout
     private const float CurveStrength = -0.001f;
+    
+    public int PlaysRemaining { get; set; }
+    public int DiscardsRemaining { get; set; }
+    public int PlayerMoney { get; set; }
     
     private void Awake()
     {

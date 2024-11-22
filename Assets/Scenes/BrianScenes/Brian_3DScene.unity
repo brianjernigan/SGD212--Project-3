@@ -2454,10 +2454,10 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 806817770}
-  - {fileID: 1356591237}
+  - {fileID: 495650973}
   - {fileID: 310278858}
   - {fileID: 656520718}
-  - {fileID: 495650973}
+  - {fileID: 1356591237}
   m_Father: {fileID: 1647094310}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3857,6 +3857,10 @@ MonoBehaviour:
   _hand: {fileID: 160446909}
   _deck: {fileID: 1539583394}
   _scoreText: {fileID: 806817771}
+  _moneyText: {fileID: 495650974}
+  _playText: {fileID: 310278859}
+  _discardText: {fileID: 656520719}
+  _multiplierText: {fileID: 1356591238}
 --- !u!4 &2026720658
 Transform:
   m_ObjectHideFlags: 0
