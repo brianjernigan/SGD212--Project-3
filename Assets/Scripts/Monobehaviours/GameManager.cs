@@ -170,7 +170,29 @@ public class GameManager : MonoBehaviour
     
     private void HandleRightMouseClick()
     {
-        throw new NotImplementedException();
+        if (_mainCamera is null) return;
+
+        var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out var hit))
+        {
+            var clickedObject = hit.collider.gameObject;
+
+            if (clickedObject.CompareTag("Card"))
+            {
+                FlipCard(clickedObject);
+            }
+        }
+    }
+
+    private void FlipCard(GameObject card)
+    {
+        var rb = card.GetComponent<Rigidbody>();
+
+        if (rb is not null)
+        {
+            Debug.Log("howdy");
+        }
     }
 
     public void DrawFullHand()
@@ -307,12 +329,15 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        if (_stageAreaController.GetFirstStagedCard().Data.CardName == "Kraken" && _stageAreaController.NumCardsStaged == 1) return;
+        if (_stageAreaController.NumCardsStaged == 0) return;
 
         switch (_stageAreaController.NumCardsStaged)
         {
             case 1:
-                TriggerCardEffect();
+                if (_stageAreaController.GetFirstStagedCard().Data.CardName != "Kraken")
+                {
+                    TriggerCardEffect();
+                }
                 break;
             case 3:
             case 4:
