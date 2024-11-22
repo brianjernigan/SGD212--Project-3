@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,20 +8,32 @@ using UnityEngine;
 public class StageAreaController : MonoBehaviour
 {
     public List<GameCard> CardsStaged { get; } = new();
-
     public int NumCardsStaged => CardsStaged.Count;
-    public int Score => CardsStaged.Sum(card => card.Data.CardRank);
     
     private bool CanStageCard(CardData card)
     {
-        var cardsAreEmpty = CardsStaged.Count == 0;
+        if (CardsStaged.Count == 0) return true;
 
-        if (cardsAreEmpty) return true;
-        
         var cardsAreFull = CardsStaged.Count >= 4;
-        var cardIsMatch = CardsStaged[0].Data.CardRank == card.CardRank;
+        if (cardsAreFull) return false;
 
-        return !cardsAreFull && cardIsMatch;
+        var containsKraken = CardsStaged.Exists(stagedCard => stagedCard.Data.CardRank == 12);
+        if (containsKraken && CardsStaged.Count == 1) return true;
+
+        if (containsKraken && CardsStaged.Count > 1)
+        {
+            var nonKrakenCard = CardsStaged.Find(stagedCard => stagedCard.Data.CardRank != 12);
+            if (nonKrakenCard is not null)
+            {
+                return card.CardRank == nonKrakenCard.Data.CardRank;
+            }
+        }
+
+        var firstCard = CardsStaged[0].Data;
+        var cardIsMatch = firstCard.CardRank == card.CardRank;
+        var cardIsKraken = card.CardRank == 12;
+
+        return cardIsMatch || cardIsKraken;
     }
 
     public bool TryAddCardToStage(GameCard gameCard)
@@ -69,5 +82,10 @@ public class StageAreaController : MonoBehaviour
         }
         
         CardsStaged.Clear();
+    }
+
+    public int CalculateScore()
+    {
+        throw new NotImplementedException();
     }
 }

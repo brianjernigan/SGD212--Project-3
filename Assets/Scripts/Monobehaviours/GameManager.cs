@@ -13,8 +13,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<CardData> _allPossibleCards;
     [SerializeField] private GameObject _cardPrefab;
     
-    [Header("Card Positions")]
-    [SerializeField] private List<Transform> _handPositions;
     [SerializeField] private List<Transform> _stagePositions;
 
     [Header("Areas")]
@@ -25,6 +23,10 @@ public class GameManager : MonoBehaviour
 
     [Header("Texts")] 
     [SerializeField] private TMP_Text _scoreText;
+    [SerializeField] private TMP_Text _moneyText;
+    [SerializeField] private TMP_Text _playText;
+    [SerializeField] private TMP_Text _discardText;
+    [SerializeField] private TMP_Text _multiplierText;
 
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
@@ -47,6 +49,14 @@ public class GameManager : MonoBehaviour
     public bool IsDraggingCard { get; set; }
     
     private int _currentScore;
+
+    private const float DockWidth = 750f;
+    // If we want curved hand layout
+    private const float CurveStrength = -0.001f;
+    
+    public int PlaysRemaining { get; set; }
+    public int DiscardsRemaining { get; set; }
+    public int PlayerMoney { get; set; }
     
     private void Awake()
     {
@@ -117,7 +127,7 @@ public class GameManager : MonoBehaviour
 
         _stageAreaController = _stage.GetComponent<StageAreaController>();
         
-        _gameDeck = new Deck(_defaultDeckComposition, _cardPrefab, _handPositions);
+        _gameDeck = new Deck(_defaultDeckComposition, _cardPrefab);
         _playerHand = new Hand();
         
         InitializeCardEffects();
@@ -160,7 +170,29 @@ public class GameManager : MonoBehaviour
     
     private void HandleRightMouseClick()
     {
-        throw new NotImplementedException();
+        if (_mainCamera is null) return;
+
+        var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out var hit))
+        {
+            var clickedObject = hit.collider.gameObject;
+
+            if (clickedObject.CompareTag("Card"))
+            {
+                FlipCard(clickedObject);
+            }
+        }
+    }
+
+    private void FlipCard(GameObject card)
+    {
+        var rb = card.GetComponent<Rigidbody>();
+
+        if (rb is not null)
+        {
+            Debug.Log("howdy");
+        }
     }
 
     public void DrawFullHand()
@@ -182,13 +214,33 @@ public class GameManager : MonoBehaviour
             {
                 _playerHand.TryAddCardToHand(gameCard);
 
-                var targetPosition = _handPositions[_playerHand.NumCardsInHand - 1].position;
+                var dockCenter = _hand.transform.position;
+                var targetPosition = CalculateCardPosition(
+                    _playerHand.NumCardsInHand - 1,
+                    _playerHand.NumCardsInHand,
+                    dockCenter
+                );
+                
+                // var targetPosition = _handPositions[_playerHand.NumCardsInHand - 1].position;
 
                 yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
             }
         }
 
         _isDrawingCards = false;
+    }
+
+    private Vector3 CalculateCardPosition(int cardIndex, int totalCards, Vector3 dockCenter)
+    {
+        totalCards = Mathf.Max(totalCards, 1);
+
+        var totalSpacing = Mathf.Max(DockWidth, 0.1f);
+        var startX = -totalSpacing / 2f;
+        var xPosition = startX + (cardIndex * (DockWidth / Mathf.Max(1, totalCards - 1)));
+        
+        var zPosition = Mathf.Pow(xPosition / Mathf.Max(totalSpacing, 1f), 2) * CurveStrength;
+
+        return dockCenter + new Vector3(xPosition, 25 + cardIndex, zPosition);
     }
 
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
@@ -222,7 +274,7 @@ public class GameManager : MonoBehaviour
         {
             if (_playerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStage(gameCard))
             {
-                PlaceCardInHand(gameCard, false);
+                PlaceCardInHand(gameCard);
                 return true;
             }
         }
@@ -256,9 +308,14 @@ public class GameManager : MonoBehaviour
 
     public void RearrangeHand()
     {
+        var dockCenter = _hand.transform.position;
+
         for (var i = 0; i < _playerHand.NumCardsInHand; i++)
         {
-            _playerHand.CardsInHand[i].UI.transform.position = _handPositions[i].position;
+            var card = _playerHand.CardsInHand[i];
+            var targetPosition = CalculateCardPosition(i, _playerHand.NumCardsInHand, dockCenter);
+
+            card.UI.transform.position = targetPosition;
         }
     }
 
@@ -272,12 +329,15 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        // Check cards in hand? 
+        if (_stageAreaController.NumCardsStaged == 0) return;
 
         switch (_stageAreaController.NumCardsStaged)
         {
             case 1:
-                TriggerCardEffect();
+                if (_stageAreaController.GetFirstStagedCard().Data.CardName != "Kraken")
+                {
+                    TriggerCardEffect();
+                }
                 break;
             case 3:
             case 4:
@@ -304,27 +364,35 @@ public class GameManager : MonoBehaviour
         {
             // Bonus for set of 4?
         }
-        
-        _currentScore += _stageAreaController.Score;
+
+        _currentScore += _stageAreaController.CalculateScore();
         _scoreText.text = $"Score: {_currentScore}";
         _stageAreaController.ClearStage();
     }
 
-    public ICardEffect GetEffectForRank(string name)
+    public ICardEffect GetEffectForRank(string cardName)
     {
-        return _cardEffects.GetValueOrDefault(name);
+        return _cardEffects.GetValueOrDefault(cardName);
     }
 
-    public void PlaceCardInHand(GameCard gameCard, bool isDrawing)
+    public void PlaceCardInHand(GameCard gameCard)
     {
-        // Drawing creates card before placing in hand -> 0 index
-        // Dragging adds card to hand then places -> -1 index
-        var index = isDrawing ? _playerHand.NumCardsInHand : _playerHand.NumCardsInHand - 1;
-        gameCard.UI.transform.position = _handPositions[index].transform.position;
+        var dockCenter = _hand.transform.position;
+
+        var targetPosition = CalculateCardPosition(_playerHand.NumCardsInHand - 1, _playerHand.NumCardsInHand, dockCenter);
+
+        gameCard.UI.transform.position = targetPosition;
+        
+        RearrangeHand();
     }
 
     private void PlaceCardInStage(GameCard gameCard)
     {
         gameCard.UI.transform.position = _stagePositions[_stageAreaController.NumCardsStaged - 1].transform.position;
+    }
+
+    public void AddCardToDeck(CardData data, int count = 1)
+    {
+        _gameDeck?.AddCard(data, count);
     }
 }

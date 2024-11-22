@@ -17,4 +17,4 @@ MonoBehaviour:
   _cardMat: {fileID: 2100000, guid: 3c8815f2d540f0746b24c6fb8c96ade4, type: 2}
   _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
   _textBoxSprite: {fileID: 21300000, guid: 7a8267cf8fbb37346975df68c3e44be9, type: 3}
-  _cardRank: 0
+  _cardRank: 15
