@@ -339,8 +339,8 @@ public class GameManager : MonoBehaviour
         {
             // Bonus for set of 4?
         }
-        
-        _currentScore += _stageAreaController.Score;
+
+        _currentScore += _stageAreaController.CalculateScore();
         _scoreText.text = $"Score: {_currentScore}";
         _stageAreaController.ClearStage();
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,6 @@ public class StageAreaController : MonoBehaviour
     public List<GameCard> CardsStaged { get; } = new();
 
     public int NumCardsStaged => CardsStaged.Count;
-    public int Score => CardsStaged.Sum(card => card.Data.CardRank);
     
     private bool CanStageCard(CardData card)
     {
@@ -73,5 +73,10 @@ public class StageAreaController : MonoBehaviour
         }
         
         CardsStaged.Clear();
+    }
+
+    public int CalculateScore()
+    {
+        throw new NotImplementedException();
     }
 }
