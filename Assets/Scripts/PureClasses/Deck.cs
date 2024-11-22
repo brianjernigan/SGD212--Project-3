@@ -12,7 +12,6 @@ public class Deck
 {
     private readonly List<CardData> _cardsInDeck;
     private readonly GameObject _cardPrefab;
-    private List<Transform> _cardPositions;
 
     public bool IsEmpty => _cardsInDeck.Count == 0;
 
@@ -21,7 +20,6 @@ public class Deck
         _cardsInDeck = new List<CardData>();
         ConfigureDeck(deckComposition);
         _cardPrefab = prefab;
-        _cardPositions = cardPositions;
 
         ShuffleDeck();
     }
@@ -48,7 +46,7 @@ public class Deck
     
     public GameCard DrawCard()
     {
-        if (_cardsInDeck.Count == 0)
+        if (IsEmpty)
         {
             Debug.Log("Deck is empty!");
             // Level over? 
@@ -73,7 +71,7 @@ public class Deck
 
     public GameCard DrawRandomCard()
     {
-        if (_cardsInDeck.Count == 0) return null;
+        if (IsEmpty) return null;
 
         var randomIndex = Random.Range(0, _cardsInDeck.Count);
         var drawnCardData = _cardsInDeck[randomIndex];
