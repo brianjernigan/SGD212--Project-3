@@ -307,7 +307,7 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        // Check cards in hand? 
+        if (_stageAreaController.GetFirstStagedCard().Data.CardName == "Kraken" && _stageAreaController.NumCardsStaged == 1) return;
 
         switch (_stageAreaController.NumCardsStaged)
         {
