@@ -185,14 +185,30 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void FlipCard(GameObject card)
+    private void FlipCard(GameObject detectionCollider)
     {
-        var rb = card.GetComponent<Rigidbody>();
+        var parentObject = detectionCollider.transform.parent.gameObject;
+        StartCoroutine(FlipCardCoroutine(parentObject));
+    }
 
-        if (rb is not null)
+    private IEnumerator FlipCardCoroutine(GameObject card)
+    {
+        var startRotation = card.transform.rotation;
+        var endRotation = card.transform.rotation * Quaternion.Euler(0f, 180f, 0f);
+
+        var duration = 0.5f;
+        var elapsedTime = 0f;
+
+        while (elapsedTime < duration)
         {
-            Debug.Log("howdy");
+            elapsedTime += Time.deltaTime;
+
+            card.transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsedTime);
+
+            yield return null;
         }
+
+        card.transform.rotation = endRotation;
     }
 
     public void DrawFullHand()
