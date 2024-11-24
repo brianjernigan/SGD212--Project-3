@@ -36,8 +36,6 @@ public class GameManager : MonoBehaviour
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
-
-    private Dictionary<CardData, int> _defaultDeckComposition;
     
     private StageAreaController _stageAreaController;
 
@@ -271,11 +269,7 @@ public class GameManager : MonoBehaviour
         gameCard.IsAnimating = false;
         Debug.Log($"Animation Unlocked: {gameCard.Data.CardName}");
     }
-
-
-
-
-
+    
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
     {
         // Destage
