@@ -196,20 +196,26 @@ public class GameManager : MonoBehaviour
         var startRotation = card.transform.rotation;
         var endRotation = card.transform.rotation * Quaternion.Euler(0f, 180f, 0f);
 
-        var duration = 0.5f;
+        var duration = 0.75f; // Increased duration for smoother animation
         var elapsedTime = 0f;
 
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
 
-            card.transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsedTime);
+            // Smooth step interpolation (ease-in-out effect)
+            float t = elapsedTime / duration;
+            t = t * t * (3f - 2f * t); // Smoothstep easing formula
+
+            card.transform.rotation = Quaternion.Slerp(startRotation, endRotation, t);
 
             yield return null;
         }
 
-        card.transform.rotation = endRotation;
+        card.transform.rotation = endRotation; // Ensure it ends exactly at the target rotation
     }
+
+
 
     public void DrawFullHand()
     {
