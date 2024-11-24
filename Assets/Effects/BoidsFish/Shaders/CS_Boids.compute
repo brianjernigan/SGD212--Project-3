@@ -1,0 +1,228 @@
+#pragma kernel SteeringForcesCS
+#pragma kernel BoidsDataCS
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+struct BoidData
+{
+    float3 velocity;
+    float3 position;
+};
+#define THREAD_GROUP_SIZE 16
+
+// Boids read-only structured buffer
+StructuredBuffer<BoidData> _BoidsDataBuffer;
+
+// Boids read-write structured buffer
+RWStructuredBuffer<BoidData> _BoidsDataBufferRw;
+
+// Boids steering forces buffer
+StructuredBuffer<float3> _BoidsSteeringForcesBuffer;
+
+// Read-write boids steering forces buffer
+RWStructuredBuffer<float3> _BoidsSteeringForcesBufferRw;
+
+RWStructuredBuffer<float3> _PositionBufferRW;
+RWStructuredBuffer<float3> _VelocityBufferRW;
+
+groupshared BoidData boid_data[THREAD_GROUP_SIZE];
+
+int _BoidsCount; // Total boids count
+
+float _DeltaTime;      // Time elapsed since the previous frame
+
+float _SeparationRadius; // Radius for applying separation to other individuals
+float _AlignmentRadius; // Radius for applying alignment to other individuals
+float _CohesionRadius;  // Radius for applying cohesion to other individuals
+
+float _BoidMaximumSpeed;
+float _BoidMaximumSteeringForce;
+
+float _SeparationWeight;  // Separation force appliance weight
+float _AlignmentWeight; // Alignment force appliance weight
+float _CohesionWeight;  // Cohesion force appliance weight
+
+float4 _SimulationCenter;
+float4 _SimulationDimensions;
+float _SimulationBoundsAvoidWeight;
+float3 _PlayerPosition;
+float _PlayerRadius;
+
+int _Shape = 0;
+
+//target
+float3 _targetPos;
+
+//Limits the size of a given 3D vector to the specified maximum.
+float3 limit(float3 vec, float max)
+{
+    float lengthSquared = dot(vec, vec);
+   
+    if (lengthSquared > max * max && lengthSquared > 0)
+    {
+        float length = sqrt(lengthSquared); // magnitude
+        return vec.xyz * (max / length);
+    }
+    return vec.xyz;
+}
+
+//The behavior that is processed when the simulation boundary is reached
+float3 CheckSimulationBounds(float3 position)
+{
+    float3 acc = float3(0, 0, 0);
+    switch (_Shape)
+    {
+        case 0: //box
+            float3 wc = _SimulationCenter.xyz;
+            float3 ws = _SimulationDimensions.xyz;
+            acc.x = (position.x < wc.x - ws.x * 0.5) ? 1.0 : ((position.x > wc.x + ws.x * 0.5) ? -1.0 : 0.0);
+            acc.y = (position.y < wc.y - ws.y * 0.5) ? 1.0 : ((position.y > wc.y + ws.y * 0.5) ? -1.0 : 0.0);
+            acc.z = (position.z < wc.z - ws.z * 0.5) ? 1.0 : ((position.z > wc.z + ws.z * 0.5) ? -1.0 : 0.0);
+            break;
+         case 1: // Point to the target
+            acc = normalize(_targetPos - position);
+             break;
+    }
+    
+
+    //Calculates whether or not it is within the player's collision radius
+    bool insideF = distance(position,_PlayerPosition) < _PlayerRadius;
+    if(insideF)
+    {
+        float3 dir = position - _PlayerPosition;
+        acc = normalize(dir)*2;
+    }
+
+    return acc;
+}
+
+//Steering force calculation core
+//The steering forces acting on each individual are calculated based on separation, alignment, and cohesion.
+//It traverses all the individuals and calculates the forces acting on the current individuals within a specified radius.
+//The calculated forces are adjusted, normalized, and limited as needed
+//The resulting force is accumulated and the final force is calculated
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void SteeringForcesCS (
+   uint3 d_tid : SV_DispatchThreadID, 
+   uint  gi : SV_GroupIndex          // SV_GroupThreadID from 0 to 255
+)
+{
+   const unsigned int P_ID = d_tid.x; // Self ID
+   const float3 P_position = _BoidsDataBuffer[P_ID].position; // Self position
+   const float3 P_velocity = _BoidsDataBuffer[P_ID].velocity; // Self speed
+    
+   float3 force = float3(0, 0, 0);
+    
+   float3 separationPositionOffset = float3(0, 0, 0);
+   float3 alignmentPositionOffset = float3(0, 0, 0);
+   float3 cohesionPositionOffset = float3(0, 0, 0);
+    
+   int separationBoidsCount = 0;
+   int alignmentBoidsCount = 0;
+   int cohesionBoidsCount = 0;
+    
+   float3 separationSteering = float3(0, 0, 0);
+   float3 alignmentSteering = float3(0, 0, 0);
+   float3 cohesionSteering = float3(0, 0, 0);
+
+   // Loop unrolling
+    [loop]
+    for (uint n_block_id = 0; n_block_id < (uint)_BoidsCount; n_block_id += THREAD_GROUP_SIZE)
+    {
+        boid_data[gi] = _BoidsDataBuffer[n_block_id + gi];
+        GroupMemoryBarrierWithGroupSync();
+
+        [unroll]
+        for (int N_tile_ID = 0; N_tile_ID < THREAD_GROUP_SIZE; N_tile_ID++)
+        {
+           const float3 N_position = boid_data[N_tile_ID].position;
+           const float3 N_velocity = boid_data[N_tile_ID].velocity;
+
+
+            const float3 diff = P_position - N_position; 
+            const float dist = sqrt(dot(diff, diff));
+
+
+           //Separation
+            if (dist > 0.0 && dist <= _SeparationRadius)
+            {
+                float3 repulse = normalize(P_position - N_position);
+                repulse /= dist;
+                separationPositionOffset += repulse;
+                separationBoidsCount++;
+            }
+
+
+           //Alignment
+            if (dist > 0.0 && dist <= _AlignmentRadius)
+            {
+                alignmentPositionOffset += N_velocity;
+                alignmentBoidsCount++;
+            }
+
+
+           //Cohesion
+            if (dist > 0.0 && dist <= _CohesionRadius)
+            {
+                cohesionPositionOffset += N_position;
+                cohesionBoidsCount++;
+            }
+        }
+       
+        GroupMemoryBarrierWithGroupSync();
+    }  
+   
+   if (separationBoidsCount > 0)
+   {
+      separationSteering = separationPositionOffset / (float)separationBoidsCount;     // Calculate the average
+      separationSteering = normalize(separationSteering) * _BoidMaximumSpeed; // Adjust to maximum speed
+      separationSteering = separationSteering - P_velocity;           // Calculate steering force
+      separationSteering = limit(separationSteering, _BoidMaximumSteeringForce); // Limit the steering force
+   }
+   
+   if (alignmentBoidsCount > 0)
+   {
+      alignmentSteering = alignmentPositionOffset / (float)alignmentBoidsCount;    
+      alignmentSteering = normalize(alignmentSteering) * _BoidMaximumSpeed;
+      alignmentSteering = alignmentSteering - P_velocity;          
+      alignmentSteering = limit(alignmentSteering, _BoidMaximumSteeringForce);
+   }
+   
+   if (cohesionBoidsCount > 0)
+   {
+      cohesionPositionOffset = cohesionPositionOffset / (float)cohesionBoidsCount;    
+      cohesionSteering = cohesionPositionOffset - P_position;      
+      cohesionSteering = normalize(cohesionSteering) * _BoidMaximumSpeed;
+      cohesionSteering = cohesionSteering - P_velocity;          
+      cohesionSteering = limit(cohesionSteering, _BoidMaximumSteeringForce);
+   }
+   
+   //Pass accumulated steering forces to resulting value
+   force += alignmentSteering * _AlignmentWeight;
+   force += cohesionSteering * _CohesionWeight;  
+   force += separationSteering * _SeparationWeight;  
+   
+   _BoidsSteeringForcesBufferRw[P_ID] = force;
+}
+
+//The BoidsDataCS kernel processes updates to the boid speed and position based on the calculated steering force.
+//It reads the current BOID data and the associated steering force from the buffer.
+//If the boid is close to the simulation boundary, it also exerts a repulsive force.
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void BoidsDataCS(uint3 DTid : SV_DispatchThreadID) // Thread-wide unique ID
+{
+    const unsigned int p_id = DTid.x;          // Self ID
+                                           
+    BoidData boidData = _BoidsDataBufferRw[p_id];   // Read current Boid data
+    float3 force = _BoidsSteeringForcesBuffer[p_id]; // Read steering force
+   
+    // Apply repelling force when approaching simulation bounds
+    force += CheckSimulationBounds(boidData.position) * _SimulationBoundsAvoidWeight;
+    boidData.velocity += force * _DeltaTime;          // Apply steering force to velocity
+    boidData.velocity = limit(boidData.velocity, _BoidMaximumSpeed); // Limit velocity
+    boidData.position += boidData.velocity * _DeltaTime;     // Update position
+                                           
+    _BoidsDataBufferRw[p_id] = boidData;            // Write calculation result
+    
+    _PositionBufferRW[p_id] = boidData.position;
+    _VelocityBufferRW[p_id] = boidData.velocity;
+}
