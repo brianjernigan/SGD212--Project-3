@@ -6,7 +6,7 @@ public class GameCard
 {
     public CardData Data { get; private set; }
     public CardUI UI { get; private set; }
-    private readonly ICardEffect _cardEffect;
+    private ICardEffect _cardEffect;
 
     public GameCard(CardData data, CardUI ui, ICardEffect effect)
     {
@@ -21,5 +21,12 @@ public class GameCard
     {
         Debug.Log(Description);
         _cardEffect?.ActivateEffect();
+    }
+
+    public void TransformCard(CardData newCardData, ICardEffect newEffect)
+    {
+        Data = newCardData;
+        _cardEffect = newEffect;
+        UI.InitializeCard(newCardData, this);
     }
 }

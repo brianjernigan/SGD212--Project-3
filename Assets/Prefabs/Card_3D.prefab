@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8101881556879854219}
   - component: {fileID: 6501287507697909518}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: DescriptionText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -127,10 +127,10 @@ MonoBehaviour:
     serializedVersion: 2
     rgba: 4294967295
   m_fontSize: 0.01
-  m_fontSizeBase: 0.01
+  m_fontSizeBase: 1
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 0.01
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
@@ -687,6 +687,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _topRankText: {fileID: 5538597920235505111}
   _bottomRankText: {fileID: 6623872174781506362}
+  _descriptionText: {fileID: 6501287507697909518}
 --- !u!65 &6149115540228017616
 BoxCollider:
   m_ObjectHideFlags: 0
