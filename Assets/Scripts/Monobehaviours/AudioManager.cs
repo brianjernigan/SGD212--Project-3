@@ -28,4 +28,9 @@ public class AudioManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    public void PlayCardDrawAudio()
+    {
+        _cardDrawAudio.Play();
+    }
 }

@@ -25,21 +25,17 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text _moneyText;
     [SerializeField] private TMP_Text _playText;
     [SerializeField] private TMP_Text _discardText;
-    [SerializeField] private TMP_Text _multiplierText;
-
-    [Header("Audio")]
-    [SerializeField] private AudioClip cardDrawSound; // Assign in Inspector
-    [SerializeField] private AudioSource audioSource; // Assign in Inspector
+    [SerializeField] private TMP_Text _multiplierText; 
 
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
     public GameObject Hand => _hand;
-
-    public int CardsOnScreen => _playerHand.NumCardsInHand + _stageAreaController.NumCardsStaged;
+    
+    public int CardsOnScreen => PlayerHand.NumCardsInHand + _stageAreaController.NumCardsStaged;
     public int MaxCardsOnScreen { get; set; } = 5;
 
-    private Deck _gameDeck;
-    private Hand _playerHand;
+    public Deck GameDeck { get; set; }
+    public Hand PlayerHand { get; private set; }
 
     private Dictionary<CardData, int> _defaultDeckComposition;
     private Dictionary<string, ICardEffect> _cardEffects;
@@ -130,11 +126,9 @@ public class GameManager : MonoBehaviour
         InitializeDeckComposition();
 
         _stageAreaController = _stage.GetComponent<StageAreaController>();
-
-        _gameDeck = new Deck(_defaultDeckComposition, _cardPrefab);
-        _playerHand = new Hand();
-
-        InitializeCardEffects();
+        
+        PlayerHand = new Hand();
+        GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
     }
 
     private void Update()
@@ -257,11 +251,11 @@ public class GameManager : MonoBehaviour
         // Deal new cards directly to their final positions
         for (int i = 0; i < cardsToDraw && !_gameDeck.IsEmpty; i++)
         {
-            var gameCard = _gameDeck.DrawCard();
+            var gameCard = GameDeck.DrawCard();
             if (gameCard is not null)
             {
-                _playerHand.TryAddCardToHand(gameCard);
-
+                PlayerHand.TryAddCardToHand(gameCard);
+                
                 var targetPosition = finalPositions[startingHandSize + i];
 
                 yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition, i));
@@ -301,11 +295,7 @@ public class GameManager : MonoBehaviour
         // Adjust initial position's Y-coordinate
         cardTransform.position += new Vector3(0f, 10f, 0f);
 
-        // Play sound effect
-        if (audioSource != null && cardDrawSound != null)
-        {
-            audioSource.PlayOneShot(cardDrawSound);
-        }
+        AudioManager.Instance.PlayCardDrawAudio();
 
         // Animation parameters
         var duration = 1.0f; // Animation duration
@@ -414,7 +404,7 @@ public class GameManager : MonoBehaviour
         // Destage
         if (dropArea == _hand.transform)
         {
-            if (_playerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStage(gameCard))
+            if (PlayerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 RearrangeHand(); // Rearrange hand when cards are manually added
                 return true;
@@ -423,7 +413,7 @@ public class GameManager : MonoBehaviour
         // Stage Card
         else if (dropArea == _stage.transform)
         {
-            if (_stageAreaController.TryAddCardToStage(gameCard) && _playerHand.TryRemoveCardFromHand(gameCard))
+            if (_stageAreaController.TryAddCardToStage(gameCard) && PlayerHand.TryRemoveCardFromHand(gameCard))
             {
                 PlaceCardInStage(gameCard);
                 RearrangeHand(); // Rearrange hand when cards are manually removed
@@ -433,7 +423,9 @@ public class GameManager : MonoBehaviour
         // Discard
         else if (dropArea == _discard.transform)
         {
-            if (_playerHand.TryRemoveCardFromHand(gameCard) || _stageAreaController.TryRemoveCardFromStage(gameCard))
+            if (DiscardsRemaining == 0) return false;
+            
+            if (PlayerHand.TryRemoveCardFromHand(gameCard) || _stageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 DiscardCard(gameCard);
                 RearrangeHand(); // Rearrange hand when a card is discarded
@@ -457,10 +449,10 @@ public class GameManager : MonoBehaviour
 
         var dockCenter = _hand.transform.position;
 
-        for (var i = 0; i < _playerHand.NumCardsInHand; i++)
+        for (var i = 0; i < PlayerHand.NumCardsInHand; i++)
         {
-            var card = _playerHand.CardsInHand[i];
-            var targetPosition = CalculateCardPosition(i, _playerHand.NumCardsInHand, dockCenter);
+            var card = PlayerHand.CardsInHand[i];
+            var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
 
             StartMoveCardToPosition(card.UI.transform, targetPosition);
         }
@@ -519,14 +511,14 @@ public class GameManager : MonoBehaviour
         _stageAreaController.ClearStage();
     }
 
-    public ICardEffect GetEffectForRank(string cardName)
-    {
-        return _cardEffects.GetValueOrDefault(cardName);
-    }
-
     public void PlaceCardInHand(GameCard gameCard)
     {
-        // Positions are handled in the dealing coroutine
+        var dockCenter = _hand.transform.position;
+        var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
+        
+        gameCard.UI.transform.position = targetPosition;
+        
+        RearrangeHand();
     }
 
     private void PlaceCardInStage(GameCard gameCard)
@@ -538,6 +530,6 @@ public class GameManager : MonoBehaviour
 
     public void AddCardToDeck(CardData data, int count = 1)
     {
-        _gameDeck?.AddCard(data, count);
+        GameDeck?.AddCard(data, count);
     }
 }
