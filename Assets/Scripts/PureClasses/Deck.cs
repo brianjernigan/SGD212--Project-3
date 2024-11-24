@@ -93,7 +93,7 @@ public class Deck
     {
         var cardUIObject = Object.Instantiate(_cardPrefab);
         var cardUI = cardUIObject.GetComponent<CardUI>();
-        var cardEffect = CardLibrary.Instance.GetCardEffectByName(data.CardName);
+        var cardEffect = GameManager.Instance.GetEffectForRank(data.CardName);
 
         var gameCard = new GameCard(data, cardUI, cardEffect);
         cardUI.InitializeCard(data, gameCard);

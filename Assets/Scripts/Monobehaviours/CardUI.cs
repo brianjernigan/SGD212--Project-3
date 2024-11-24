@@ -6,10 +6,9 @@ using UnityEngine;
 
 public class CardUI : MonoBehaviour
 {
-    [Header("Texts")]
+    [Header("Rank Texts")]
     [SerializeField] private TMP_Text _topRankText;
     [SerializeField] private TMP_Text _bottomRankText;
-    [SerializeField] private TMP_Text _descriptionText;
 
     private Camera _mainCamera;
     private bool _isDragging;
@@ -61,7 +60,6 @@ public class CardUI : MonoBehaviour
         }
         
         GetComponent<MeshRenderer>().material = _cardData.CardMat;
-        _descriptionText.text = _gameCard.Description;
     }
 
     private void OnMouseEnter()
