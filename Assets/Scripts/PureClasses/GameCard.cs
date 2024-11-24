@@ -8,6 +8,9 @@ public class GameCard
     public CardUI UI { get; private set; }
     private ICardEffect _cardEffect;
 
+    // Flag to indicate animation
+    public bool IsAnimating { get; set; } 
+
     public GameCard(CardData data, CardUI ui, ICardEffect effect)
     {
         Data = data;
