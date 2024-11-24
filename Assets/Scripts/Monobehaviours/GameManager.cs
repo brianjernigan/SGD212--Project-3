@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 // Stores all possible cards for creating decks and starting the game
@@ -12,7 +11,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private List<CardData> _allPossibleCards;
     [SerializeField] private GameObject _cardPrefab;
-    
+
     [SerializeField] private List<Transform> _stagePositions;
 
     [Header("Areas")]
@@ -21,12 +20,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _hand;
     [SerializeField] private GameObject _deck;
 
-    [Header("Texts")] 
+    [Header("Texts")]
     [SerializeField] private TMP_Text _scoreText;
     [SerializeField] private TMP_Text _moneyText;
     [SerializeField] private TMP_Text _playText;
     [SerializeField] private TMP_Text _discardText;
     [SerializeField] private TMP_Text _multiplierText;
+
     [Header("Audio")]
     [SerializeField] private AudioClip cardDrawSound; // Assign in Inspector
     [SerializeField] private AudioSource audioSource; // Assign in Inspector
@@ -34,7 +34,7 @@ public class GameManager : MonoBehaviour
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
     public GameObject Hand => _hand;
-    
+
     public int CardsOnScreen => _playerHand.NumCardsInHand + _stageAreaController.NumCardsStaged;
     public int MaxCardsOnScreen { get; set; } = 5;
 
@@ -43,31 +43,34 @@ public class GameManager : MonoBehaviour
 
     private Dictionary<CardData, int> _defaultDeckComposition;
     private Dictionary<string, ICardEffect> _cardEffects;
-    
+
     private StageAreaController _stageAreaController;
 
     private Camera _mainCamera;
 
     private bool _isDrawingCards;
+    private bool _isUpdatingHand; // Flag to indicate if the hand is being updated
     public bool IsDraggingCard { get; set; }
-    
+
     private int _currentScore;
 
     private const float DockWidth = 750f;
-    // If we want curved hand layout
     private const float CurveStrength = -0.001f;
-    
+
     public int PlaysRemaining { get; set; }
     public int DiscardsRemaining { get; set; }
     public int PlayerMoney { get; set; }
-    
+
+    // Dictionary to track ongoing movement coroutines for each card
+    private Dictionary<Transform, Coroutine> _moveCardCoroutines = new Dictionary<Transform, Coroutine>();
+
     private void Awake()
     {
         if (Instance is null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-        } 
+        }
         else
         {
             Destroy(gameObject);
@@ -95,8 +98,6 @@ public class GameManager : MonoBehaviour
             { _allPossibleCards[14], 2 },
             { _allPossibleCards[15], 2 }
         };
-        
-        // Define other decks? 
     }
 
     private void InitializeCardEffects()
@@ -125,14 +126,14 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         _mainCamera = Camera.main;
-        
+
         InitializeDeckComposition();
 
         _stageAreaController = _stage.GetComponent<StageAreaController>();
-        
+
         _gameDeck = new Deck(_defaultDeckComposition, _cardPrefab);
         _playerHand = new Hand();
-        
+
         InitializeCardEffects();
     }
 
@@ -170,7 +171,7 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-    
+
     private void HandleRightMouseClick()
     {
         if (_mainCamera is null) return;
@@ -218,8 +219,6 @@ public class GameManager : MonoBehaviour
         card.transform.rotation = endRotation; // Ensure it ends exactly at the target rotation
     }
 
-
-
     public void DrawFullHand()
     {
         if (!_isDrawingCards)
@@ -231,27 +230,45 @@ public class GameManager : MonoBehaviour
     private IEnumerator DrawFullHandCoroutine()
     {
         _isDrawingCards = true;
-        
-        while (CardsOnScreen < MaxCardsOnScreen && !_gameDeck.IsEmpty)
+        _isUpdatingHand = true;
+
+        int cardsToDraw = MaxCardsOnScreen - CardsOnScreen;
+        int startingHandSize = _playerHand.NumCardsInHand;
+
+        // Compute final positions for all cards in hand
+        var dockCenter = _hand.transform.position;
+        List<Vector3> finalPositions = new List<Vector3>();
+        int totalCardsInHand = startingHandSize + cardsToDraw;
+
+        for (int i = 0; i < totalCardsInHand; i++)
+        {
+            var position = CalculateCardPosition(i, totalCardsInHand, dockCenter);
+            finalPositions.Add(position);
+        }
+
+        // Move existing cards to their final positions
+        for (int i = 0; i < startingHandSize; i++)
+        {
+            var card = _playerHand.CardsInHand[i];
+            var targetPosition = finalPositions[i];
+            StartMoveCardToPosition(card.UI.transform, targetPosition);
+        }
+
+        // Deal new cards directly to their final positions
+        for (int i = 0; i < cardsToDraw && !_gameDeck.IsEmpty; i++)
         {
             var gameCard = _gameDeck.DrawCard();
             if (gameCard is not null)
             {
                 _playerHand.TryAddCardToHand(gameCard);
 
-                var dockCenter = _hand.transform.position;
-                var targetPosition = CalculateCardPosition(
-                    _playerHand.NumCardsInHand - 1,
-                    _playerHand.NumCardsInHand,
-                    dockCenter
-                );
-                
-                // var targetPosition = _handPositions[_playerHand.NumCardsInHand - 1].position;
+                var targetPosition = finalPositions[startingHandSize + i];
 
-                yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
+                yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition, i));
             }
         }
 
+        _isUpdatingHand = false;
         _isDrawingCards = false;
     }
 
@@ -261,22 +278,28 @@ public class GameManager : MonoBehaviour
 
         var totalSpacing = Mathf.Max(DockWidth, 0.1f);
         var startX = -totalSpacing / 2f;
-        var xPosition = startX + (cardIndex * (DockWidth / Mathf.Max(1, totalCards - 1)));
-        
+        // Reverse the order so first card goes to the furthest right
+        var xPosition = startX + ((totalCards - 1 - cardIndex) * (DockWidth / Mathf.Max(1, totalCards - 1)));
+
         var zPosition = Mathf.Pow(xPosition / Mathf.Max(totalSpacing, 1f), 2) * CurveStrength;
 
-        return dockCenter + new Vector3(xPosition, 25 + cardIndex, zPosition);
+        // Adjusted Y position by adding 10 units
+        return dockCenter + new Vector3(xPosition, 10f, zPosition);
     }
 
-    private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
+    private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition, int cardIndex)
     {
         var cardTransform = gameCard.UI.transform;
 
         // Lock animation
         gameCard.IsAnimating = true;
-        Debug.Log($"Animation Locked: {gameCard.Data.CardName}");
 
+        // Set initial position and rotation
         cardTransform.position = _deck.transform.position;
+        cardTransform.rotation = Quaternion.Euler(90f, 0f, 180f); // Ensure the card starts flat and rotated 180 degrees on Z
+
+        // Adjust initial position's Y-coordinate
+        cardTransform.position += new Vector3(0f, 10f, 0f);
 
         // Play sound effect
         if (audioSource != null && cardDrawSound != null)
@@ -284,14 +307,19 @@ public class GameManager : MonoBehaviour
             audioSource.PlayOneShot(cardDrawSound);
         }
 
+        // Animation parameters
         var duration = 1.0f; // Animation duration
         var bounceDuration = 0.25f; // Bounce-back duration
         var elapsedTime = 0f;
 
         var startPosition = cardTransform.position;
-        var overshootPosition = targetPosition + Vector3.up * 1.5f; // Slight overshoot above final position
 
-        Debug.Log($"Animation Start: Moving {cardTransform.name} from {startPosition} to {overshootPosition}");
+        // Adjust starting position based on cardIndex
+        float offsetX = cardIndex * 100f; // Adjust the value as needed
+        startPosition += new Vector3(offsetX, 0f, 0f);
+
+        // Adjust overshoot position's Y-coordinate
+        var overshootPosition = targetPosition + new Vector3(0f, 1.5f, 0f); // Slight overshoot above final position
 
         // Move to overshoot position
         while (elapsedTime < duration)
@@ -305,12 +333,11 @@ public class GameManager : MonoBehaviour
             Vector3 arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
             cardTransform.position = arcPosition;
 
-            Debug.Log($"Moving to Overshoot: {cardTransform.name} is at {arcPosition} at t={t}");
+            // Maintain rotation to keep the card flat and rotated 180 degrees on Z
+            cardTransform.rotation = Quaternion.Euler(90f, 0f, 180f);
 
             yield return null;
         }
-
-        Debug.Log($"Reached Overshoot: {cardTransform.name} at {cardTransform.position}");
 
         // Bounce back to final position
         elapsedTime = 0f; // Reset elapsed time for bounce
@@ -327,53 +354,93 @@ public class GameManager : MonoBehaviour
             Vector3 bouncePosition = Vector3.Lerp(bounceStartPosition, targetPosition, t);
             cardTransform.position = bouncePosition;
 
-            Debug.Log($"Bouncing Back: {cardTransform.name} is at {bouncePosition} at t={t}");
+            // Maintain rotation to keep the card flat and rotated 180 degrees on Z
+            cardTransform.rotation = Quaternion.Euler(90f, 0f, 180f);
 
             yield return null;
         }
 
-        cardTransform.position = targetPosition; // Ensure final position
-        Debug.Log($"Animation End: {cardTransform.name} at {targetPosition}");
+        // Ensure final position and rotation
+        cardTransform.position = targetPosition;
+        cardTransform.rotation = Quaternion.Euler(90f, 0f, 180f); // Final rotation
 
         // Unlock animation
         gameCard.IsAnimating = false;
-        Debug.Log($"Animation Unlocked: {gameCard.Data.CardName}");
     }
 
+    private void StartMoveCardToPosition(Transform cardTransform, Vector3 targetPosition)
+    {
+        // Stop any existing coroutine for this card
+        if (_moveCardCoroutines.TryGetValue(cardTransform, out Coroutine existingCoroutine))
+        {
+            StopCoroutine(existingCoroutine);
+            _moveCardCoroutines.Remove(cardTransform);
+        }
 
+        // Start new coroutine
+        Coroutine newCoroutine = StartCoroutine(MoveCardToPositionCoroutine(cardTransform, targetPosition));
+        _moveCardCoroutines.Add(cardTransform, newCoroutine);
+    }
 
+    private IEnumerator MoveCardToPositionCoroutine(Transform cardTransform, Vector3 targetPosition)
+    {
+        float duration = 0.3f;
+        float elapsedTime = 0f;
+        Vector3 startPosition = cardTransform.position;
 
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+
+            // Smoothstep easing
+            t = t * t * (3f - 2f * t);
+
+            cardTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
+            yield return null;
+        }
+
+        cardTransform.position = targetPosition;
+
+        // Remove coroutine from tracking dictionary
+        _moveCardCoroutines.Remove(cardTransform);
+    }
 
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
     {
+        if (_isUpdatingHand)
+            return false;
+
         // Destage
         if (dropArea == _hand.transform)
         {
             if (_playerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStage(gameCard))
             {
-                PlaceCardInHand(gameCard);
+                RearrangeHand(); // Rearrange hand when cards are manually added
                 return true;
             }
         }
         // Stage Card
-        if (dropArea == _stage.transform)
+        else if (dropArea == _stage.transform)
         {
             if (_stageAreaController.TryAddCardToStage(gameCard) && _playerHand.TryRemoveCardFromHand(gameCard))
             {
                 PlaceCardInStage(gameCard);
+                RearrangeHand(); // Rearrange hand when cards are manually removed
                 return true;
             }
         }
         // Discard
-        if (dropArea == _discard.transform)
+        else if (dropArea == _discard.transform)
         {
             if (_playerHand.TryRemoveCardFromHand(gameCard) || _stageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 DiscardCard(gameCard);
+                RearrangeHand(); // Rearrange hand when a card is discarded
                 return true;
             }
         }
-    
+
         return false;
     }
 
@@ -385,6 +452,9 @@ public class GameManager : MonoBehaviour
 
     public void RearrangeHand()
     {
+        if (_isUpdatingHand)
+            return;
+
         var dockCenter = _hand.transform.position;
 
         for (var i = 0; i < _playerHand.NumCardsInHand; i++)
@@ -392,7 +462,7 @@ public class GameManager : MonoBehaviour
             var card = _playerHand.CardsInHand[i];
             var targetPosition = CalculateCardPosition(i, _playerHand.NumCardsInHand, dockCenter);
 
-            card.UI.transform.position = targetPosition;
+            StartMoveCardToPosition(card.UI.transform, targetPosition);
         }
     }
 
@@ -400,7 +470,9 @@ public class GameManager : MonoBehaviour
     {
         for (var i = 0; i < _stageAreaController.NumCardsStaged; i++)
         {
-            _stageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position;
+            // Adjusted Y position by adding 10 units and rotated 180 degrees on Z-axis
+            _stageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position + new Vector3(0f, 10f, 0f);
+            _stageAreaController.CardsStaged[i].UI.transform.rotation = Quaternion.Euler(90f, 0f, 180f);
         }
     }
 
@@ -429,7 +501,7 @@ public class GameManager : MonoBehaviour
     {
         var firstStagedCard = _stageAreaController.GetFirstStagedCard();
         if (firstStagedCard is null) return;
-        
+
         _stageAreaController.ClearStage();
 
         firstStagedCard.ActivateEffect();
@@ -454,18 +526,14 @@ public class GameManager : MonoBehaviour
 
     public void PlaceCardInHand(GameCard gameCard)
     {
-        var dockCenter = _hand.transform.position;
-
-        var targetPosition = CalculateCardPosition(_playerHand.NumCardsInHand - 1, _playerHand.NumCardsInHand, dockCenter);
-
-        gameCard.UI.transform.position = targetPosition;
-        
-        RearrangeHand();
+        // Positions are handled in the dealing coroutine
     }
 
     private void PlaceCardInStage(GameCard gameCard)
     {
-        gameCard.UI.transform.position = _stagePositions[_stageAreaController.NumCardsStaged - 1].transform.position;
+        // Adjusted Y position by adding 10 units and rotated 180 degrees on Z-axis
+        gameCard.UI.transform.position = _stagePositions[_stageAreaController.NumCardsStaged - 1].transform.position + new Vector3(0f, 10f, 0f);
+        gameCard.UI.transform.rotation = Quaternion.Euler(90f, 0f, 180f);
     }
 
     public void AddCardToDeck(CardData data, int count = 1)
