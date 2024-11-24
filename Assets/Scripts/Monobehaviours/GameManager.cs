@@ -206,7 +206,6 @@ public class GameManager : MonoBehaviour
 
         // Lock animation
         gameCard.IsAnimating = true;
-        Debug.Log($"Animation Locked: {gameCard.Data.CardName}");
 
         cardTransform.position = _deck.transform.position;
 
@@ -219,53 +218,43 @@ public class GameManager : MonoBehaviour
         var startPosition = cardTransform.position;
         var overshootPosition = targetPosition + Vector3.up * 1.5f; // Slight overshoot above final position
 
-        Debug.Log($"Animation Start: Moving {cardTransform.name} from {startPosition} to {overshootPosition}");
-
         // Move to overshoot position
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
 
-            // Smoothstep easing
-            float t = elapsedTime / duration;
+            // Smooth step easing
+            var t = elapsedTime / duration;
             t = t * t * (3f - 2f * t);
 
-            Vector3 arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
+            var arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
             cardTransform.position = arcPosition;
-
-            Debug.Log($"Moving to Overshoot: {cardTransform.name} is at {arcPosition} at t={t}");
 
             yield return null;
         }
 
-        Debug.Log($"Reached Overshoot: {cardTransform.name} at {cardTransform.position}");
-
         // Bounce back to final position
         elapsedTime = 0f; // Reset elapsed time for bounce
-        Vector3 bounceStartPosition = cardTransform.position;
+        var bounceStartPosition = cardTransform.position;
 
         while (elapsedTime < bounceDuration)
         {
             elapsedTime += Time.deltaTime;
 
             // Smoothstep easing
-            float t = elapsedTime / bounceDuration;
+            var t = elapsedTime / bounceDuration;
             t = t * t * (3f - 2f * t);
 
-            Vector3 bouncePosition = Vector3.Lerp(bounceStartPosition, targetPosition, t);
+            var bouncePosition = Vector3.Lerp(bounceStartPosition, targetPosition, t);
             cardTransform.position = bouncePosition;
-
-            Debug.Log($"Bouncing Back: {cardTransform.name} is at {bouncePosition} at t={t}");
 
             yield return null;
         }
 
         cardTransform.position = targetPosition; // Ensure final position
-        Debug.Log($"Animation End: {cardTransform.name} at {targetPosition}");
 
         // Unlock animation
         gameCard.IsAnimating = false;
-        Debug.Log($"Animation Unlocked: {gameCard.Data.CardName}");
     }
     
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
@@ -336,18 +325,22 @@ public class GameManager : MonoBehaviour
     {
         if (_stageAreaController.NumCardsStaged is 0 or 2) return;
         if (PlaysRemaining == 0) return;
-
+        
         switch (_stageAreaController.NumCardsStaged)
         {
             case 1:
                 if (_stageAreaController.GetFirstStagedCard().Data.CardName != "Kraken")
                 {
                     TriggerCardEffect();
+                    PlaysRemaining--;
+                    UpdatePlayText();
                 }
                 break;
             case 3:
             case 4:
                 ScoreSet();
+                PlaysRemaining--;
+                UpdatePlayText();
                 break;
             default:
                 return;
@@ -362,9 +355,6 @@ public class GameManager : MonoBehaviour
         _stageAreaController.ClearStage();
 
         firstStagedCard.ActivateEffect();
-        
-        PlaysRemaining--;
-        UpdatePlayText();
     }
 
     private void ScoreSet()
@@ -377,9 +367,6 @@ public class GameManager : MonoBehaviour
         _currentScore += _stageAreaController.CalculateScore();
         _scoreText.text = $"Score: {_currentScore}";
         _stageAreaController.ClearStage();
-        
-        PlaysRemaining--;
-        UpdatePlayText();
     }
 
     public void PlaceCardInHand(GameCard gameCard)

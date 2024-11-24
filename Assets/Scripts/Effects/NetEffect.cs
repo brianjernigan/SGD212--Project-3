@@ -9,6 +9,6 @@ public class NetEffect : ICardEffect
     
     public void ActivateEffect()
     {
-        throw new System.NotImplementedException();
+        Debug.Log(EffectDescription);
     }
 }

@@ -10,6 +10,6 @@ public class PlanktonEffect : ICardEffect
     
     public void ActivateEffect()
     {
-        throw new NotImplementedException();
+        Debug.Log(EffectDescription);
     }
 }

@@ -22,7 +22,6 @@ public class GameCard
 
     public void ActivateEffect()
     {
-        Debug.Log(Description);
         _cardEffect?.ActivateEffect();
     }
 

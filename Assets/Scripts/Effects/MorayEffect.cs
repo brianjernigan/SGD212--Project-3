@@ -8,6 +8,6 @@ public class MorayEffect : ICardEffect
     
     public void ActivateEffect()
     {
-        throw new System.NotImplementedException();
+        Debug.Log(EffectDescription);
     }
 }

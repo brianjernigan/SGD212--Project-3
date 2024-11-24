@@ -9,6 +9,6 @@ public class SeahorseEffect : ICardEffect
     
     public void ActivateEffect()
     {
-        throw new NotImplementedException();
+        Debug.Log(EffectDescription);
     }
 }
