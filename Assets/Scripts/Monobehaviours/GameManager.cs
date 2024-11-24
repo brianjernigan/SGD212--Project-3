@@ -27,6 +27,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text _playText;
     [SerializeField] private TMP_Text _discardText;
     [SerializeField] private TMP_Text _multiplierText;
+    [Header("Audio")]
+    [SerializeField] private AudioClip cardDrawSound; // Assign in Inspector
+    [SerializeField] private AudioSource audioSource; // Assign in Inspector
 
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
@@ -269,25 +272,77 @@ public class GameManager : MonoBehaviour
     {
         var cardTransform = gameCard.UI.transform;
 
+        // Lock animation
+        gameCard.IsAnimating = true;
+        Debug.Log($"Animation Locked: {gameCard.Data.CardName}");
+
         cardTransform.position = _deck.transform.position;
 
-        var duration = 0.4f;
-        var elapsed = 0f;
+        // Play sound effect
+        if (audioSource != null && cardDrawSound != null)
+        {
+            audioSource.PlayOneShot(cardDrawSound);
+        }
+
+        var duration = 1.0f; // Animation duration
+        var bounceDuration = 0.25f; // Bounce-back duration
+        var elapsedTime = 0f;
 
         var startPosition = cardTransform.position;
+        var overshootPosition = targetPosition + Vector3.up * 1.5f; // Slight overshoot above final position
 
-        while (elapsed < duration)
+        Debug.Log($"Animation Start: Moving {cardTransform.name} from {startPosition} to {overshootPosition}");
+
+        // Move to overshoot position
+        while (elapsedTime < duration)
         {
-            elapsed += Time.deltaTime;
-            var t = Mathf.Clamp01(elapsed / duration);
+            elapsedTime += Time.deltaTime;
 
-            cardTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
+            // Smoothstep easing
+            float t = elapsedTime / duration;
+            t = t * t * (3f - 2f * t);
+
+            Vector3 arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
+            cardTransform.position = arcPosition;
+
+            Debug.Log($"Moving to Overshoot: {cardTransform.name} is at {arcPosition} at t={t}");
 
             yield return null;
         }
 
-        cardTransform.position = targetPosition;
+        Debug.Log($"Reached Overshoot: {cardTransform.name} at {cardTransform.position}");
+
+        // Bounce back to final position
+        elapsedTime = 0f; // Reset elapsed time for bounce
+        Vector3 bounceStartPosition = cardTransform.position;
+
+        while (elapsedTime < bounceDuration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            // Smoothstep easing
+            float t = elapsedTime / bounceDuration;
+            t = t * t * (3f - 2f * t);
+
+            Vector3 bouncePosition = Vector3.Lerp(bounceStartPosition, targetPosition, t);
+            cardTransform.position = bouncePosition;
+
+            Debug.Log($"Bouncing Back: {cardTransform.name} is at {bouncePosition} at t={t}");
+
+            yield return null;
+        }
+
+        cardTransform.position = targetPosition; // Ensure final position
+        Debug.Log($"Animation End: {cardTransform.name} at {targetPosition}");
+
+        // Unlock animation
+        gameCard.IsAnimating = false;
+        Debug.Log($"Animation Unlocked: {gameCard.Data.CardName}");
     }
+
+
+
+
 
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
     {
