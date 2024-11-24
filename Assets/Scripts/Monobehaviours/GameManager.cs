@@ -399,4 +399,6 @@ public class GameManager : MonoBehaviour
     {
         _discardText.text = $"Discards:\n{DiscardsRemaining}";
     }
+    //Hu8nter was here
+    
 }
