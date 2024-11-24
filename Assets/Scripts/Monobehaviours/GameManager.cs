@@ -31,14 +31,11 @@ public class GameManager : MonoBehaviour
     public GameObject Discard => _discard;
     public GameObject Hand => _hand;
     
-    public int CardsOnScreen => _playerHand.NumCardsInHand + _stageAreaController.NumCardsStaged;
+    public int CardsOnScreen => PlayerHand.NumCardsInHand + _stageAreaController.NumCardsStaged;
     public int MaxCardsOnScreen { get; set; } = 5;
 
-    private Deck _gameDeck;
-    private Hand _playerHand;
-
-    public Deck GameDeck => _gameDeck;
-    public Hand PlayerHand => _playerHand;
+    public Deck GameDeck { get; set; }
+    public Hand PlayerHand { get; private set; }
 
     private Dictionary<CardData, int> _defaultDeckComposition;
     
@@ -79,8 +76,8 @@ public class GameManager : MonoBehaviour
 
         _stageAreaController = _stage.GetComponent<StageAreaController>();
         
-        _playerHand = new Hand();
-        _gameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+        PlayerHand = new Hand();
+        GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
     }
 
     private void Update()
@@ -177,15 +174,15 @@ public class GameManager : MonoBehaviour
     {
         _isDrawingCards = true;
         
-        while (CardsOnScreen < MaxCardsOnScreen && !_gameDeck.IsEmpty)
+        while (CardsOnScreen < MaxCardsOnScreen && !GameDeck.IsEmpty)
         {
-            var gameCard = _gameDeck.DrawCard();
+            var gameCard = GameDeck.DrawCard();
             if (gameCard is not null)
             {
-                _playerHand.TryAddCardToHand(gameCard);
+                PlayerHand.TryAddCardToHand(gameCard);
 
                 var dockCenter = _hand.transform.position;
-                var targetPosition = CalculateCardPosition(_playerHand.NumCardsInHand - 1, _playerHand.NumCardsInHand, dockCenter);
+                var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
 
                 yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
             }
@@ -284,7 +281,7 @@ public class GameManager : MonoBehaviour
         // Destage
         if (dropArea == _hand.transform)
         {
-            if (_playerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStage(gameCard))
+            if (PlayerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 PlaceCardInHand(gameCard);
                 return true;
@@ -293,7 +290,7 @@ public class GameManager : MonoBehaviour
         // Stage Card
         if (dropArea == _stage.transform)
         {
-            if (_stageAreaController.TryAddCardToStage(gameCard) && _playerHand.TryRemoveCardFromHand(gameCard))
+            if (_stageAreaController.TryAddCardToStage(gameCard) && PlayerHand.TryRemoveCardFromHand(gameCard))
             {
                 PlaceCardInStage(gameCard);
                 return true;
@@ -304,7 +301,7 @@ public class GameManager : MonoBehaviour
         {
             if (DiscardsRemaining == 0) return false;
             
-            if (_playerHand.TryRemoveCardFromHand(gameCard) || _stageAreaController.TryRemoveCardFromStage(gameCard))
+            if (PlayerHand.TryRemoveCardFromHand(gameCard) || _stageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 DiscardCard(gameCard);
                 DiscardsRemaining--;
@@ -326,10 +323,10 @@ public class GameManager : MonoBehaviour
     {
         var dockCenter = _hand.transform.position;
 
-        for (var i = 0; i < _playerHand.NumCardsInHand; i++)
+        for (var i = 0; i < PlayerHand.NumCardsInHand; i++)
         {
-            var card = _playerHand.CardsInHand[i];
-            var targetPosition = CalculateCardPosition(i, _playerHand.NumCardsInHand, dockCenter);
+            var card = PlayerHand.CardsInHand[i];
+            var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
 
             card.UI.transform.position = targetPosition;
         }
@@ -397,7 +394,7 @@ public class GameManager : MonoBehaviour
     {
         var dockCenter = _hand.transform.position;
 
-        var targetPosition = CalculateCardPosition(_playerHand.NumCardsInHand - 1, _playerHand.NumCardsInHand, dockCenter);
+        var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
 
         gameCard.UI.transform.position = targetPosition;
         
@@ -411,7 +408,7 @@ public class GameManager : MonoBehaviour
 
     public void AddCardToDeck(CardData data, int count = 1)
     {
-        _gameDeck?.AddCard(data, count);
+        GameDeck?.AddCard(data, count);
     }
 
     private void UpdatePlayText()
