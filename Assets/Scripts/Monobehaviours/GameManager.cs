@@ -9,8 +9,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-
-    [SerializeField] private List<CardData> _allPossibleCards;
+    
     [SerializeField] private GameObject _cardPrefab;
     
     [SerializeField] private List<Transform> _stagePositions;
@@ -41,8 +40,10 @@ public class GameManager : MonoBehaviour
     private Deck _gameDeck;
     private Hand _playerHand;
 
+    public Deck GameDeck => _gameDeck;
+    public Hand PlayerHand => _playerHand;
+
     private Dictionary<CardData, int> _defaultDeckComposition;
-    private Dictionary<string, ICardEffect> _cardEffects;
     
     private StageAreaController _stageAreaController;
 
@@ -56,9 +57,10 @@ public class GameManager : MonoBehaviour
     private const float DockWidth = 750f;
     // If we want curved hand layout
     private const float CurveStrength = -0.001f;
-    
-    public int PlaysRemaining { get; set; }
-    public int DiscardsRemaining { get; set; }
+    private const float InitialCardY = 25f;
+
+    public int PlaysRemaining { get; set; } = 3;
+    public int DiscardsRemaining { get; set; } = 3;
     public int PlayerMoney { get; set; }
     
     private void Awake()
@@ -74,124 +76,70 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void InitializeDeckComposition()
-    {
-        _defaultDeckComposition = new Dictionary<CardData, int>
-        {
-            { _allPossibleCards[0], 4 },
-            { _allPossibleCards[1], 4 },
-            { _allPossibleCards[2], 4 },
-            { _allPossibleCards[3], 4 },
-            { _allPossibleCards[4], 4 },
-            { _allPossibleCards[5], 4 },
-            { _allPossibleCards[6], 4 },
-            { _allPossibleCards[7], 4 },
-            { _allPossibleCards[8], 4 },
-            { _allPossibleCards[9], 4 },
-            { _allPossibleCards[10], 2 },
-            { _allPossibleCards[11], 2 },
-            { _allPossibleCards[12], 2 },
-            { _allPossibleCards[13], 2 },
-            { _allPossibleCards[14], 2 },
-            { _allPossibleCards[15], 2 }
-        };
-        
-        // Define other decks? 
-    }
-
-    private void InitializeCardEffects()
-    {
-        _cardEffects = new Dictionary<string, ICardEffect>
-        {
-            {"Plankton", new PlanktonEffect(_playerHand, _gameDeck) },
-            {"FishEggs", new FishEggsEffect(_playerHand, _gameDeck) },
-            {"Seahorse", new SeahorseEffect(_playerHand, _gameDeck) },
-            {"ClownFish", new ClownFishEffect(_playerHand, _gameDeck) },
-            {"CookieCutter", new CookieCutterEffect(_playerHand, _gameDeck) },
-            {"Turtle", new TurtleEffect(_playerHand, _gameDeck) },
-            {"Stingray", new StingrayEffect(_playerHand, _gameDeck) },
-            {"Bullshark", new BullsharkEffect(_playerHand, _gameDeck) },
-            {"Hammerhead", new HammerheadEffect(_playerHand, _gameDeck) },
-            {"Orca", new OrcaEffect(_playerHand, _gameDeck) },
-            {"Anemone", new AnemoneEffect(_playerHand, _gameDeck) },
-            {"Kraken", new KrakenEffect(_playerHand, _gameDeck) },
-            {"Treasure", new TreasureEffect(_playerHand, _gameDeck) },
-            {"Moray", new MorayEffect(_playerHand, _gameDeck) },
-            {"Net", new NetEffect(_playerHand, _gameDeck) },
-            {"Whaleshark", new WhaleSharkEffect(_playerHand, _gameDeck) }
-        };
-    }
-
     private void Start()
     {
         _mainCamera = Camera.main;
-        
-        InitializeDeckComposition();
 
         _stageAreaController = _stage.GetComponent<StageAreaController>();
         
-        _gameDeck = new Deck(_defaultDeckComposition, _cardPrefab);
         _playerHand = new Hand();
-        
-        InitializeCardEffects();
+        _gameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
     }
 
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            HandleLeftMouseClick();
+            HandleMouseClick(true);
         }
 
         if (Input.GetMouseButtonDown(1))
         {
-            HandleRightMouseClick();
+            HandleMouseClick(false);
         }
     }
 
-    private void HandleLeftMouseClick()
+    private void HandleMouseClick(bool isLeftClick)
     {
-        if (_mainCamera is null) return;
+        var ray = _mainCamera?.ScreenPointToRay(Input.mousePosition);
+        if (ray is null || !Physics.Raycast(ray.Value, out var hit)) return;
 
-        var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+        var clickedObject = hit.collider.gameObject;
 
-        if (Physics.Raycast(ray, out var hit))
+        if (isLeftClick)
         {
-            var clickedObject = hit.collider.gameObject;
+            HandleLeftMouseClick(clickedObject);
+        }
+        else
+        {
+            HandleRightMouseClick(clickedObject);
+        }
+    }
 
-            if (clickedObject.CompareTag("DrawButton"))
-            {
-                DrawFullHand();
-            }
-
-            if (clickedObject.CompareTag("PlayButton"))
-            {
-                OnClickPlayButton();
-            }
+    private void HandleLeftMouseClick(GameObject clickedObject)
+    {
+        if (clickedObject.CompareTag("DrawButton"))
+        {
+            DrawFullHand();
+        }
+        else if (clickedObject.CompareTag("PlayButton"))
+        {
+            OnClickPlayButton();
         }
     }
     
-    private void HandleRightMouseClick()
+    private void HandleRightMouseClick(GameObject clickedObject)
     {
-        if (_mainCamera is null) return;
-
-        var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
-
-        if (Physics.Raycast(ray, out var hit))
+        if (clickedObject.CompareTag("Card"))
         {
-            var clickedObject = hit.collider.gameObject;
-
-            if (clickedObject.CompareTag("Card"))
-            {
-                FlipCard(clickedObject);
-            }
+            FlipCard(clickedObject);
         }
     }
 
     private void FlipCard(GameObject detectionCollider)
     {
-        var parentObject = detectionCollider.transform.parent.gameObject;
-        StartCoroutine(FlipCardCoroutine(parentObject));
+        var cardObject = detectionCollider.transform.parent.gameObject;
+        StartCoroutine(FlipCardCoroutine(cardObject));
     }
 
     private IEnumerator FlipCardCoroutine(GameObject card)
@@ -240,13 +188,7 @@ public class GameManager : MonoBehaviour
                 _playerHand.TryAddCardToHand(gameCard);
 
                 var dockCenter = _hand.transform.position;
-                var targetPosition = CalculateCardPosition(
-                    _playerHand.NumCardsInHand - 1,
-                    _playerHand.NumCardsInHand,
-                    dockCenter
-                );
-                
-                // var targetPosition = _handPositions[_playerHand.NumCardsInHand - 1].position;
+                var targetPosition = CalculateCardPosition(_playerHand.NumCardsInHand - 1, _playerHand.NumCardsInHand, dockCenter);
 
                 yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
             }
@@ -265,7 +207,7 @@ public class GameManager : MonoBehaviour
         
         var zPosition = Mathf.Pow(xPosition / Mathf.Max(totalSpacing, 1f), 2) * CurveStrength;
 
-        return dockCenter + new Vector3(xPosition, 25 + cardIndex, zPosition);
+        return dockCenter + new Vector3(xPosition, InitialCardY + cardIndex, zPosition);
     }
 
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
@@ -367,9 +309,13 @@ public class GameManager : MonoBehaviour
         // Discard
         if (dropArea == _discard.transform)
         {
+            if (DiscardsRemaining == 0) return false;
+            
             if (_playerHand.TryRemoveCardFromHand(gameCard) || _stageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 DiscardCard(gameCard);
+                DiscardsRemaining--;
+                UpdateDiscardText();
                 return true;
             }
         }
@@ -406,7 +352,8 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        if (_stageAreaController.NumCardsStaged == 0) return;
+        if (_stageAreaController.NumCardsStaged is 0 or 2) return;
+        if (PlaysRemaining == 0) return;
 
         switch (_stageAreaController.NumCardsStaged)
         {
@@ -433,6 +380,9 @@ public class GameManager : MonoBehaviour
         _stageAreaController.ClearStage();
 
         firstStagedCard.ActivateEffect();
+        
+        PlaysRemaining--;
+        UpdatePlayText();
     }
 
     private void ScoreSet()
@@ -445,11 +395,9 @@ public class GameManager : MonoBehaviour
         _currentScore += _stageAreaController.CalculateScore();
         _scoreText.text = $"Score: {_currentScore}";
         _stageAreaController.ClearStage();
-    }
-
-    public ICardEffect GetEffectForRank(string cardName)
-    {
-        return _cardEffects.GetValueOrDefault(cardName);
+        
+        PlaysRemaining--;
+        UpdatePlayText();
     }
 
     public void PlaceCardInHand(GameCard gameCard)
@@ -471,5 +419,15 @@ public class GameManager : MonoBehaviour
     public void AddCardToDeck(CardData data, int count = 1)
     {
         _gameDeck?.AddCard(data, count);
+    }
+
+    private void UpdatePlayText()
+    {
+        _playText.text = $"Plays:\n{PlaysRemaining}";
+    }
+
+    private void UpdateDiscardText()
+    {
+        _discardText.text = $"Discards:\n{DiscardsRemaining}";
     }
 }
