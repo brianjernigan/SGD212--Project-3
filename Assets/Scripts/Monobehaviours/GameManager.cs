@@ -291,11 +291,8 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        if (_stageAreaController.NumCardsStaged == 0 || _stageAreaController.NumCardsStaged == 2) return;
+        if (_stageAreaController.NumCardsStaged is 0 or 2) return;
         if (PlaysRemaining == 0) return;
-
-        PlaysRemaining--;
-        UpdatePlayText();
 
         switch (_stageAreaController.NumCardsStaged)
         {
@@ -322,6 +319,9 @@ public class GameManager : MonoBehaviour
         _stageAreaController.ClearStage();
 
         firstStagedCard.ActivateEffect();
+        
+        PlaysRemaining--;
+        UpdatePlayText();
     }
 
     private void ScoreSet()
@@ -334,6 +334,9 @@ public class GameManager : MonoBehaviour
         _currentScore += _stageAreaController.CalculateScore();
         _scoreText.text = $"Score: {_currentScore}";
         _stageAreaController.ClearStage();
+        
+        PlaysRemaining--;
+        UpdatePlayText();
     }
 
     public void PlaceCardInHand(GameCard gameCard)
