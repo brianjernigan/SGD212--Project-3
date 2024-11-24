@@ -25,10 +25,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text _moneyText;
     [SerializeField] private TMP_Text _playText;
     [SerializeField] private TMP_Text _discardText;
-    [SerializeField] private TMP_Text _multiplierText;
-    [Header("Audio")]
-    [SerializeField] private AudioClip cardDrawSound; // Assign in Inspector
-    [SerializeField] private AudioSource audioSource; // Assign in Inspector
+    [SerializeField] private TMP_Text _multiplierText; 
 
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
@@ -220,11 +217,7 @@ public class GameManager : MonoBehaviour
 
         cardTransform.position = _deck.transform.position;
 
-        // Play sound effect
-        if (audioSource != null && cardDrawSound != null)
-        {
-            audioSource.PlayOneShot(cardDrawSound);
-        }
+        AudioManager.Instance.PlayCardDrawAudio();
 
         var duration = 1.0f; // Animation duration
         var bounceDuration = 0.25f; // Bounce-back duration
