@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18385267, g: 0.22907074, b: 0.3035484, a: 1}
+  m_IndirectSpecularColor: {r: 0.18385266, g: 0.22907075, b: 0.3035484, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3966,23 +3966,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90c63dfe84f11db4b9431a047f670ddd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _allPossibleCards:
-  - {fileID: 11400000, guid: 17786846a5ae61e4a94dc3493f814eb3, type: 2}
-  - {fileID: 11400000, guid: ab45a96d500a31340b3f67113764f986, type: 2}
-  - {fileID: 11400000, guid: 8a11995e67c2edc4da5f7ea4f4235311, type: 2}
-  - {fileID: 11400000, guid: 910316a171b200447a91894dc0668b72, type: 2}
-  - {fileID: 11400000, guid: 7d6f1245082c64b48b2a95c336f152d8, type: 2}
-  - {fileID: 11400000, guid: a80c79906b20813458f1a9668bb0d929, type: 2}
-  - {fileID: 11400000, guid: 8ea6e9c6332ec38478a716b38819fcd6, type: 2}
-  - {fileID: 11400000, guid: 2f7306f484d8e324098a5996e6839bde, type: 2}
-  - {fileID: 11400000, guid: b6c9ec8f3e6f7434cb71848f355f6c7b, type: 2}
-  - {fileID: 11400000, guid: 4cec9c5cef73ee64dae2ea759a0da8b2, type: 2}
-  - {fileID: 11400000, guid: 52799c2ba8ccefe4b8823e94e6f1c3e7, type: 2}
-  - {fileID: 11400000, guid: ce377c91a3030254ba8105741cf32e53, type: 2}
-  - {fileID: 11400000, guid: 049e7c78d8ff9244dafcca4b951094f0, type: 2}
-  - {fileID: 11400000, guid: bcfe1254e006d1240a5216f340870d66, type: 2}
-  - {fileID: 11400000, guid: 430cbab8186f94e4397b82f71f37a0a9, type: 2}
-  - {fileID: 11400000, guid: c4b8e2dea7e8337498c8ba11bf500847, type: 2}
   _cardPrefab: {fileID: 325939812458642670, guid: 7a7a0ff4526e1c24db3ab9eba9e4e2c9, type: 3}
   _stagePositions:
   - {fileID: 989454757}
@@ -4154,7 +4137,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3796780951654112311, guid: 9af557c3a45f2024fad3429ade90df7b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -471
+      value: -668
       objectReference: {fileID: 0}
     - target: {fileID: 3796780951654112311, guid: 9af557c3a45f2024fad3429ade90df7b, type: 3}
       propertyPath: m_LocalRotation.w
