@@ -157,9 +157,7 @@ public class GameManager : MonoBehaviour
 
         card.transform.rotation = endRotation; // Ensure it ends exactly at the target rotation
     }
-
-
-
+    
     public void DrawFullHand()
     {
         if (!_isDrawingCards)
