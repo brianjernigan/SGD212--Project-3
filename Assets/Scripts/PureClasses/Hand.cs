@@ -32,7 +32,7 @@ public class Hand
         return false;
     }
 
-    // Destroys card objects
+    // Destroys card object
     public bool TryDiscardCardFromHand(GameCard gameCard)
     {
         if (gameCard is null) return false;
