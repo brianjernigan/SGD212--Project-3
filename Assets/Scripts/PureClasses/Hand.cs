@@ -38,8 +38,8 @@ public class Hand
         if (CardsInHand.Contains(gameCard) && CardsInHand.Remove(gameCard))
         {
             gameCard.IsInHand = false;
-            Object.Destroy(gameCard.UI.gameObject);
             GameManager.Instance.RearrangeHand();
+            Object.Destroy(gameCard.UI.gameObject);
             return true;
         }
 

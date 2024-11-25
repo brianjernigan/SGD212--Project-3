@@ -341,7 +341,7 @@ public class GameManager : MonoBehaviour
             var card = PlayerHand.CardsInHand[i];
             var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
 
-            StartCoroutine(AnimateCardToPosition(card.UI.transform, targetPosition));
+            StartCoroutine(AnimateCardToPosition(card.UI?.transform, targetPosition));
         }
     }
 

@@ -16,7 +16,7 @@ public class CookieCutterEffect : ICardEffect
 
         for (var i = 0; i < cardsInHand.Count; i++)
         {
-            if (cardsInHand[i].Data.CardRank > cardRank)
+            if (cardsInHand[i].Data.CardRank > cardRank || cardsInHand[i].Data.Type == CardType.Unranked)
             {
                 GameManager.Instance.PlayerHand.TryDiscardCardFromHand(cardsInHand[i]);
                 discardCount++;

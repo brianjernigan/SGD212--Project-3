@@ -15,7 +15,7 @@ public class ClownFishEffect : ICardEffect
         var countInHand = GameManager.Instance.PlayerHand?.CardsInHand.Count(card => card.Data.CardName == "Anemone") ??
                           0;
 
-        GameManager.Instance.CurrentMultiplier = countInDeck + countInHand;
+        GameManager.Instance.CurrentMultiplier += countInDeck + countInHand;
         GameManager.Instance.TriggerMultiplierChanged();
         
         GameManager.Instance.StageAreaController.ClearStageArea();
