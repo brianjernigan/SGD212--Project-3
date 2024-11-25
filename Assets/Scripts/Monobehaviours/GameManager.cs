@@ -32,7 +32,7 @@ public class GameManager : MonoBehaviour
     public GameObject Hand => _hand;
     
     public int CardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
-    public int MaxCardsOnScreen { get; set; } = 5;
+    public int CurrentHandSize { get; set; } = 5;
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
@@ -171,7 +171,7 @@ public class GameManager : MonoBehaviour
     {
         _isDrawingCards = true;
 
-        while (CardsOnScreen < MaxCardsOnScreen && !GameDeck.IsEmpty)
+        while (CardsOnScreen < CurrentHandSize && !GameDeck.IsEmpty)
         {
             var gameCard = GameDeck.DrawCard();
             if (gameCard != null)
