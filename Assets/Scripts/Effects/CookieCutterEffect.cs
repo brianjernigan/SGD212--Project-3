@@ -31,6 +31,6 @@ public class CookieCutterEffect : ICardEffect
             GameManager.Instance.PlayerHand.TryAddCardToHand(drawnCard);
         }
         
-        GameManager.Instance.StageAreaController.ClearStage();
+        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }
