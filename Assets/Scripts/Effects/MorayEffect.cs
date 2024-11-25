@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class MorayEffect : ICardEffect
@@ -8,6 +9,31 @@ public class MorayEffect : ICardEffect
     
     public void ActivateEffect()
     {
-        Debug.Log(EffectDescription);
+        var playerHand = GameManager.Instance.PlayerHand;
+        var gameDeck = GameManager.Instance.GameDeck;
+
+        var deckDictionary = gameDeck.CardDataInDeck.GroupBy(card => card)
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        var discardedCardsFromHand = new List<GameCard>();
+        var discardedCardsFromDeck = new List<CardData>();
+
+        foreach (var card in playerHand.CardsInHand.ToList())
+        {
+            if (deckDictionary.TryGetValue(card.Data, out var count) && count <= 2)
+            {
+                discardedCardsFromHand.Add(card);
+                playerHand.TryDiscardCardFromHand(card);
+            }
+        }
+
+        foreach (var cardData in gameDeck.CardDataInDeck.ToList())
+        {
+            if (deckDictionary.TryGetValue(cardData, out var count) && count <= 2)
+            {
+                discardedCardsFromDeck.Add(cardData);
+                gameDeck.RemoveCard(cardData);
+            }
+        }
     }
 }
