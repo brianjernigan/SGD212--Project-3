@@ -15,6 +15,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text _multiplierText;
     [SerializeField] private TMP_Text _handSizeText;
     [SerializeField] private TMP_Text _moneyText;
+    [SerializeField] private TMP_Text _cardsRemainingText;
 
     private void Awake()
     {
@@ -37,6 +38,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnMultiplierChanged += UpdateMultiplierText;
         GameManager.Instance.OnHandSizeChanged += UpdateHandSizeText;
         GameManager.Instance.OnMoneyChanged += UpdateMoneyText;
+        GameManager.Instance.OnCardsRemainingChanged += UpdateCardsRemainingText;
     }
 
     private void OnDisable()
@@ -47,6 +49,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnMultiplierChanged -= UpdateMultiplierText;
         GameManager.Instance.OnHandSizeChanged -= UpdateHandSizeText;
         GameManager.Instance.OnMoneyChanged -= UpdateMoneyText;
+        GameManager.Instance.OnCardsRemainingChanged -= UpdateCardsRemainingText;
     }
 
     public void UpdateScoreText()
@@ -77,5 +80,10 @@ public class UIManager : MonoBehaviour
     public void UpdateMoneyText()
     {
         _moneyText.text = $"${GameManager.Instance.PlayerMoney}";
+    }
+
+    public void UpdateCardsRemainingText()
+    {
+        _cardsRemainingText.text = $"Cards Remaining: {GameManager.Instance.GameDeck.CardDataInDeck.Count}";
     }
 }

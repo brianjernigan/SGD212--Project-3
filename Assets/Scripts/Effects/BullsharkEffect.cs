@@ -51,5 +51,6 @@ public class BullsharkEffect : ICardEffect
         }
 
         GameManager.Instance.HandSizeModifier += 1;
+        GameManager.Instance.TriggerHandSizeChanged();
     }
 }

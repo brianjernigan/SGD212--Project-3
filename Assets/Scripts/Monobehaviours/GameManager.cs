@@ -11,7 +11,6 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     
     [SerializeField] private GameObject _cardPrefab;
-    
     [SerializeField] private List<Transform> _stagePositions;
 
     [Header("Areas")]
@@ -58,6 +57,7 @@ public class GameManager : MonoBehaviour
     public event Action OnMultiplierChanged;
     public event Action OnHandSizeChanged;
     public event Action OnMoneyChanged;
+    public event Action OnCardsRemainingChanged;
     
     private void Awake()
     {
@@ -369,12 +369,15 @@ public class GameManager : MonoBehaviour
 
     private void ScoreSet()
     {
+        var bonus = 0;
+        
         if (StageAreaController.NumCardsStaged == 4)
         {
-            // Bonus for set of 4?
+            bonus = 2;
         }
 
-        CurrentScore += StageAreaController.CalculateScore();
+        CurrentScore += StageAreaController.CalculateScore() * bonus;
+        TriggerScoreChanged();
         StageAreaController.ClearStageArea();
     }
 
@@ -448,6 +451,11 @@ public class GameManager : MonoBehaviour
     public void TriggerMoneyChanged()
     {
         OnMoneyChanged?.Invoke();
+    }
+
+    public void TriggerCardsRemainingChanged()
+    {
+        OnCardsRemainingChanged?.Invoke();
     }
 
     // **Added Methods for Bubble Particle Effects**
