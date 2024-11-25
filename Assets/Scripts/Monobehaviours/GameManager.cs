@@ -376,7 +376,7 @@ public class GameManager : MonoBehaviour
 
         CurrentScore += StageAreaController.CalculateScore();
         _scoreText.text = $"Score: {CurrentScore}";
-        StageAreaController.ClearStage();
+        StageAreaController.ClearStageArea();
     }
 
     public void PlaceCardInHand(GameCard gameCard)
@@ -393,11 +393,6 @@ public class GameManager : MonoBehaviour
     private void PlaceCardInStage(GameCard gameCard)
     {
         gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
-    }
-
-    public void AddCardToDeck(CardData data, int count = 1)
-    {
-        GameDeck?.AddCard(data, count);
     }
 
     private void UpdatePlayText()

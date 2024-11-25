@@ -53,7 +53,7 @@ public class StageAreaController : MonoBehaviour
         {
             if (CardsStaged.Count == 0)
             {
-                ClearStage();
+                Destroy(gameCard.UI.gameObject);
             }
             else
             {
@@ -71,7 +71,7 @@ public class StageAreaController : MonoBehaviour
         return CardsStaged.Count > 0 ? CardsStaged[0] : null;
     }
 
-    public void ClearStage()
+    public void ClearStageArea()
     {
         foreach (var gameCard in CardsStaged.ToList())
         {

@@ -10,6 +10,6 @@ public class TurtleEffect : ICardEffect
     {
         GameManager.Instance.AdditionalCardsOnScreen = 2;
         
-        GameManager.Instance.StageAreaController.ClearStage();
+        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }
