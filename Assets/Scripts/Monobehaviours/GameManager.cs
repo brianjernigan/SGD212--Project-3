@@ -170,36 +170,37 @@ public class GameManager : MonoBehaviour
     private IEnumerator DrawFullHandCoroutine()
     {
         _isDrawingCards = true;
-        
+
         while (CardsOnScreen < MaxCardsOnScreen && !GameDeck.IsEmpty)
         {
             var gameCard = GameDeck.DrawCard();
-            if (gameCard is not null)
+            if (gameCard != null)
             {
                 PlayerHand.TryAddCardToHand(gameCard);
 
-                var dockCenter = _hand.transform.position;
-                var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
+                var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
 
                 yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
+
+                RearrangeHand(); // Smoothly adjust positions after each card is added
             }
         }
 
         _isDrawingCards = false;
     }
 
+
     private Vector3 CalculateCardPosition(int cardIndex, int totalCards, Vector3 dockCenter)
     {
         totalCards = Mathf.Max(totalCards, 1);
 
-        var totalSpacing = Mathf.Max(DockWidth, 0.1f);
-        var startX = -totalSpacing / 2f;
-        var xPosition = startX + (cardIndex * (DockWidth / Mathf.Max(1, totalCards - 1)));
-        
-        var zPosition = Mathf.Pow(xPosition / Mathf.Max(totalSpacing, 1f), 2) * CurveStrength;
+        var cardSpacing = Mathf.Min(DockWidth / totalCards, 120f); // Dynamic spacing with a max cap
+        var startX = -((totalCards - 1) * cardSpacing) / 2f;
+        var xPosition = startX + (cardIndex * cardSpacing);
 
-        return dockCenter + new Vector3(xPosition, InitialCardY + cardIndex, zPosition);
+        return dockCenter + new Vector3(xPosition, InitialCardY, 0f); // Straight line with fixed Y
     }
+
 
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
     {
@@ -310,9 +311,10 @@ public class GameManager : MonoBehaviour
             var card = PlayerHand.CardsInHand[i];
             var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
 
-            card.UI.transform.position = targetPosition;
+            StartCoroutine(AnimateCardToPosition(card.UI.transform, targetPosition));
         }
     }
+
 
     public void RearrangeStage()
     {
@@ -397,5 +399,31 @@ public class GameManager : MonoBehaviour
     private void UpdateDiscardText()
     {
         _discardText.text = $"Discards:\n{DiscardsRemaining}";
+    }
+
+    private IEnumerator AnimateCardToPosition(Transform cardTransform, Vector3 targetPosition)
+    {
+        var startPosition = cardTransform.position;
+        var startRotation = cardTransform.rotation;
+        var endRotation = Quaternion.Euler(90f, 180f, 0f); // Ensure cards are upright
+
+        var duration = 0.5f; // Animation duration
+        var elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            var t = elapsedTime / duration;
+            t = t * t * (3f - 2f * t); // Smooth step interpolation
+
+            cardTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
+            cardTransform.rotation = Quaternion.Slerp(startRotation, endRotation, t);
+
+            yield return null;
+        }
+
+        cardTransform.position = targetPosition;
+        cardTransform.rotation = endRotation;
     }
 }
