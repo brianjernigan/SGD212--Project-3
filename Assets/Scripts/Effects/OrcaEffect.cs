@@ -23,5 +23,7 @@ public class OrcaEffect : ICardEffect
                 playerHand.TryAddCardToHand(drawnCard);
             }
         }
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
     }
 }

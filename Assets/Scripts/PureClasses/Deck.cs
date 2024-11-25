@@ -33,6 +33,8 @@ public class Deck
                 CardDataInDeck.Add(entry.Key);
             }
         }
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
     }
     
     public void ShuffleDeck()
@@ -50,6 +52,8 @@ public class Deck
 
         var drawnCardData = CardDataInDeck[0];
         CardDataInDeck.RemoveAt(0);
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
 
         return CreateGameCard(drawnCardData);
     }
@@ -61,6 +65,8 @@ public class Deck
         var randomIndex = Random.Range(0, CardDataInDeck.Count);
         var drawnCardData = CardDataInDeck[randomIndex];
         CardDataInDeck.RemoveAt(randomIndex);
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
 
         return CreateGameCard(drawnCardData);
     }
@@ -71,6 +77,8 @@ public class Deck
         {
             CardDataInDeck.Add(data);
         }
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
     }
 
     public GameCard DrawSpecificCard(CardData data)
@@ -85,6 +93,8 @@ public class Deck
 
         var drawnCardData = CardDataInDeck[cardIndex];
         CardDataInDeck.RemoveAt(cardIndex);
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
 
         return CreateGameCard(drawnCardData);
     }
@@ -108,5 +118,7 @@ public class Deck
         {
             CardDataInDeck.RemoveAt(cardIndex);
         }
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
     }
 }

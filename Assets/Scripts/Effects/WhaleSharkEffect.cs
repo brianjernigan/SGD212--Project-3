@@ -13,5 +13,6 @@ public class WhaleSharkEffect : ICardEffect
         var planktonCount = GameManager.Instance.GameDeck.CardDataInDeck.Count(card => card.CardName == "Plankton");
 
         GameManager.Instance.CurrentMultiplier += planktonCount;
+        GameManager.Instance.TriggerMultiplierChanged();
     }
 }

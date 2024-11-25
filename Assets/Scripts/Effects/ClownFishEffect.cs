@@ -16,6 +16,7 @@ public class ClownFishEffect : ICardEffect
                           0;
 
         GameManager.Instance.CurrentMultiplier = countInDeck + countInHand;
+        GameManager.Instance.TriggerMultiplierChanged();
         
         GameManager.Instance.StageAreaController.ClearStageArea();
     }

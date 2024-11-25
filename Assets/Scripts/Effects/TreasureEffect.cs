@@ -9,6 +9,7 @@ public class TreasureEffect : ICardEffect
     public void ActivateEffect()
     {
         GameManager.Instance.PlayerMoney += 5;
+        GameManager.Instance.TriggerMoneyChanged();
         GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }

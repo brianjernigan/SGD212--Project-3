@@ -86,6 +86,13 @@ public class StageAreaController : MonoBehaviour
 
     public int CalculateScore()
     {
-        throw new NotImplementedException();
+        var score = 0;
+        
+        foreach (var card in CardsStaged)
+        {
+            score += card.Data.CardRank;
+        }
+
+        return score * GameManager.Instance.CurrentMultiplier;
     }
 }

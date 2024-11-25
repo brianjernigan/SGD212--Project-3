@@ -33,5 +33,6 @@ public class HammerheadEffect : ICardEffect
         }
 
         GameManager.Instance.CurrentMultiplier = stingrayCount;
+        GameManager.Instance.TriggerMultiplierChanged();
     }
 }
