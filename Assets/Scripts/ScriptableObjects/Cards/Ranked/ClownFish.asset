@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8374cb81c79c2a34ab0e1921daf9353a, type: 3}
-  m_Name: ClownFish
+  m_Name: Clownfish
   m_EditorClassIdentifier: 
   _type: 0
-  _cardName: ClownFish
+  _cardName: Clownfish
   _cardMat: {fileID: 2100000, guid: 4b893d36abb61ef44a2766be83d1847c, type: 2}
   _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
   _textBoxSprite: {fileID: 2010005858, guid: ccd875d6844720642ab93c21e486e548, type: 3}

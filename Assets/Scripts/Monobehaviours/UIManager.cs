@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -52,38 +53,54 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnCardsRemainingChanged -= UpdateCardsRemainingText;
     }
 
-    public void UpdateScoreText()
+    private void Start()
     {
-        _scoreText.text = $"Score: {GameManager.Instance.CurrentScore}";
+        var gameDeck = GameManager.Instance.GameDeck;
+        var gameDeckSize = gameDeck.CardDataInDeck.Count;
+        
+        UpdateScoreText(GameManager.Instance.CurrentScore);
+        UpdatePlaysText(GameManager.Instance.PlaysRemaining);
+        UpdateDiscardsText(GameManager.Instance.DiscardsRemaining);
+        UpdateMultiplierText(GameManager.Instance.CurrentMultiplier);
+        UpdateHandSizeText(GameManager.Instance.HandSize);
+        UpdateMoneyText(GameManager.Instance.PlayerMoney);
+        UpdateCardsRemainingText(GameManager.Instance.GameDeck is not null
+            ? GameManager.Instance.GameDeck.CardDataInDeck.Count
+            : 52);
     }
 
-    public void UpdatePlaysText()
+    public void UpdateScoreText(int score)
     {
-        _playsText.text = $"Plays:\n{GameManager.Instance.PlaysRemaining}";
+        _scoreText.text = $"Score: {score}";
     }
 
-    public void UpdateDiscardsText()
+    public void UpdatePlaysText(int plays)
     {
-        _discardsText.text = $"Discards:\n{GameManager.Instance.DiscardsRemaining}";
+        _playsText.text = $"Plays:\n{plays}";
     }
 
-    public void UpdateMultiplierText()
+    public void UpdateDiscardsText(int discards)
     {
-        _multiplierText.text = $"Multiplier: {GameManager.Instance.CurrentMultiplier}x";
+        _discardsText.text = $"Discards:\n{discards}";
     }
 
-    public void UpdateHandSizeText()
+    public void UpdateMultiplierText(int multiplier)
     {
-        _handSizeText.text = $"Hand Size: {GameManager.Instance.HandSize}";
+        _multiplierText.text = $"Multiplier: {multiplier}x";
     }
 
-    public void UpdateMoneyText()
+    public void UpdateHandSizeText(int size)
     {
-        _moneyText.text = $"${GameManager.Instance.PlayerMoney}";
+        _handSizeText.text = $"Hand Size: {size}";
     }
 
-    public void UpdateCardsRemainingText()
+    public void UpdateMoneyText(int cash)
     {
-        _cardsRemainingText.text = $"Cards Remaining: {GameManager.Instance.GameDeck.CardDataInDeck.Count}";
+        _moneyText.text = $"${cash}";
+    }
+
+    public void UpdateCardsRemainingText(int cardsRemaining)
+    {
+        _cardsRemainingText.text = $"Cards Remaining: {cardsRemaining}";
     }
 }

@@ -51,13 +51,13 @@ public class GameManager : MonoBehaviour
     public int DiscardsRemaining { get; set; } = 3;
     public int PlayerMoney { get; set; }
 
-    public event Action OnScoreChanged;
-    public event Action OnPlaysChanged;
-    public event Action OnDiscardsChanged;
-    public event Action OnMultiplierChanged;
-    public event Action OnHandSizeChanged;
-    public event Action OnMoneyChanged;
-    public event Action OnCardsRemainingChanged;
+    public event Action<int> OnScoreChanged;
+    public event Action<int> OnPlaysChanged;
+    public event Action<int> OnDiscardsChanged;
+    public event Action<int> OnMultiplierChanged;
+    public event Action<int> OnHandSizeChanged;
+    public event Action<int> OnMoneyChanged;
+    public event Action<int> OnCardsRemainingChanged;
     
     private void Awake()
     {
@@ -300,6 +300,7 @@ public class GameManager : MonoBehaviour
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 DestroyGameCard(gameCard);
+                TriggerCardsRemainingChanged();
                 return true;
             }
         }
@@ -369,14 +370,14 @@ public class GameManager : MonoBehaviour
 
     private void ScoreSet()
     {
-        var bonus = 0;
+        var bonusMultiplier = 1;
         
         if (StageAreaController.NumCardsStaged == 4)
         {
-            bonus = 2;
+            bonusMultiplier = 2;
         }
 
-        CurrentScore += StageAreaController.CalculateScore() * bonus;
+        CurrentScore += StageAreaController.CalculateScore() * bonusMultiplier;
         TriggerScoreChanged();
         StageAreaController.ClearStageArea();
     }
@@ -425,37 +426,40 @@ public class GameManager : MonoBehaviour
 
     public void TriggerScoreChanged()
     {
-        OnScoreChanged?.Invoke();
+        OnScoreChanged?.Invoke(CurrentScore);
     }
 
     public void TriggerPlaysChanged()
     {
-        OnPlaysChanged?.Invoke();
+        OnPlaysChanged?.Invoke(PlaysRemaining);
     }
 
     public void TriggerDiscardsChanged()
     {
-        OnDiscardsChanged?.Invoke();
+        OnDiscardsChanged?.Invoke(DiscardsRemaining);
     }
 
     public void TriggerMultiplierChanged()
     {
-        OnMultiplierChanged?.Invoke();
+        OnMultiplierChanged?.Invoke(CurrentMultiplier);
     }
 
     public void TriggerHandSizeChanged()
     {
-        OnHandSizeChanged?.Invoke();
+        OnHandSizeChanged?.Invoke(HandSize);
     }
 
     public void TriggerMoneyChanged()
     {
-        OnMoneyChanged?.Invoke();
+        OnMoneyChanged?.Invoke(PlayerMoney);
     }
 
     public void TriggerCardsRemainingChanged()
     {
-        OnCardsRemainingChanged?.Invoke();
+        if (GameDeck is not null)
+        {
+            OnCardsRemainingChanged?.Invoke(GameDeck.CardDataInDeck.Count);
+        }
     }
 
     // **Added Methods for Bubble Particle Effects**
