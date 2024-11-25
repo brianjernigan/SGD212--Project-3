@@ -9,6 +9,30 @@ public class HammerheadEffect : ICardEffect
     
     public void ActivateEffect()
     {
-        Debug.Log(EffectDescription);
+        var playerHand = GameManager.Instance.PlayerHand;
+        var deck = GameManager.Instance.GameDeck;
+
+        var stingrayCount = 0;
+        
+        for (var i = 0; i < playerHand.CardsInHand.Count; i++)
+        {
+            if (playerHand.CardsInHand[i].Data.CardName == "Stingray")
+            {
+                playerHand.TryDiscardCardFromHand(playerHand.CardsInHand[i]);
+                stingrayCount++;
+            }
+            playerHand.ClearHandArea();
+        }
+
+        for (var i = 0; i < deck.CardDataInDeck.Count; i++)
+        {
+            if (deck.CardDataInDeck[i].CardName == "Stingray")
+            {
+                deck.CardDataInDeck.Remove(deck.CardDataInDeck[i]);
+                stingrayCount++;
+            }
+        }
+
+        GameManager.Instance.CurrentMultiplier = stingrayCount;
     }
 }
