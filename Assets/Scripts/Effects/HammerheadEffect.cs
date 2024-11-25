@@ -28,6 +28,7 @@ public class HammerheadEffect : ICardEffect
             if (deck.CardDataInDeck[i].CardName == "Stingray")
             {
                 deck.CardDataInDeck.Remove(deck.CardDataInDeck[i]);
+                GameManager.Instance.TriggerCardsRemainingChanged();
                 stingrayCount++;
             }
         }

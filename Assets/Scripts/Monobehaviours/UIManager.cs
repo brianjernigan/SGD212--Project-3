@@ -55,18 +55,13 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        var gameDeck = GameManager.Instance.GameDeck;
-        var gameDeckSize = gameDeck.CardDataInDeck.Count;
-        
         UpdateScoreText(GameManager.Instance.CurrentScore);
         UpdatePlaysText(GameManager.Instance.PlaysRemaining);
         UpdateDiscardsText(GameManager.Instance.DiscardsRemaining);
         UpdateMultiplierText(GameManager.Instance.CurrentMultiplier);
         UpdateHandSizeText(GameManager.Instance.HandSize);
         UpdateMoneyText(GameManager.Instance.PlayerMoney);
-        UpdateCardsRemainingText(GameManager.Instance.GameDeck is not null
-            ? GameManager.Instance.GameDeck.CardDataInDeck.Count
-            : 52);
+        UpdateCardsRemainingText(GameManager.Instance.GameDeck.CardDataInDeck.Count);
     }
 
     public void UpdateScoreText(int score)
