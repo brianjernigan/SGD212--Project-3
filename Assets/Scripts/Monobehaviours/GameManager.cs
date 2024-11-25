@@ -20,13 +20,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _hand;
     [SerializeField] private GameObject _deck;
 
-    [Header("Texts")] 
-    [SerializeField] private TMP_Text _scoreText;
-    [SerializeField] private TMP_Text _moneyText;
-    [SerializeField] private TMP_Text _playText;
-    [SerializeField] private TMP_Text _discardText;
-    [SerializeField] private TMP_Text _multiplierText; 
-
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
     public GameObject Hand => _hand;
@@ -34,8 +27,10 @@ public class GameManager : MonoBehaviour
     public int CardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
 
     private const int MaxCardsOnScreen = 5;
-    
     public int AdditionalCardsOnScreen { get; set; }
+    public int HandSizeModifier { get; set; }
+
+    public int HandSize => MaxCardsOnScreen + AdditionalCardsOnScreen + HandSizeModifier;
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
@@ -48,7 +43,7 @@ public class GameManager : MonoBehaviour
     public bool IsDraggingCard { get; set; }
     
     public int CurrentScore { get; set; }
-    public int CurrentMultiplier { get; set; }
+    public int CurrentMultiplier { get; set; } = 1;
 
     private const float DockWidth = 750f;
     private const float InitialCardY = 25f;
@@ -175,7 +170,7 @@ public class GameManager : MonoBehaviour
     {
         _isDrawingCards = true;
 
-        while (CardsOnScreen < MaxCardsOnScreen + AdditionalCardsOnScreen && !GameDeck.IsEmpty)
+        while (CardsOnScreen < HandSize && !GameDeck.IsEmpty)
         {
             var gameCard = GameDeck.DrawCard();
             if (gameCard != null)
@@ -298,8 +293,6 @@ public class GameManager : MonoBehaviour
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 DestroyGameCard(gameCard);
-                // DiscardsRemaining--;
-                UpdateDiscardText();
                 return true;
             }
         }
@@ -345,15 +338,11 @@ public class GameManager : MonoBehaviour
                 if (StageAreaController.GetFirstStagedCard().Data.CardName != "Kraken")
                 {
                     TriggerCardEffect();
-                    PlaysRemaining--;
-                    UpdatePlayText();
                 }
                 break;
             case 3:
             case 4:
                 ScoreSet();
-                PlaysRemaining--;
-                UpdatePlayText();
                 break;
             default:
                 return;
@@ -375,7 +364,6 @@ public class GameManager : MonoBehaviour
         }
 
         CurrentScore += StageAreaController.CalculateScore();
-        _scoreText.text = $"Score: {CurrentScore}";
         StageAreaController.ClearStageArea();
     }
 
@@ -393,16 +381,6 @@ public class GameManager : MonoBehaviour
     private void PlaceCardInStage(GameCard gameCard)
     {
         gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
-    }
-
-    private void UpdatePlayText()
-    {
-        _playText.text = $"Plays:\n{PlaysRemaining}";
-    }
-
-    private void UpdateDiscardText()
-    {
-        _discardText.text = $"Discards:\n{DiscardsRemaining}";
     }
 
     private IEnumerator AnimateCardToPosition(Transform cardTransform, Vector3 targetPosition)
@@ -440,10 +418,7 @@ public class GameManager : MonoBehaviour
     private void PlayBubbleEffect(GameObject card)
     {
         var bubbleEffect = card.transform.Find("BubbleEffect")?.GetComponent<ParticleSystem>();
-        if (bubbleEffect != null)
-        {
-            bubbleEffect.Play();
-        }
+        bubbleEffect?.Play();
     }
 
     /// <summary>
@@ -453,9 +428,6 @@ public class GameManager : MonoBehaviour
     private void StopBubbleEffect(GameObject card)
     {
         var bubbleEffect = card.transform.Find("BubbleEffect")?.GetComponent<ParticleSystem>();
-        if (bubbleEffect != null)
-        {
-            bubbleEffect.Stop();
-        }
+        bubbleEffect?.Stop();
     }
 }
