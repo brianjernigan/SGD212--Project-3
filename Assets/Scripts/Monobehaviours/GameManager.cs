@@ -51,6 +51,13 @@ public class GameManager : MonoBehaviour
     public int PlaysRemaining { get; set; } = 3;
     public int DiscardsRemaining { get; set; } = 3;
     public int PlayerMoney { get; set; }
+
+    public event Action OnScoreChanged;
+    public event Action OnPlaysChanged;
+    public event Action OnDiscardsChanged;
+    public event Action OnMultiplierChanged;
+    public event Action OnHandSizeChanged;
+    public event Action OnMoneyChanged;
     
     private void Awake()
     {
@@ -335,7 +342,11 @@ public class GameManager : MonoBehaviour
         switch (StageAreaController.NumCardsStaged)
         {
             case 1:
-                if (StageAreaController.GetFirstStagedCard().Data.CardName != "Kraken")
+                if (StageAreaController.GetFirstStagedCard().Data.CardName == "Whaleshark")
+                {
+                    ScoreSet();
+                }
+                else
                 {
                     TriggerCardEffect();
                 }
@@ -407,6 +418,36 @@ public class GameManager : MonoBehaviour
 
         cardTransform.position = targetPosition;
         cardTransform.rotation = endRotation;
+    }
+
+    public void TriggerScoreChanged()
+    {
+        OnScoreChanged?.Invoke();
+    }
+
+    public void TriggerPlaysChanged()
+    {
+        OnPlaysChanged?.Invoke();
+    }
+
+    public void TriggerDiscardsChanged()
+    {
+        OnDiscardsChanged?.Invoke();
+    }
+
+    public void TriggerMultiplierChanged()
+    {
+        OnMultiplierChanged?.Invoke();
+    }
+
+    public void TriggerHandSizeChanged()
+    {
+        OnHandSizeChanged?.Invoke();
+    }
+
+    public void TriggerMoneyChanged()
+    {
+        OnMoneyChanged?.Invoke();
     }
 
     // **Added Methods for Bubble Particle Effects**

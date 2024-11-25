@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -26,6 +27,26 @@ public class UIManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    private void OnEnable()
+    {
+        GameManager.Instance.OnScoreChanged += UpdateScoreText;
+        GameManager.Instance.OnPlaysChanged += UpdatePlaysText;
+        GameManager.Instance.OnDiscardsChanged += UpdateDiscardsText;
+        GameManager.Instance.OnMultiplierChanged += UpdateMultiplierText;
+        GameManager.Instance.OnHandSizeChanged += UpdateHandSizeText;
+        GameManager.Instance.OnMoneyChanged += UpdateMoneyText;
+    }
+
+    private void OnDisable()
+    {
+        GameManager.Instance.OnScoreChanged -= UpdateScoreText;
+        GameManager.Instance.OnPlaysChanged -= UpdatePlaysText;
+        GameManager.Instance.OnDiscardsChanged -= UpdateDiscardsText;
+        GameManager.Instance.OnMultiplierChanged -= UpdateMultiplierText;
+        GameManager.Instance.OnHandSizeChanged -= UpdateHandSizeText;
+        GameManager.Instance.OnMoneyChanged -= UpdateMoneyText;
     }
 
     public void UpdateScoreText()

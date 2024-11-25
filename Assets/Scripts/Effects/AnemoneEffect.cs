@@ -4,10 +4,14 @@ using UnityEngine;
 
 public class AnemoneEffect : ICardEffect
 {
-    public string EffectDescription => "Add 2 clownfish to your deck.";
+    public string EffectDescription => "Add 2 clownfish to your deck. Discards this card.";
     
     public void ActivateEffect()
     {
-        Debug.Log(EffectDescription);
+        var clownFishData = CardLibrary.Instance.GetCardDataByName("Clownfish");
+        if (clownFishData is null) return;
+
+        GameManager.Instance.GameDeck?.AddCard(clownFishData, 2);
+        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }

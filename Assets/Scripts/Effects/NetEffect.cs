@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class NetEffect : ICardEffect
@@ -9,6 +10,33 @@ public class NetEffect : ICardEffect
     
     public void ActivateEffect()
     {
-        Debug.Log(EffectDescription);
+        var gameDeck = GameManager.Instance.GameDeck;
+        var playerHand = GameManager.Instance.PlayerHand;
+
+        var pairsInDeck = gameDeck.CardDataInDeck
+            .GroupBy(card => card)
+            .Where(group => group.Count() >= 2)
+            .Select(group => group.Key)
+            .ToList();
+
+        if (pairsInDeck.Count > 0)
+        {
+            var randomPair = pairsInDeck[Random.Range(0, pairsInDeck.Count)];
+
+            for (var i = 0; i < 2; i++)
+            {
+                var card = gameDeck.DrawSpecificCard(randomPair);
+                if (card is not null)
+                {
+                    playerHand.TryAddCardToHand(card);
+                }
+            }
+        }
+        else
+        {
+            var randomCard =
+                CardLibrary.Instance.AllPossibleCards[Random.Range(0, CardLibrary.Instance.AllPossibleCards.Count)];
+            gameDeck.AddCard(randomCard, 2);
+        }
     }
 }
