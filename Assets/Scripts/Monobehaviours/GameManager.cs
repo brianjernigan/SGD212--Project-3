@@ -51,8 +51,6 @@ public class GameManager : MonoBehaviour
     public int CurrentMultiplier { get; set; }
 
     private const float DockWidth = 750f;
-    // If we want curved hand layout
-    private const float CurveStrength = -0.001f;
     private const float InitialCardY = 25f;
 
     public int PlaysRemaining { get; set; } = 3;
@@ -140,19 +138,20 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator FlipCardCoroutine(GameObject card)
     {
+        PlayBubbleEffect(card); // Start bubbles when flipping
+
         var startRotation = card.transform.rotation;
         var endRotation = card.transform.rotation * Quaternion.Euler(0f, 180f, 0f);
 
-        var duration = 0.75f; // Increased duration for smoother animation
+        var duration = 0.75f; // Duration for smoother animation
         var elapsedTime = 0f;
 
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
 
-            // Smooth step interpolation (ease-in-out effect)
             float t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t); // Smoothstep easing formula
+            t = t * t * (3f - 2f * t); // Smoothstep interpolation
 
             card.transform.rotation = Quaternion.Slerp(startRotation, endRotation, t);
 
@@ -160,6 +159,8 @@ public class GameManager : MonoBehaviour
         }
 
         card.transform.rotation = endRotation; // Ensure it ends exactly at the target rotation
+
+        StopBubbleEffect(card); // Stop bubbles after flipping
     }
     
     public void DrawFullHand()
@@ -183,7 +184,11 @@ public class GameManager : MonoBehaviour
 
                 var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
 
+                PlayBubbleEffect(gameCard.UI.gameObject); // Start bubbles when the card is drawn
+
                 yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
+
+                StopBubbleEffect(gameCard.UI.gameObject); // Stop bubbles after placing the card
 
                 RearrangeHand(); // Smoothly adjust positions after each card is added
             }
@@ -197,7 +202,6 @@ public class GameManager : MonoBehaviour
         _isDrawingCards = false;
     }
 
-
     private Vector3 CalculateCardPosition(int cardIndex, int totalCards, Vector3 dockCenter)
     {
         totalCards = Mathf.Max(totalCards, 1);
@@ -208,7 +212,6 @@ public class GameManager : MonoBehaviour
 
         return dockCenter + new Vector3(xPosition, InitialCardY + cardIndex, 0f); // Straight line with fixed Y
     }
-
 
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
     {
@@ -323,7 +326,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
     public void RearrangeStage()
     {
         for (var i = 0; i < StageAreaController.NumCardsStaged; i++)
@@ -432,5 +434,33 @@ public class GameManager : MonoBehaviour
 
         cardTransform.position = targetPosition;
         cardTransform.rotation = endRotation;
+    }
+
+    // **Added Methods for Bubble Particle Effects**
+
+    /// <summary>
+    /// Plays the bubble particle effect attached to the specified card.
+    /// </summary>
+    /// <param name="card">The GameObject representing the card.</param>
+    private void PlayBubbleEffect(GameObject card)
+    {
+        var bubbleEffect = card.transform.Find("BubbleEffect")?.GetComponent<ParticleSystem>();
+        if (bubbleEffect != null)
+        {
+            bubbleEffect.Play();
+        }
+    }
+
+    /// <summary>
+    /// Stops the bubble particle effect attached to the specified card.
+    /// </summary>
+    /// <param name="card">The GameObject representing the card.</param>
+    private void StopBubbleEffect(GameObject card)
+    {
+        var bubbleEffect = card.transform.Find("BubbleEffect")?.GetComponent<ParticleSystem>();
+        if (bubbleEffect != null)
+        {
+            bubbleEffect.Stop();
+        }
     }
 }
