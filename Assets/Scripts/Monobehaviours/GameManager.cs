@@ -31,13 +31,13 @@ public class GameManager : MonoBehaviour
     public GameObject Discard => _discard;
     public GameObject Hand => _hand;
     
-    public int CardsOnScreen => PlayerHand.NumCardsInHand + _stageAreaController.NumCardsStaged;
+    public int CardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
     public int MaxCardsOnScreen { get; set; } = 5;
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
     
-    private StageAreaController _stageAreaController;
+    public StageAreaController StageAreaController { get; private set; }
 
     private Camera _mainCamera;
 
@@ -45,6 +45,7 @@ public class GameManager : MonoBehaviour
     public bool IsDraggingCard { get; set; }
     
     private int _currentScore;
+    private int _currentMultiplier;
 
     private const float DockWidth = 750f;
     // If we want curved hand layout
@@ -72,7 +73,7 @@ public class GameManager : MonoBehaviour
     {
         _mainCamera = Camera.main;
 
-        _stageAreaController = _stage.GetComponent<StageAreaController>();
+        StageAreaController = _stage.GetComponent<StageAreaController>();
         
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
@@ -263,7 +264,7 @@ public class GameManager : MonoBehaviour
         // Destage
         if (dropArea == _hand.transform)
         {
-            if (PlayerHand.TryAddCardToHand(gameCard) && _stageAreaController.TryRemoveCardFromStage(gameCard))
+            if (PlayerHand.TryAddCardToHand(gameCard) && StageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 PlaceCardInHand(gameCard);
                 return true;
@@ -272,7 +273,7 @@ public class GameManager : MonoBehaviour
         // Stage Card
         if (dropArea == _stage.transform)
         {
-            if (_stageAreaController.TryAddCardToStage(gameCard) && PlayerHand.TryRemoveCardFromHand(gameCard))
+            if (StageAreaController.TryAddCardToStage(gameCard) && PlayerHand.TryRemoveCardFromHand(gameCard))
             {
                 PlaceCardInStage(gameCard);
                 return true;
@@ -283,10 +284,10 @@ public class GameManager : MonoBehaviour
         {
             if (DiscardsRemaining == 0) return false;
             
-            if (PlayerHand.TryRemoveCardFromHand(gameCard) || _stageAreaController.TryRemoveCardFromStage(gameCard))
+            if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 DiscardCard(gameCard);
-                DiscardsRemaining--;
+                // DiscardsRemaining--;
                 UpdateDiscardText();
                 return true;
             }
@@ -317,21 +318,21 @@ public class GameManager : MonoBehaviour
 
     public void RearrangeStage()
     {
-        for (var i = 0; i < _stageAreaController.NumCardsStaged; i++)
+        for (var i = 0; i < StageAreaController.NumCardsStaged; i++)
         {
-            _stageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position;
+            StageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position;
         }
     }
 
     public void OnClickPlayButton()
     {
-        if (_stageAreaController.NumCardsStaged is 0 or 2) return;
+        if (StageAreaController.NumCardsStaged is 0 or 2) return;
         if (PlaysRemaining == 0) return;
         
-        switch (_stageAreaController.NumCardsStaged)
+        switch (StageAreaController.NumCardsStaged)
         {
             case 1:
-                if (_stageAreaController.GetFirstStagedCard().Data.CardName != "Kraken")
+                if (StageAreaController.GetFirstStagedCard().Data.CardName != "Kraken")
                 {
                     TriggerCardEffect();
                     PlaysRemaining--;
@@ -351,24 +352,22 @@ public class GameManager : MonoBehaviour
 
     private void TriggerCardEffect()
     {
-        var firstStagedCard = _stageAreaController.GetFirstStagedCard();
-        if (firstStagedCard is null) return;
-        
-        _stageAreaController.ClearStage();
+        var firstStagedCard = StageAreaController.GetFirstStagedCard();
 
-        firstStagedCard.ActivateEffect();
+        firstStagedCard?.ActivateEffect();
+        // _stageAreaController.ClearStage();
     }
 
     private void ScoreSet()
     {
-        if (_stageAreaController.NumCardsStaged == 4)
+        if (StageAreaController.NumCardsStaged == 4)
         {
             // Bonus for set of 4?
         }
 
-        _currentScore += _stageAreaController.CalculateScore();
+        _currentScore += StageAreaController.CalculateScore();
         _scoreText.text = $"Score: {_currentScore}";
-        _stageAreaController.ClearStage();
+        StageAreaController.ClearStage();
     }
 
     public void PlaceCardInHand(GameCard gameCard)
@@ -384,7 +383,7 @@ public class GameManager : MonoBehaviour
 
     private void PlaceCardInStage(GameCard gameCard)
     {
-        gameCard.UI.transform.position = _stagePositions[_stageAreaController.NumCardsStaged - 1].transform.position;
+        gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
     }
 
     public void AddCardToDeck(CardData data, int count = 1)
@@ -427,5 +426,4 @@ public class GameManager : MonoBehaviour
         cardTransform.position = targetPosition;
         cardTransform.rotation = endRotation;
     }
-
 }
