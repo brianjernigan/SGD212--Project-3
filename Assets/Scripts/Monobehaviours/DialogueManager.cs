@@ -12,6 +12,8 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private CanvasGroup dialogueCanvasGroup;
     [SerializeField] private TMP_Text dialogueText;
     [SerializeField] private Button continueButton;
+    [SerializeField] private Button helpButton; // Button for detailed help
+    [SerializeField] private Button skipButton; // Button to skip dialogue
 
     [Header("Settings")]
     [SerializeField] private float typingSpeed = 0.05f;
@@ -60,14 +62,38 @@ public class DialogueManager : MonoBehaviour
             Debug.LogError("[DIALOGUE] Continue button is not assigned!");
         }
 
+        if (helpButton != null)
+        {
+            helpButton.onClick.AddListener(DisplayInDepthHelp);
+            helpButton.gameObject.SetActive(false);
+        }
+        else
+        {
+            Debug.LogError("[DIALOGUE] Help button is not assigned!");
+        }
+
+        if (skipButton != null)
+        {
+            skipButton.onClick.AddListener(SkipDialogue);
+            skipButton.gameObject.SetActive(false);
+        }
+        else
+        {
+            Debug.LogError("[DIALOGUE] Skip button is not assigned!");
+        }
+
         // Start introductory dialogue
         Debug.Log("[DIALOGUE] Starting intro dialogue.");
         StartDialogue(new string[]
         {
             "Welcome to Fresh Catch!",
-            "The goal is to create as many matching sets as possible.",
-            "Use your cards wisely and aim for the highest score!",
-            "Good luck, and let's dive in!"
+            "Your goal is to achieve the required score for each level:",
+            "Level 1: 50 points, Level 2: 100 points, Level 3: 150 points.",
+            "Play cards strategically to form sets and maximize your score.",
+            "Use your resources wisely: Plays, Draws, and Discards are limited.",
+            "Place matching cards or special cards like the Kraken to score points.",
+            "Keep an eye on your multiplier for bonus scores!",
+            "If you need more detailed help, press the 'Help' button!"
         });
     }
 
@@ -110,6 +136,16 @@ public class DialogueManager : MonoBehaviour
         if (continueButton != null)
         {
             continueButton.gameObject.SetActive(true);
+        }
+
+        if (dialogueQueue.Count == 0)
+        {
+            if (helpButton != null) helpButton.gameObject.SetActive(true);
+            if (skipButton != null) skipButton.gameObject.SetActive(false);
+        }
+        else if (skipButton != null)
+        {
+            skipButton.gameObject.SetActive(true);
         }
     }
 
@@ -166,6 +202,17 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
+    private void SkipDialogue()
+    {
+        Debug.Log("[DIALOGUE] Skipping dialogue.");
+        dialogueQueue.Clear();
+
+        StartCoroutine(FadeOutDialoguePanel());
+
+        if (helpButton != null) helpButton.gameObject.SetActive(true);
+        if (skipButton != null) skipButton.gameObject.SetActive(false);
+    }
+
     private IEnumerator FadeOutDialoguePanel()
     {
         if (dialogueCanvasGroup == null)
@@ -185,5 +232,24 @@ public class DialogueManager : MonoBehaviour
         dialogueCanvasGroup.alpha = 0f;
         dialogueCanvasGroup.interactable = false;
         dialogueCanvasGroup.blocksRaycasts = false;
+    }
+
+    private void DisplayInDepthHelp()
+    {
+        StartDialogue(new string[]
+        {
+            "Here are more details on how to play Fresh Catch:",
+            "1. Flipping Cards: Right-click on a card to flip it and reveal hidden information.",
+            "2. Staging Cards: Drag cards into the stage area to create sets. Matching ranks or using special cards scores points.",
+            "3. Managing Resources: Use your plays, draws, and discards carefully—they're limited!",
+            "4. Multiplier: Create larger sets to increase your multiplier for bonus points.",
+            "5. Winning: Score enough points to advance levels. Keep an eye on the score requirements!",
+            "Good luck, and have fun!"
+        });
+
+        if (helpButton != null)
+        {
+            helpButton.gameObject.SetActive(false);
+        }
     }
 }
