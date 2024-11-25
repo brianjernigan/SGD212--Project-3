@@ -178,14 +178,11 @@ public class GameManager : MonoBehaviour
     {
         if (DrawsRemaining == 0) return;
         
-        var isFirstDraw = DrawsRemaining == 5;
-        
         if (!_isDrawingCards)
         {
             StartCoroutine(DrawFullHandCoroutine());
         }
-
-        if (isFirstDraw) return;
+        
         DrawsRemaining--;
         TriggerDrawsChanged();
     }
@@ -479,11 +476,9 @@ public class GameManager : MonoBehaviour
         var outOfDiscards = DiscardsRemaining == 0;
         var outOfDraws = DrawsRemaining == 0;
 
-        if (outOfPlays && outOfDiscards && outOfDraws)
-        {
-            GameIsLost = true;
-            GameIsWon = false;
-        }
+        if (!outOfPlays || !outOfDiscards || !outOfDraws) return;
+        GameIsLost = true;
+        GameIsWon = false;
     }
 
     private void CheckForGameWin(int levelNumber)
