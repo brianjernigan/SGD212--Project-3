@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 // Handles internal deck logic
 public class Deck
 {
-    public List<CardData> CardDataInDeck { get; private set; }
+    public List<CardData> CardDataInDeck { get; }
     private readonly GameObject _cardPrefab;
 
     public bool IsEmpty => CardDataInDeck.Count == 0;
@@ -99,5 +99,14 @@ public class Deck
         cardUI.InitializeCard(data, gameCard);
 
         return gameCard;
+    }
+
+    public void RemoveCard(CardData cardData)
+    {
+        var cardIndex = CardDataInDeck.FindIndex(card => card == cardData);
+        if (cardIndex != -1)
+        {
+            CardDataInDeck.RemoveAt(cardIndex);
+        }
     }
 }

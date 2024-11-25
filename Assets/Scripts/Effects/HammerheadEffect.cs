@@ -21,7 +21,6 @@ public class HammerheadEffect : ICardEffect
                 playerHand.TryDiscardCardFromHand(playerHand.CardsInHand[i]);
                 stingrayCount++;
             }
-            playerHand.ClearHandArea();
         }
 
         for (var i = 0; i < deck.CardDataInDeck.Count; i++)
