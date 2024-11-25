@@ -6,7 +6,7 @@ public class GameCard
 {
     public CardData Data { get; private set; }
     public CardUI UI { get; private set; }
-    private ICardEffect _cardEffect;
+    public ICardEffect CardEffect { get; private set; }
 
     // Flag to indicate animation
     public bool IsAnimating { get; set; } 
@@ -15,20 +15,20 @@ public class GameCard
     {
         Data = data;
         UI = ui;
-        _cardEffect = effect;
+        CardEffect = effect;
     }
 
-    public string Description => _cardEffect?.EffectDescription ?? "No effect";
+    public string Description => CardEffect?.EffectDescription ?? "No effect";
 
     public void ActivateEffect()
     {
-        _cardEffect?.ActivateEffect();
+        CardEffect?.ActivateEffect();
     }
 
     public void TransformCard(CardData newCardData, ICardEffect newEffect)
     {
         Data = newCardData;
-        _cardEffect = newEffect;
+        CardEffect = newEffect;
         UI.InitializeCard(newCardData, this);
     }
 }

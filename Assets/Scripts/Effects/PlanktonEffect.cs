@@ -10,6 +10,19 @@ public class PlanktonEffect : ICardEffect
     
     public void ActivateEffect()
     {
-        Debug.Log(EffectDescription);
+        var planktonCard = CardLibrary.Instance.GetCardDataByName("Plankton");
+
+        var drawnCard = GameManager.Instance.GameDeck?.DrawCard();
+        if (drawnCard is not null)
+        {
+            GameManager.Instance.PlayerHand.TryAddCardToHand(drawnCard);
+        }
+
+        if (planktonCard is not null)
+        {
+            GameManager.Instance.GameDeck?.AddCard(planktonCard);
+        }
+        
+        GameManager.Instance.StageAreaController.ClearStage();
     }
 }
