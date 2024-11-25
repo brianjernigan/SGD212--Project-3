@@ -198,7 +198,7 @@ public class GameManager : MonoBehaviour
         var startX = -((totalCards - 1) * cardSpacing) / 2f;
         var xPosition = startX + (cardIndex * cardSpacing);
 
-        return dockCenter + new Vector3(xPosition, InitialCardY, 0f); // Straight line with fixed Y
+        return dockCenter + new Vector3(xPosition, InitialCardY + cardIndex, 0f); // Straight line with fixed Y
     }
 
 
