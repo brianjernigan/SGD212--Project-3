@@ -13,6 +13,8 @@ public class Hand
     public bool TryAddCardToHand(GameCard gameCard)
     {
         CardsInHand.Add(gameCard);
+        gameCard.IsInHand = true;
+        gameCard.IsStaged = false;
         GameManager.Instance.RearrangeHand();
         return true;
     }
@@ -22,6 +24,7 @@ public class Hand
     {
         if (CardsInHand.Contains(gameCard) && CardsInHand.Remove(gameCard))
         {
+            gameCard.IsInHand = false;
             GameManager.Instance.RearrangeHand();
             return true;
         }
@@ -34,6 +37,7 @@ public class Hand
     {
         if (CardsInHand.Contains(gameCard) && CardsInHand.Remove(gameCard))
         {
+            gameCard.IsInHand = false;
             Object.Destroy(gameCard.UI.gameObject);
             GameManager.Instance.RearrangeHand();
             return true;
@@ -48,6 +52,7 @@ public class Hand
         {
             if (gameCard.UI is not null)
             {
+                gameCard.IsInHand = false;
                 Object.Destroy(gameCard.UI.gameObject);
             }
         }

@@ -169,6 +169,8 @@ public class GameManager : MonoBehaviour
     
     public void DrawFullHand()
     {
+        if (DrawsRemaining == 0) return;
+        
         var isFirstDraw = DrawsRemaining == 5;
         
         if (!_isDrawingCards)
@@ -190,7 +192,11 @@ public class GameManager : MonoBehaviour
             var gameCard = GameDeck.DrawCard();
             if (gameCard != null)
             {
-                PlayerHand.TryAddCardToHand(gameCard);
+                if (PlayerHand.TryAddCardToHand(gameCard))
+                {
+                    gameCard.IsInHand = true;
+                    gameCard.IsStaged = false;
+                }
 
                 var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
 
@@ -319,6 +325,8 @@ public class GameManager : MonoBehaviour
     private void DiscardGameCard(GameCard gameCard)
     {
         // Add to discard pile?
+        gameCard.IsStaged = false;
+        gameCard.IsInHand = false;
         Destroy(gameCard.UI.gameObject);
         DiscardsRemaining--;
         TriggerDiscardsChanged();
@@ -347,7 +355,7 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        if (StageAreaController.NumCardsStaged is 0 or 2) return;
+        if (StageAreaController.NumCardsStaged is 0) return;
         if (PlaysRemaining == 0) return;
         
         switch (StageAreaController.NumCardsStaged)
@@ -363,6 +371,14 @@ public class GameManager : MonoBehaviour
                 }
                 PlaysRemaining--;
                 TriggerPlaysChanged();
+                break;
+            case 2:
+                if (StageAreaController.GetFirstStagedCard().Data.CardName == "Whaleshark")
+                {
+                    ScoreSet();
+                    PlaysRemaining--;
+                    TriggerPlaysChanged();
+                }
                 break;
             case 3:
             case 4:
@@ -394,6 +410,12 @@ public class GameManager : MonoBehaviour
         CurrentScore += StageAreaController.CalculateScore() * bonusMultiplier;
         TriggerScoreChanged();
         StageAreaController.ClearStageArea();
+
+        if (CurrentMultiplier > 1)
+        {
+            CurrentMultiplier = 1;
+            TriggerMultiplierChanged();
+        }
     }
 
     public void PlaceCardInHand(GameCard gameCard)
@@ -403,6 +425,9 @@ public class GameManager : MonoBehaviour
         var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
 
         gameCard.UI.transform.position = targetPosition;
+     
+        gameCard.IsInHand = true;
+        gameCard.IsStaged = false;
         
         RearrangeHand();
     }
@@ -410,6 +435,9 @@ public class GameManager : MonoBehaviour
     private void PlaceCardInStage(GameCard gameCard)
     {
         gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
+        
+        gameCard.IsStaged = true;
+        gameCard.IsInHand = false;
     }
 
     private IEnumerator AnimateCardToPosition(Transform cardTransform, Vector3 targetPosition)

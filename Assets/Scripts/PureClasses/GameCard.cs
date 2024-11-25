@@ -7,6 +7,8 @@ public class GameCard
     public CardData Data { get; private set; }
     public CardUI UI { get; private set; }
     public ICardEffect CardEffect { get; private set; }
+    public bool IsStaged { get; set; }
+    public bool IsInHand { get; set; }
 
     // Flag to indicate animation
     public bool IsAnimating { get; set; } 

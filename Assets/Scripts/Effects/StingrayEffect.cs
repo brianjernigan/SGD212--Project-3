@@ -13,7 +13,7 @@ public class StingrayEffect : ICardEffect
         var thisCard = stageAreaController.GetFirstStagedCard();
 
         GameManager.Instance.GameDeck.AddCard(thisCard.Data);
-        stageAreaController.TryRemoveCardFromStage(thisCard);
+        stageAreaController.ClearStageArea();
         
         for (var i = 0; i < playerHand.CardsInHand.Count; i++)
         {
@@ -21,7 +21,6 @@ public class StingrayEffect : ICardEffect
         }
         
         playerHand.ClearHandArea();
-        stageAreaController.ClearStageArea();
         
         GameManager.Instance.GameDeck?.ShuffleDeck();
         GameManager.Instance.DrawFullHand();
