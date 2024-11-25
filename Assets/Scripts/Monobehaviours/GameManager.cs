@@ -60,6 +60,13 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnHandSizeChanged;
     public event Action<int> OnMoneyChanged;
     public event Action<int> OnCardsRemainingChanged;
+
+    private const int LevelOneRequiredScore = 50;
+    private const int LevelTwoRequiredScore = 100;
+    private const int LevelThreeRequiredScore = 150;
+    
+    public bool GameIsLost { get; set; }
+    public bool GameIsWon { get; set; }
     
     private void Awake()
     {
@@ -464,6 +471,34 @@ public class GameManager : MonoBehaviour
 
         cardTransform.position = targetPosition;
         cardTransform.rotation = endRotation;
+    }
+
+    private void CheckForGameLoss()
+    {
+        var outOfPlays = PlaysRemaining == 0;
+        var outOfDiscards = DiscardsRemaining == 0;
+        var outOfDraws = DrawsRemaining == 0;
+
+        if (outOfPlays && outOfDiscards && outOfDraws)
+        {
+            GameIsLost = true;
+            GameIsWon = false;
+        }
+    }
+
+    private void CheckForGameWin(int levelNumber)
+    {
+        var requiredScore = levelNumber switch
+        {
+            1 => LevelOneRequiredScore,
+            2 => LevelTwoRequiredScore,
+            3 => LevelThreeRequiredScore,
+            _ => 0
+        };
+
+        if (CurrentScore < requiredScore) return;
+        GameIsWon = true;
+        GameIsLost = false;
     }
 
     public void TriggerScoreChanged()
