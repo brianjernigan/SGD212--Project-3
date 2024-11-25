@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class TreasureEffect : ICardEffect
 {
-    public string EffectDescription => "Gain $5.";
+    public string EffectDescription => "Gain $5. Discards this card.";
     
     public void ActivateEffect()
     {
-        Debug.Log(EffectDescription);
+        GameManager.Instance.PlayerMoney += 5;
+        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }

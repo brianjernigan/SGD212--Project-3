@@ -14,5 +14,14 @@ public class OrcaEffect : ICardEffect
         {
             playerHand.TryDiscardCardFromHand(playerHand.CardsInHand[i]);
         }
+
+        for (var i = 0; i < GameManager.Instance.HandSize; i++)
+        {
+            var drawnCard = GameManager.Instance.GameDeck?.DrawCard();
+            if (drawnCard is not null)
+            {
+                playerHand.TryAddCardToHand(drawnCard);
+            }
+        }
     }
 }
