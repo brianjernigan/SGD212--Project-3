@@ -43,6 +43,8 @@ public class StageAreaController : MonoBehaviour
         if (!CanStageCard(cardData)) return false;
 
         CardsStaged.Add(gameCard);
+        gameCard.IsStaged = true;
+        gameCard.IsInHand = false;
         GameManager.Instance.RearrangeStage();
         return true;
     }
@@ -51,14 +53,9 @@ public class StageAreaController : MonoBehaviour
     {
         if (CardsStaged.Contains(gameCard) && CardsStaged.Remove(gameCard))
         {
-            if (CardsStaged.Count == 0)
-            {
-                Destroy(gameCard.UI.gameObject);
-            }
-            else
-            {
-                GameManager.Instance.RearrangeStage();
-            }
+            gameCard.IsStaged = false;
+            
+            GameManager.Instance.RearrangeStage();
             
             return true;
         }
@@ -77,6 +74,7 @@ public class StageAreaController : MonoBehaviour
         {
             if (gameCard.UI is not null)
             {
+                gameCard.IsStaged = false;
                 Destroy(gameCard.UI.gameObject);
             }
         }
