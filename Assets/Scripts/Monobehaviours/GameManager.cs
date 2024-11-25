@@ -32,7 +32,10 @@ public class GameManager : MonoBehaviour
     public GameObject Hand => _hand;
     
     public int CardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
-    public int CurrentHandSize { get; set; } = 5;
+
+    private const int MaxCardsOnScreen = 5;
+    
+    public int AdditionalCardsOnScreen { get; set; }
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
@@ -172,7 +175,7 @@ public class GameManager : MonoBehaviour
     {
         _isDrawingCards = true;
 
-        while (CardsOnScreen < CurrentHandSize && !GameDeck.IsEmpty)
+        while (CardsOnScreen < MaxCardsOnScreen + AdditionalCardsOnScreen && !GameDeck.IsEmpty)
         {
             var gameCard = GameDeck.DrawCard();
             if (gameCard != null)
@@ -189,6 +192,11 @@ public class GameManager : MonoBehaviour
 
                 RearrangeHand(); // Smoothly adjust positions after each card is added
             }
+        }
+
+        if (AdditionalCardsOnScreen > 0)
+        {
+            AdditionalCardsOnScreen = 0;
         }
 
         _isDrawingCards = false;
@@ -289,7 +297,7 @@ public class GameManager : MonoBehaviour
             
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
-                DiscardCard(gameCard);
+                DestroyGameCard(gameCard);
                 // DiscardsRemaining--;
                 UpdateDiscardText();
                 return true;
@@ -299,7 +307,7 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    private void DiscardCard(GameCard gameCard)
+    private void DestroyGameCard(GameCard gameCard)
     {
         // Add to discard pile?
         Destroy(gameCard.UI.gameObject);

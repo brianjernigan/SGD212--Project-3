@@ -35,7 +35,7 @@ public class Deck
         }
     }
     
-    private void ShuffleDeck()
+    public void ShuffleDeck()
     {
         for (var i = CardDataInDeck.Count - 1; i > 0; i--)
         {

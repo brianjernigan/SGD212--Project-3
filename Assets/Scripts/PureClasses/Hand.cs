@@ -12,7 +12,6 @@ public class Hand
 
     public bool TryAddCardToHand(GameCard gameCard)
     {
-        if (gameCard is null) return false;
         CardsInHand.Add(gameCard);
         GameManager.Instance.RearrangeHand();
         return true;
@@ -21,8 +20,6 @@ public class Hand
     // Does NOT destroy card object
     public bool TryRemoveCardFromHand(GameCard gameCard)
     {
-        if (gameCard is null) return false;
-
         if (CardsInHand.Contains(gameCard) && CardsInHand.Remove(gameCard))
         {
             GameManager.Instance.RearrangeHand();
@@ -35,8 +32,6 @@ public class Hand
     // Destroys card object
     public bool TryDiscardCardFromHand(GameCard gameCard)
     {
-        if (gameCard is null) return false;
-
         if (CardsInHand.Contains(gameCard) && CardsInHand.Remove(gameCard))
         {
             Object.Destroy(gameCard.UI.gameObject);
