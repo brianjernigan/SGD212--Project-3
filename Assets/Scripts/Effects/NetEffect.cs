@@ -6,7 +6,7 @@ using UnityEngine;
 public class NetEffect : ICardEffect
 {
     public string EffectDescription =>
-        "Draw a random pair to your hand (Will add cards to deck if no pairs remaining).";
+        "Draw a random pair to your hand (Will add cards to deck if no pairs remaining). Discards this card.";
     
     public void ActivateEffect()
     {
@@ -38,5 +38,7 @@ public class NetEffect : ICardEffect
                 CardLibrary.Instance.AllPossibleCards[Random.Range(0, CardLibrary.Instance.AllPossibleCards.Count)];
             gameDeck.AddCard(randomCard, 2);
         }
+        
+        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }
