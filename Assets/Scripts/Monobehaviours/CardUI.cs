@@ -11,6 +11,9 @@ public class CardUI : MonoBehaviour
     [SerializeField] private TMP_Text _bottomRankText;
     [SerializeField] private TMP_Text _descriptionText;
 
+    [Header("Particle Effects")]
+    [SerializeField] private ParticleSystem _bubbleEffect; // Reference to the BubbleEffect ParticleSystem
+
     private Camera _mainCamera;
     private bool _isDragging;
     private Vector3 _offset;
@@ -160,5 +163,27 @@ public class CardUI : MonoBehaviour
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Plays the bubble particle effect attached to this card.
+    /// </summary>
+    public void PlayBubbleEffect()
+    {
+        if (_bubbleEffect != null)
+        {
+            _bubbleEffect.Play();
+        }
+    }
+
+    /// <summary>
+    /// Stops the bubble particle effect attached to this card.
+    /// </summary>
+    public void StopBubbleEffect()
+    {
+        if (_bubbleEffect != null)
+        {
+            _bubbleEffect.Stop();
+        }
     }
 }
