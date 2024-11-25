@@ -44,8 +44,8 @@ public class GameManager : MonoBehaviour
     private bool _isDrawingCards;
     public bool IsDraggingCard { get; set; }
     
-    private int _currentScore;
-    private int _currentMultiplier;
+    public int CurrentScore { get; set; }
+    public int CurrentMultiplier { get; set; }
 
     private const float DockWidth = 750f;
     // If we want curved hand layout
@@ -364,8 +364,8 @@ public class GameManager : MonoBehaviour
             // Bonus for set of 4?
         }
 
-        _currentScore += StageAreaController.CalculateScore();
-        _scoreText.text = $"Score: {_currentScore}";
+        CurrentScore += StageAreaController.CalculateScore();
+        _scoreText.text = $"Score: {CurrentScore}";
         StageAreaController.ClearStage();
     }
 
