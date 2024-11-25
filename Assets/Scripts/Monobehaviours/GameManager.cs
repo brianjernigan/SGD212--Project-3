@@ -199,6 +199,7 @@ public class GameManager : MonoBehaviour
         if (AdditionalCardsOnScreen > 0)
         {
             AdditionalCardsOnScreen = 0;
+            TriggerHandSizeChanged();
         }
 
         _isDrawingCards = false;
