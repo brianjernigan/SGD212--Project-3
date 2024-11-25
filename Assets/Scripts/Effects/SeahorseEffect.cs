@@ -28,7 +28,7 @@ public class SeahorseEffect : ICardEffect
         {
             if (card.Data.CardName == "FishEggs")
             {
-                card.TransformCard(seahorseData, new SeahorseEffect());
+                card.TransformCard(seahorseData, card.UI, new SeahorseEffect());
             }
         }
     }

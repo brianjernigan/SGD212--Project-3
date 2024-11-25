@@ -47,13 +47,15 @@ public class GameManager : MonoBehaviour
     private const float DockWidth = 750f;
     private const float InitialCardY = 25f;
 
-    public int PlaysRemaining { get; set; } = 3;
-    public int DiscardsRemaining { get; set; } = 3;
+    public int PlaysRemaining { get; set; } = 5;
+    public int DiscardsRemaining { get; set; } = 5;
+    public int DrawsRemaining { get; set; } = 5;
     public int PlayerMoney { get; set; }
 
     public event Action<int> OnScoreChanged;
     public event Action<int> OnPlaysChanged;
     public event Action<int> OnDiscardsChanged;
+    public event Action<int> OnDrawsChanged;
     public event Action<int> OnMultiplierChanged;
     public event Action<int> OnHandSizeChanged;
     public event Action<int> OnMoneyChanged;
@@ -167,10 +169,16 @@ public class GameManager : MonoBehaviour
     
     public void DrawFullHand()
     {
+        var isFirstDraw = DrawsRemaining == 5;
+        
         if (!_isDrawingCards)
         {
             StartCoroutine(DrawFullHandCoroutine());
         }
+
+        if (isFirstDraw) return;
+        DrawsRemaining--;
+        TriggerDrawsChanged();
     }
 
     private IEnumerator DrawFullHandCoroutine()
@@ -300,8 +308,7 @@ public class GameManager : MonoBehaviour
             
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
-                DestroyGameCard(gameCard);
-                TriggerCardsRemainingChanged();
+                DiscardGameCard(gameCard);
                 return true;
             }
         }
@@ -309,10 +316,12 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    private void DestroyGameCard(GameCard gameCard)
+    private void DiscardGameCard(GameCard gameCard)
     {
         // Add to discard pile?
         Destroy(gameCard.UI.gameObject);
+        DiscardsRemaining--;
+        TriggerDiscardsChanged();
     }
 
     public void RearrangeHand()
@@ -352,10 +361,14 @@ public class GameManager : MonoBehaviour
                 {
                     TriggerCardEffect();
                 }
+                PlaysRemaining--;
+                TriggerPlaysChanged();
                 break;
             case 3:
             case 4:
                 ScoreSet();
+                PlaysRemaining--;
+                TriggerPlaysChanged();
                 break;
             default:
                 return;
@@ -438,6 +451,11 @@ public class GameManager : MonoBehaviour
     public void TriggerDiscardsChanged()
     {
         OnDiscardsChanged?.Invoke(DiscardsRemaining);
+    }
+
+    public void TriggerDrawsChanged()
+    {
+        OnDrawsChanged?.Invoke(DrawsRemaining);
     }
 
     public void TriggerMultiplierChanged()

@@ -25,10 +25,11 @@ public class GameCard
         CardEffect?.ActivateEffect();
     }
 
-    public void TransformCard(CardData newCardData, ICardEffect newEffect)
+    public void TransformCard(CardData newCardData, CardUI ui, ICardEffect newEffect)
     {
         Data = newCardData;
         CardEffect = newEffect;
+        UI = ui;
         UI.InitializeCard(newCardData, this);
     }
 }

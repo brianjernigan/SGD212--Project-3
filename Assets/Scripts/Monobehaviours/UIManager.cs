@@ -13,6 +13,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text _scoreText;
     [SerializeField] private TMP_Text _playsText;
     [SerializeField] private TMP_Text _discardsText;
+    [SerializeField] private TMP_Text _drawsText;
     [SerializeField] private TMP_Text _multiplierText;
     [SerializeField] private TMP_Text _handSizeText;
     [SerializeField] private TMP_Text _moneyText;
@@ -36,6 +37,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnScoreChanged += UpdateScoreText;
         GameManager.Instance.OnPlaysChanged += UpdatePlaysText;
         GameManager.Instance.OnDiscardsChanged += UpdateDiscardsText;
+        GameManager.Instance.OnDrawsChanged += UpdateDrawsText;
         GameManager.Instance.OnMultiplierChanged += UpdateMultiplierText;
         GameManager.Instance.OnHandSizeChanged += UpdateHandSizeText;
         GameManager.Instance.OnMoneyChanged += UpdateMoneyText;
@@ -47,6 +49,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnScoreChanged -= UpdateScoreText;
         GameManager.Instance.OnPlaysChanged -= UpdatePlaysText;
         GameManager.Instance.OnDiscardsChanged -= UpdateDiscardsText;
+        GameManager.Instance.OnDrawsChanged -= UpdateDrawsText;
         GameManager.Instance.OnMultiplierChanged -= UpdateMultiplierText;
         GameManager.Instance.OnHandSizeChanged -= UpdateHandSizeText;
         GameManager.Instance.OnMoneyChanged -= UpdateMoneyText;
@@ -58,6 +61,7 @@ public class UIManager : MonoBehaviour
         UpdateScoreText(GameManager.Instance.CurrentScore);
         UpdatePlaysText(GameManager.Instance.PlaysRemaining);
         UpdateDiscardsText(GameManager.Instance.DiscardsRemaining);
+        UpdateDrawsText(GameManager.Instance.DrawsRemaining);
         UpdateMultiplierText(GameManager.Instance.CurrentMultiplier);
         UpdateHandSizeText(GameManager.Instance.HandSize);
         UpdateMoneyText(GameManager.Instance.PlayerMoney);
@@ -77,6 +81,11 @@ public class UIManager : MonoBehaviour
     public void UpdateDiscardsText(int discards)
     {
         _discardsText.text = $"Discards:\n{discards}";
+    }
+    
+    private void UpdateDrawsText(int draws)
+    {
+        _drawsText.text = $"Draws:\n{draws}";
     }
 
     public void UpdateMultiplierText(int multiplier)
