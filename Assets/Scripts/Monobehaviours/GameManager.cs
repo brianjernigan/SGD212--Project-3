@@ -355,7 +355,6 @@ public class GameManager : MonoBehaviour
         var firstStagedCard = StageAreaController.GetFirstStagedCard();
 
         firstStagedCard?.ActivateEffect();
-        // _stageAreaController.ClearStage();
     }
 
     private void ScoreSet()

@@ -89,7 +89,7 @@ public class Deck
         return CreateGameCard(drawnCardData);
     }
 
-    private GameCard CreateGameCard(CardData data)
+    public GameCard CreateGameCard(CardData data)
     {
         var cardUIObject = Object.Instantiate(_cardPrefab);
         var cardUI = cardUIObject.GetComponent<CardUI>();
