@@ -5,10 +5,37 @@ using UnityEngine;
 public class HammerheadEffect : ICardEffect
 {
     public string EffectDescription =>
-        "Discard all remaining Stingrays. The next played set receives x-Mult for each Stingray discarded.";
+        "Discard all remaining Stingrays. The next played set receives x-Mult for each Stingray discarded. Discards this card.";
     
     public void ActivateEffect()
     {
-        Debug.Log(EffectDescription);
+        var playerHand = GameManager.Instance.PlayerHand;
+        var deck = GameManager.Instance.GameDeck;
+
+        var stingrayCount = 0;
+        
+        for (var i = 0; i < playerHand.CardsInHand.Count; i++)
+        {
+            if (playerHand.CardsInHand[i].Data.CardName == "Stingray")
+            {
+                playerHand.TryDiscardCardFromHand(playerHand.CardsInHand[i]);
+                stingrayCount++;
+            }
+        }
+
+        for (var i = 0; i < deck.CardDataInDeck.Count; i++)
+        {
+            if (deck.CardDataInDeck[i].CardName == "Stingray")
+            {
+                deck.CardDataInDeck.Remove(deck.CardDataInDeck[i]);
+                GameManager.Instance.TriggerCardsRemainingChanged();
+                stingrayCount++;
+            }
+        }
+
+        GameManager.Instance.CurrentMultiplier = stingrayCount;
+        GameManager.Instance.TriggerMultiplierChanged();
+        
+        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }

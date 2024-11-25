@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class WhaleSharkEffect : ICardEffect
@@ -9,6 +10,9 @@ public class WhaleSharkEffect : ICardEffect
     
     public void ActivateEffect()
     {
-        Debug.Log(EffectDescription);
+        var planktonCount = GameManager.Instance.GameDeck.CardDataInDeck.Count(card => card.CardName == "Plankton");
+
+        GameManager.Instance.CurrentMultiplier += planktonCount;
+        GameManager.Instance.TriggerMultiplierChanged();
     }
 }

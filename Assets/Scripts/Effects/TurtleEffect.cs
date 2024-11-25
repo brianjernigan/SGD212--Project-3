@@ -4,10 +4,13 @@ using UnityEngine;
 
 public class TurtleEffect : ICardEffect
 {
-    public string EffectDescription => "Next turn, draw 2 additional cards.";
+    public string EffectDescription => "Next turn, draw 2 additional cards. Discards this card.";
     
     public void ActivateEffect()
     {
-        Debug.Log(EffectDescription);
+        GameManager.Instance.AdditionalCardsOnScreen += 2;
+        GameManager.Instance.TriggerHandSizeChanged();
+        
+        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }

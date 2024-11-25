@@ -41,7 +41,7 @@ public class CardLibrary : MonoBehaviour
             { "Plankton", new PlanktonEffect() },
             { "FishEggs", new FishEggsEffect() },
             { "Seahorse", new SeahorseEffect() },
-            { "ClownFish", new ClownFishEffect() },
+            { "Clownfish", new ClownFishEffect() },
             { "CookieCutter", new CookieCutterEffect() },
             { "Turtle", new TurtleEffect() },
             { "Stingray", new StingrayEffect() },

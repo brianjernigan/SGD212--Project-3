@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class PlanktonEffect : ICardEffect
 {
-    public string EffectDescription => "Draw 1 card to your hand. Add 1 Plankton to the deck.";
+    public string EffectDescription => "Draw 1 card to your hand and add 1 Plankton to the deck. Discard this card.";
     
     public void ActivateEffect()
     {
@@ -23,6 +23,6 @@ public class PlanktonEffect : ICardEffect
             GameManager.Instance.GameDeck?.AddCard(planktonCard);
         }
         
-        GameManager.Instance.StageAreaController.ClearStage();
+        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }

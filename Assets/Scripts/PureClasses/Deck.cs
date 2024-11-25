@@ -10,14 +10,14 @@ using Random = UnityEngine.Random;
 // Handles internal deck logic
 public class Deck
 {
-    private readonly List<CardData> _cardsInDeck;
+    public List<CardData> CardDataInDeck { get; }
     private readonly GameObject _cardPrefab;
 
-    public bool IsEmpty => _cardsInDeck.Count == 0;
+    public bool IsEmpty => CardDataInDeck.Count == 0;
 
     public Deck(Dictionary<CardData, int> deckComposition, GameObject prefab)
     {
-        _cardsInDeck = new List<CardData>();
+        CardDataInDeck = new List<CardData>();
         ConfigureDeck(deckComposition);
         _cardPrefab = prefab;
 
@@ -30,17 +30,19 @@ public class Deck
         {
             for (var i = 0; i < entry.Value; i++)
             {
-                _cardsInDeck.Add(entry.Key);
+                CardDataInDeck.Add(entry.Key);
             }
         }
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
     }
     
-    private void ShuffleDeck()
+    public void ShuffleDeck()
     {
-        for (var i = _cardsInDeck.Count - 1; i > 0; i--)
+        for (var i = CardDataInDeck.Count - 1; i > 0; i--)
         {
             var j = Random.Range(0, i + 1);
-            (_cardsInDeck[i], _cardsInDeck[j]) = (_cardsInDeck[j], _cardsInDeck[i]);
+            (CardDataInDeck[i], CardDataInDeck[j]) = (CardDataInDeck[j], CardDataInDeck[i]);
         }
     }
     
@@ -48,8 +50,10 @@ public class Deck
     {
         if (IsEmpty) return null;
 
-        var drawnCardData = _cardsInDeck[0];
-        _cardsInDeck.RemoveAt(0);
+        var drawnCardData = CardDataInDeck[0];
+        CardDataInDeck.RemoveAt(0);
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
 
         return CreateGameCard(drawnCardData);
     }
@@ -58,9 +62,11 @@ public class Deck
     {
         if (IsEmpty) return null;
 
-        var randomIndex = Random.Range(0, _cardsInDeck.Count);
-        var drawnCardData = _cardsInDeck[randomIndex];
-        _cardsInDeck.RemoveAt(randomIndex);
+        var randomIndex = Random.Range(0, CardDataInDeck.Count);
+        var drawnCardData = CardDataInDeck[randomIndex];
+        CardDataInDeck.RemoveAt(randomIndex);
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
 
         return CreateGameCard(drawnCardData);
     }
@@ -69,13 +75,15 @@ public class Deck
     {
         for (var i = 0; i < count; i++)
         {
-            _cardsInDeck.Add(data);
+            CardDataInDeck.Add(data);
         }
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
     }
 
     public GameCard DrawSpecificCard(CardData data)
     {
-        var cardIndex = _cardsInDeck.FindIndex(card => card == data);
+        var cardIndex = CardDataInDeck.FindIndex(card => card == data);
 
         if (cardIndex == -1)
         {
@@ -83,13 +91,15 @@ public class Deck
             return null;
         }
 
-        var drawnCardData = _cardsInDeck[cardIndex];
-        _cardsInDeck.RemoveAt(cardIndex);
+        var drawnCardData = CardDataInDeck[cardIndex];
+        CardDataInDeck.RemoveAt(cardIndex);
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
 
         return CreateGameCard(drawnCardData);
     }
 
-    private GameCard CreateGameCard(CardData data)
+    public GameCard CreateGameCard(CardData data)
     {
         var cardUIObject = Object.Instantiate(_cardPrefab);
         var cardUI = cardUIObject.GetComponent<CardUI>();
@@ -99,5 +109,16 @@ public class Deck
         cardUI.InitializeCard(data, gameCard);
 
         return gameCard;
+    }
+
+    public void RemoveCard(CardData cardData)
+    {
+        var cardIndex = CardDataInDeck.FindIndex(card => card == cardData);
+        if (cardIndex != -1)
+        {
+            CardDataInDeck.RemoveAt(cardIndex);
+        }
+        
+        GameManager.Instance.TriggerCardsRemainingChanged();
     }
 }
