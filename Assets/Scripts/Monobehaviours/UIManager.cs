@@ -19,6 +19,14 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text _moneyText;
     [SerializeField] private TMP_Text _cardsRemainingText;
 
+    [Header("Panels")] 
+    [SerializeField] private GameObject _peekDeckPanel;
+    [SerializeField] private GameObject _winPanel;
+    [SerializeField] private GameObject _losePanel;
+    [SerializeField] private GameObject _shopPanel;
+
+    [SerializeField] private List<TMP_Text> _cardCountTexts;
+
     private void Awake()
     {
         if (Instance is null)
@@ -42,6 +50,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnHandSizeChanged += UpdateHandSizeText;
         GameManager.Instance.OnMoneyChanged += UpdateMoneyText;
         GameManager.Instance.OnCardsRemainingChanged += UpdateCardsRemainingText;
+        GameManager.Instance.OnCardsRemainingChanged += UpdateCardCountsText;
     }
 
     private void OnDisable()
@@ -54,6 +63,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnHandSizeChanged -= UpdateHandSizeText;
         GameManager.Instance.OnMoneyChanged -= UpdateMoneyText;
         GameManager.Instance.OnCardsRemainingChanged -= UpdateCardsRemainingText;
+        GameManager.Instance.OnCardsRemainingChanged -= UpdateCardCountsText;
     }
 
     private void Start()
@@ -68,18 +78,18 @@ public class UIManager : MonoBehaviour
         UpdateCardsRemainingText(GameManager.Instance.GameDeck.CardDataInDeck.Count);
     }
 
-    public void UpdateScoreText(int score)
+    private void UpdateScoreText(int score)
     {
         // USE "I" AS A REPLACEMENT FOR "/"
-        _scoreText.text = $"Score: {score} I {GameManager.Instance.LevelOneScore}";
+        _scoreText.text = $"Score: {score} I {GameManager.Instance.CurrentRequiredScore}";
     }
 
-    public void UpdatePlaysText(int plays)
+    private void UpdatePlaysText(int plays)
     {
         _playsText.text = $"{plays}";
     }
 
-    public void UpdateDiscardsText(int discards)
+    private void UpdateDiscardsText(int discards)
     {
         _discardsText.text = $"Discards: {discards}";
     }
@@ -89,23 +99,95 @@ public class UIManager : MonoBehaviour
         _drawsText.text = $"{draws}";
     }
 
-    public void UpdateMultiplierText(int multiplier)
+    private void UpdateMultiplierText(int multiplier)
     {
         _multiplierText.text = $"Multiplier: {multiplier}x";
     }
 
-    public void UpdateHandSizeText(int size)
+    private void UpdateHandSizeText(int size)
     {
         _handSizeText.text = $"Hand Size: {size}";
     }
 
-    public void UpdateMoneyText(int cash)
+    private void UpdateMoneyText(int cash)
     {
         _moneyText.text = $"${cash}";
     }
 
-    public void UpdateCardsRemainingText(int cardsRemaining)
+    private void UpdateCardsRemainingText(int cardsRemaining)
     {
         _cardsRemainingText.text = $"{cardsRemaining}";
+    }
+    
+    private void UpdateCardCountsText(int obj)
+    {
+        var gameDeck = GameManager.Instance.GameDeck;
+        var playerHand = GameManager.Instance.PlayerHand;
+
+        var cardCountsInHand = new int[_cardCountTexts.Count];
+        
+        foreach (var card in playerHand.CardsInHand)
+        {
+            var index = CardLibrary.Instance.AllPossibleCards.IndexOf(card.Data);
+            if (index >= 0 && index < cardCountsInHand.Length)
+            {
+                cardCountsInHand[index]++;
+            }
+        }
+
+        var cardCountsInDeck = new int[_cardCountTexts.Count];
+
+        foreach (var card in gameDeck.CardDataInDeck)
+        {
+            var index = CardLibrary.Instance.AllPossibleCards.IndexOf(card);
+            if (index >= 0 && index < cardCountsInDeck.Length)
+            {
+                cardCountsInDeck[index]++;
+            }
+        }
+
+        for (var i = 0; i < _cardCountTexts.Count; i++)
+        {
+            _cardCountTexts[i].text =
+                $"{CardLibrary.Instance.AllPossibleCards[i].CardName}: {cardCountsInDeck[i].ToString()} ({cardCountsInHand[i].ToString()});";
+        }
+    }
+
+    public void ActivatePeekDeckPanel()
+    {
+        _peekDeckPanel.SetActive(true);
+        _winPanel.SetActive(false);
+        _losePanel.SetActive(false);
+        _shopPanel.SetActive(false);
+    }
+
+    public void ActivateWinPanel()
+    {
+        _peekDeckPanel.SetActive(false);
+        _winPanel.SetActive(true);
+        _losePanel.SetActive(false);
+        _shopPanel.SetActive(false);
+    }
+
+    public void ActivateLosePanel()
+    {
+        _peekDeckPanel.SetActive(false);
+        _winPanel.SetActive(false);
+        _losePanel.SetActive(true);
+        _shopPanel.SetActive(false);
+    }
+
+    public void ActivateShopPanel()
+    {
+        _peekDeckPanel.SetActive(false);
+        _winPanel.SetActive(false);
+        _losePanel.SetActive(false);
+        _shopPanel.SetActive(true);
+    }
+
+    public void OnClickPeekBackButton()
+    {
+        _peekDeckPanel.SetActive(false);
+        Time.timeScale = 1;
     }
 }

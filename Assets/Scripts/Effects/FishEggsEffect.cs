@@ -17,9 +17,8 @@ public class FishEggsEffect : ICardEffect
         var stagedCard = GameManager.Instance.StageAreaController.GetFirstStagedCard();
 
         var handCardData = randomCardInHand.Data;
-        var handCardUI = randomCardInHand.UI;
         var handCardEffect = randomCardInHand.CardEffect;
 
-        stagedCard.TransformCard(handCardData, handCardUI, handCardEffect);
+        stagedCard.TransformCard(handCardData, stagedCard.UI, handCardEffect);
     }
 }

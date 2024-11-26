@@ -19,6 +19,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _hand;
     [SerializeField] private GameObject _deck;
     [SerializeField] private Transform _whirlpoolCenter; // Added for spiral animation
+
+    [Header("Play Areas")] 
+    [SerializeField] private GameObject _playArea1;
+    [SerializeField] private GameManager _playArea2;
+    [SerializeField] private GameObject _playArea3;
     
     private float _spiralDuration = 1.0f; // Duration of the spiral animation
     private float _spiralRadius = 5.0f;    // Starting radius of the spiral
@@ -31,11 +36,11 @@ public class GameManager : MonoBehaviour
     
     public int CardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
 
-    private const int MaxCardsOnScreen = 5;
+    private const int MaxCardsOnScreen = 7;
     public int AdditionalCardsOnScreen { get; set; }
-    public int HandSizeModifier { get; set; }
+    public int PermanentHandSizeModifier { get; set; }
 
-    public int HandSize => MaxCardsOnScreen + AdditionalCardsOnScreen + HandSizeModifier;
+    public int HandSize => MaxCardsOnScreen + AdditionalCardsOnScreen + PermanentHandSizeModifier;
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
@@ -68,16 +73,76 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnMoneyChanged;
     public event Action<int> OnCardsRemainingChanged;
 
-    private const int LevelOneRequiredScore = 50;
-    private const int LevelTwoRequiredScore = 100;
-    private const int LevelThreeRequiredScore = 150;
-
-    public int LevelOneScore => LevelOneRequiredScore;
-    public int LevelTwoScore => LevelTwoRequiredScore;
-    public int LevelThreeScore => LevelThreeRequiredScore;
-
+    public int LevelIndex { get; set; } = 1;
+    
+    private const int BaseRequiredScore = 50;
+    public int CurrentRequiredScore => BaseRequiredScore * LevelIndex;
     public bool GameIsLost { get; set; }
     public bool GameIsWon { get; set; }
+
+    #region Helpers
+
+    private Vector3 CalculateCardPosition(int cardIndex, int totalCards, Vector3 dockCenter)
+    {
+        totalCards = Mathf.Max(totalCards, 1);
+
+        var cardSpacing = Mathf.Min(DockWidth / totalCards, 140f); // Dynamic spacing with a max cap
+        var startX = -((totalCards - 1) * cardSpacing) / 2f;
+        var xPosition = startX + (cardIndex * cardSpacing);
+
+        return dockCenter + new Vector3(xPosition, InitialCardY + cardIndex, 0f); // Straight line with fixed Y
+    }
+    
+    public void RearrangeHand()
+    {
+        var dockCenter = _hand.transform.position;
+        for (var i = 0; i < PlayerHand.NumCardsInHand; i++)
+        {
+            var card = PlayerHand.CardsInHand[i];
+            var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
+            card.UI.YPositionInHand = targetPosition.y;
+            StartCoroutine(AnimateCardToPosition(card.UI?.transform, targetPosition, Quaternion.Euler(90f, 180f, 0f)));
+        }
+        
+        TriggerCardsRemainingChanged();
+    }
+    
+    public void RearrangeStage()
+    {
+        for (var i = 0; i < StageAreaController.NumCardsStaged; i++)
+        {
+            StageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position;
+        }
+        
+        TriggerCardsRemainingChanged();
+    }
+
+    public void PlaceCardInHand(GameCard gameCard)
+    {
+        var dockCenter = _hand.transform.position;
+
+        var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
+
+        gameCard.UI.transform.position = targetPosition;
+     
+        gameCard.IsInHand = true;
+        gameCard.IsStaged = false;
+        
+        RearrangeHand();
+    }
+
+    private void PlaceCardInStage(GameCard gameCard)
+    {
+        gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
+        
+        AudioManager.Instance.PlayStageCardAudio();
+        
+        gameCard.IsStaged = true;
+        gameCard.IsInHand = false;
+    }
+
+    #endregion
+
     
     private void Awake()
     {
@@ -100,13 +165,31 @@ public class GameManager : MonoBehaviour
         
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
-
+        
         StartCoroutine(DrawInitialHandCoroutine());
     }
 
     private IEnumerator DrawInitialHandCoroutine()
     {
         yield return new WaitForSeconds(0.5f);
+
+        /* For Testing */
+        
+        // var testCards = new[] { "Whaleshark", "FishEggs", "Kraken", "Orca", "Treasure" };
+        // foreach (var card in testCards)
+        // {
+        //     var specificCard = CardLibrary.Instance.GetCardDataByName(card);
+        //     if (specificCard is not null)
+        //     {
+        //         var cardToDraw = GameDeck.DrawSpecificCard(specificCard);
+        //         PlayerHand.TryAddCardToHand(cardToDraw);
+        //         var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand,
+        //             _hand.transform.position);
+        //
+        //         StartCoroutine(DealCardCoroutine(cardToDraw, targetPosition));
+        //     }
+        // }
+        
         StartCoroutine(DrawFullHandCoroutine());
     }
 
@@ -151,6 +234,184 @@ public class GameManager : MonoBehaviour
         {
             OnClickPlayButton();
         }
+
+        if (clickedObject.CompareTag("PeekDeckButton") && !IsDrawingCards)
+        {
+            OnClickPeekDeckButton();
+        }
+    }
+    
+    public void DrawFullHand()
+    {
+        if (DrawsRemaining == 0) return;
+        
+        if (!IsDrawingCards)
+        {
+            StartCoroutine(DrawFullHandCoroutine());
+        }
+        
+        DrawsRemaining--;
+        TriggerDrawsChanged();
+    }
+    
+        private IEnumerator DrawFullHandCoroutine()
+    {
+        IsDrawingCards = true;
+
+        while (CardsOnScreen < HandSize && !GameDeck.IsEmpty)
+        {
+            var gameCard = GameDeck.DrawCard();
+            if (gameCard != null)
+            {
+                if (PlayerHand.TryAddCardToHand(gameCard))
+                {
+                    gameCard.IsInHand = true;
+                    gameCard.IsStaged = false;
+                }
+
+                var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
+
+                gameCard.UI.PlayBubbleEffect();
+
+                yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
+
+                gameCard.UI.StopBubbleEffect();
+
+                RearrangeHand(); // Smoothly adjust positions after each card is added
+            }
+        }
+
+        if (AdditionalCardsOnScreen > 0)
+        {
+            AdditionalCardsOnScreen = 0;
+            TriggerHandSizeChanged();
+        }
+
+        IsDrawingCards = false;
+        
+        TriggerOnMouseOverForCurrentCard();
+        
+        // StartWaveEffect();
+    }
+    
+    private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
+    {
+        var cardUI = gameCard.UI;
+        var cardTransform = cardUI.transform;
+
+        // Lock animation
+        gameCard.IsAnimating = true;
+
+        cardTransform.position = _deck.transform.position;
+
+        AudioManager.Instance.PlayCardDrawAudio();
+
+        var duration = 0.75f; // Animation duration
+        var bounceDuration = 0.25f; // Bounce-back duration
+        var elapsedTime = 0f;
+
+        var startPosition = cardTransform.position;
+        var overshootPosition = targetPosition + Vector3.up * 1.5f; // Slight overshoot above final position
+
+        // Move to overshoot position
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            // Smooth step easing
+            var t = elapsedTime / duration;
+            t = t * t * (3f - 2f * t);
+
+            var arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
+            cardTransform.position = arcPosition;
+
+            yield return null;
+        }
+
+        // Bounce back to final position
+        elapsedTime = 0f; // Reset elapsed time for bounce
+        var bounceStartPosition = cardTransform.position;
+
+        while (elapsedTime < bounceDuration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            // Smoothstep easing
+            var t = elapsedTime / bounceDuration;
+            t = t * t * (3f - 2f * t);
+
+            var bouncePosition = Vector3.Lerp(bounceStartPosition, targetPosition, t);
+            cardTransform.position = bouncePosition;
+
+            yield return null;
+        }
+
+        cardTransform.position = targetPosition; // Ensure final position
+
+        // Unlock animation
+        gameCard.IsAnimating = false;
+    }
+    
+    public void OnClickPlayButton()
+    {
+        if (StageAreaController.NumCardsStaged == 0) return;
+        if (PlaysRemaining == 0) return;
+        
+        switch (StageAreaController.NumCardsStaged)
+        {
+            case 1:
+                if (StageAreaController.GetFirstStagedCard().Data.CardName == "Whaleshark")
+                {
+                    ScoreSet();
+                }
+                else
+                {
+                    TriggerCardEffect();
+                    PlaysRemaining--;
+                    TriggerPlaysChanged();
+                }
+                break;
+            case 2:
+                if (StageAreaController.GetFirstStagedCard().Data.CardName == "Whaleshark")
+                {
+                    ScoreSet();
+                }
+                break;
+            case 3:
+            case 4:
+                ScoreSet();
+                break;
+            default:
+                return;
+        }
+    }
+
+    private void TriggerCardEffect()
+    {
+        var firstStagedCard = StageAreaController.GetFirstStagedCard();
+
+        firstStagedCard?.ActivateEffect();
+    }
+
+    private void ScoreSet()
+    {
+        CurrentScore += StageAreaController.CalculateScore();
+        TriggerScoreChanged();
+        StageAreaController.ClearStageArea();
+
+        if (CurrentMultiplier > 1)
+        {
+            CurrentMultiplier = 1;
+            TriggerMultiplierChanged();
+        }
+
+        AudioManager.Instance.PlayScoreSetAudio();
+    }
+    
+    private void OnClickPeekDeckButton()
+    {
+        Time.timeScale = 0;
+        UIManager.Instance.ActivatePeekDeckPanel();
     }
     
     private void HandleRightMouseClick(GameObject clickedObject)
@@ -217,129 +478,6 @@ public class GameManager : MonoBehaviour
             hoveredCardUI?.OnMouseEnter();
         }
     }
-
-    
-    public void DrawFullHand()
-    {
-        if (DrawsRemaining == 0) return;
-        
-        if (!IsDrawingCards)
-        {
-            StartCoroutine(DrawFullHandCoroutine());
-        }
-        
-        DrawsRemaining--;
-        TriggerDrawsChanged();
-    }
-
-    private IEnumerator DrawFullHandCoroutine()
-    {
-        IsDrawingCards = true;
-
-        while (CardsOnScreen < HandSize && !GameDeck.IsEmpty)
-        {
-            var gameCard = GameDeck.DrawCard();
-            if (gameCard != null)
-            {
-                if (PlayerHand.TryAddCardToHand(gameCard))
-                {
-                    gameCard.IsInHand = true;
-                    gameCard.IsStaged = false;
-                }
-
-                var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
-
-                gameCard.UI.PlayBubbleEffect();
-
-                yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
-
-                gameCard.UI.StopBubbleEffect();
-
-                RearrangeHand(); // Smoothly adjust positions after each card is added
-            }
-        }
-
-        if (AdditionalCardsOnScreen > 0)
-        {
-            AdditionalCardsOnScreen = 0;
-            TriggerHandSizeChanged();
-        }
-
-        IsDrawingCards = false;
-        
-        TriggerOnMouseOverForCurrentCard();
-        
-        // StartWaveEffect();
-    }
-
-    private Vector3 CalculateCardPosition(int cardIndex, int totalCards, Vector3 dockCenter)
-    {
-        totalCards = Mathf.Max(totalCards, 1);
-
-        var cardSpacing = Mathf.Min(DockWidth / totalCards, 140f); // Dynamic spacing with a max cap
-        var startX = -((totalCards - 1) * cardSpacing) / 2f;
-        var xPosition = startX + (cardIndex * cardSpacing);
-
-        return dockCenter + new Vector3(xPosition, InitialCardY + cardIndex, 0f); // Straight line with fixed Y
-    }
-
-    private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
-    {
-        var cardUI = gameCard.UI;
-        var cardTransform = cardUI.transform;
-
-        // Lock animation
-        gameCard.IsAnimating = true;
-
-        cardTransform.position = _deck.transform.position;
-
-        AudioManager.Instance.PlayCardDrawAudio();
-
-        var duration = 0.75f; // Animation duration
-        var bounceDuration = 0.25f; // Bounce-back duration
-        var elapsedTime = 0f;
-
-        var startPosition = cardTransform.position;
-        var overshootPosition = targetPosition + Vector3.up * 1.5f; // Slight overshoot above final position
-
-        // Move to overshoot position
-        while (elapsedTime < duration)
-        {
-            elapsedTime += Time.deltaTime;
-
-            // Smooth step easing
-            var t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t);
-
-            var arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
-            cardTransform.position = arcPosition;
-
-            yield return null;
-        }
-
-        // Bounce back to final position
-        elapsedTime = 0f; // Reset elapsed time for bounce
-        var bounceStartPosition = cardTransform.position;
-
-        while (elapsedTime < bounceDuration)
-        {
-            elapsedTime += Time.deltaTime;
-
-            // Smoothstep easing
-            var t = elapsedTime / bounceDuration;
-            t = t * t * (3f - 2f * t);
-
-            var bouncePosition = Vector3.Lerp(bounceStartPosition, targetPosition, t);
-            cardTransform.position = bouncePosition;
-
-            yield return null;
-        }
-
-        cardTransform.position = targetPosition; // Ensure final position
-
-        // Unlock animation
-        gameCard.IsAnimating = false;
-    }
     
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
     {
@@ -379,6 +517,10 @@ public class GameManager : MonoBehaviour
     private IEnumerator SpiralDiscardAnimation(GameCard gameCard)
     {
         AudioManager.Instance.PlayDiscardAudio();
+        gameCard.IsStaged = false;
+        gameCard.IsInHand = false;
+        DiscardsRemaining--;
+        TriggerDiscardsChanged();
         
         var cardTransform = gameCard.UI.transform;
 
@@ -436,116 +578,7 @@ public class GameManager : MonoBehaviour
         // Optional: Add a slight delay before destruction to ensure the last frame is visible
         yield return new WaitForSeconds(0.5f);
 
-        DiscardGameCard(gameCard);
-    }
-
-    private void DiscardGameCard(GameCard gameCard)
-    {
-        gameCard.IsStaged = false;
-        gameCard.IsInHand = false;
         Destroy(gameCard.UI.gameObject);
-        DiscardsRemaining--;
-        TriggerDiscardsChanged();
-    }
-    
-    public void RearrangeHand()
-    {
-        var dockCenter = _hand.transform.position;
-        for (var i = 0; i < PlayerHand.NumCardsInHand; i++)
-        {
-            var card = PlayerHand.CardsInHand[i];
-            var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
-            card.UI.YPositionInHand = targetPosition.y;
-            StartCoroutine(AnimateCardToPosition(card.UI?.transform, targetPosition, Quaternion.Euler(90f, 180f, 0f)));
-        }
-    }
-
-    public void RearrangeStage()
-    {
-        for (var i = 0; i < StageAreaController.NumCardsStaged; i++)
-        {
-            StageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position;
-        }
-    }
-
-    public void OnClickPlayButton()
-    {
-        if (StageAreaController.NumCardsStaged == 0) return;
-        if (PlaysRemaining == 0) return;
-        
-        switch (StageAreaController.NumCardsStaged)
-        {
-            case 1:
-                if (StageAreaController.GetFirstStagedCard().Data.CardName == "Whaleshark")
-                {
-                    ScoreSet();
-                }
-                else
-                {
-                    TriggerCardEffect();
-                    PlaysRemaining--;
-                    TriggerPlaysChanged();
-                }
-                break;
-            case 2:
-                if (StageAreaController.GetFirstStagedCard().Data.CardName == "Whaleshark")
-                {
-                    ScoreSet();
-                }
-                break;
-            case 3:
-            case 4:
-                ScoreSet();
-                break;
-            default:
-                return;
-        }
-    }
-
-    private void TriggerCardEffect()
-    {
-        var firstStagedCard = StageAreaController.GetFirstStagedCard();
-
-        firstStagedCard?.ActivateEffect();
-    }
-
-    private void ScoreSet()
-    {
-        CurrentScore += StageAreaController.CalculateScore();
-        TriggerScoreChanged();
-        StageAreaController.ClearStageArea();
-
-        if (CurrentMultiplier > 1)
-        {
-            CurrentMultiplier = 1;
-            TriggerMultiplierChanged();
-        }
-
-        AudioManager.Instance.PlayScoreSetAudio();
-    }
-
-    public void PlaceCardInHand(GameCard gameCard)
-    {
-        var dockCenter = _hand.transform.position;
-
-        var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
-
-        gameCard.UI.transform.position = targetPosition;
-     
-        gameCard.IsInHand = true;
-        gameCard.IsStaged = false;
-        
-        RearrangeHand();
-    }
-
-    private void PlaceCardInStage(GameCard gameCard)
-    {
-        gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
-        
-        AudioManager.Instance.PlayStageCardAudio();
-        
-        gameCard.IsStaged = true;
-        gameCard.IsInHand = false;
     }
 
     private IEnumerator AnimateCardToPosition(Transform cardTransform, Vector3 targetPosition, Quaternion targetRotation)
@@ -592,18 +625,12 @@ public class GameManager : MonoBehaviour
 
     private void CheckForGameWin(int levelNumber)
     {
-        var requiredScore = levelNumber switch
-        {
-            1 => LevelOneRequiredScore,
-            2 => LevelTwoRequiredScore,
-            3 => LevelThreeRequiredScore,
-            _ => 0
-        };
-
-        if (CurrentScore < requiredScore) return;
+        if (CurrentScore < CurrentRequiredScore) return;
         GameIsWon = true;
         GameIsLost = false;
     }
+
+    #region Invocations
 
     public void TriggerScoreChanged()
     {
@@ -647,4 +674,6 @@ public class GameManager : MonoBehaviour
             OnCardsRemainingChanged?.Invoke(GameDeck.CardDataInDeck.Count);
         }
     }
+
+    #endregion
 }

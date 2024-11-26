@@ -42,7 +42,7 @@ public class BullsharkEffect : ICardEffect
         
         GameManager.Instance.StageAreaController.ClearStageArea();
 
-        GameManager.Instance.HandSizeModifier += 1;
+        GameManager.Instance.PermanentHandSizeModifier += 1;
         GameManager.Instance.TriggerHandSizeChanged();
     }
 }

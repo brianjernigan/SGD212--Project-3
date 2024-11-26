@@ -23,6 +23,7 @@ public class CardUI : MonoBehaviour
 
     private Vector3 _originalPosition;
     private Vector3 _originalScale;
+    private bool _isScaledUp;
     private Transform _lastDropZone;
 
     public bool IsMouseOver { get; set; }
@@ -75,7 +76,12 @@ public class CardUI : MonoBehaviour
         IsMouseOver = true;
         
         if (GameManager.Instance.IsDraggingCard || GameManager.Instance.IsDrawingCards || GameManager.Instance.IsFlippingCard) return;
-        transform.localScale *= CardScaleFactor;
+
+        if (!_isScaledUp)
+        {
+            transform.localScale *= CardScaleFactor;
+            _isScaledUp = true;
+        }
         
         var position = transform.position;
         position.y += 2;
@@ -87,8 +93,12 @@ public class CardUI : MonoBehaviour
         IsMouseOver = false;
 
         if (GameManager.Instance.IsFlippingCard) return;
-        
-        transform.localScale = _originalScale;
+
+        if (_isScaledUp)
+        {
+            transform.localScale = _originalScale;
+            _isScaledUp = false;
+        }
 
         var position = transform.position;
         position.y = YPositionInHand;

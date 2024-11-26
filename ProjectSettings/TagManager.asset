@@ -17,6 +17,7 @@ TagManager:
   - DrawButton
   - EndTurnButton
   - AudioManager
+  - PeekDeckButton
   layers:
   - Default
   - TransparentFX
