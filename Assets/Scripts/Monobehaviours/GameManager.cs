@@ -26,6 +26,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float spiralDepth = 2.0f;     // Depth the card moves downward
     [SerializeField] private float spiralRotationSpeed = 360f; // Degrees per second
 
+    [Header("Wave Parameters")]
+    [SerializeField] private float waveAmplitude = 20f; // Adjustable height of the wave
+    [SerializeField] private float waveSpeed = 1f;     // Adjustable speed of the wave
+    [SerializeField] private bool waveEffectEnabled = true; // Toggle for the wave effect
+
+    private bool isWaveEffectActive = false; // Track if wave animation is running
+    private Coroutine waveCoroutine; // Reference to the wave coroutine
+
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
     public GameObject Hand => _hand;
@@ -71,7 +79,7 @@ public class GameManager : MonoBehaviour
     private const int LevelOneRequiredScore = 50;
     private const int LevelTwoRequiredScore = 100;
     private const int LevelThreeRequiredScore = 150;
-    
+
     public bool GameIsLost { get; set; }
     public bool GameIsWon { get; set; }
     
@@ -96,6 +104,10 @@ public class GameManager : MonoBehaviour
         
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+
+        // Optionally, draw an initial hand at the start
+        // Uncomment the following line if you want to draw a hand automatically when the game starts
+        // StartCoroutine(DrawFullHandCoroutine());
     }
 
     private void Update()
@@ -232,13 +244,16 @@ public class GameManager : MonoBehaviour
         }
 
         _isDrawingCards = false;
+
+        // **Start the Wave Animation After Drawing the Full Hand**
+        StartWaveEffect();
     }
 
     private Vector3 CalculateCardPosition(int cardIndex, int totalCards, Vector3 dockCenter)
     {
         totalCards = Mathf.Max(totalCards, 1);
 
-        var cardSpacing = Mathf.Min(DockWidth / totalCards, 120f); // Dynamic spacing with a max cap
+        var cardSpacing = Mathf.Min(DockWidth / totalCards, 140f); // Dynamic spacing with a max cap
         var startX = -((totalCards - 1) * cardSpacing) / 2f;
         var xPosition = startX + (cardIndex * cardSpacing);
 
@@ -418,16 +433,14 @@ public class GameManager : MonoBehaviour
 
     public void RearrangeHand()
     {
-        var dockCenter = _hand.transform.position;
-        Debug.Log("Rearranging hand.");
+        if (isWaveEffectActive) return; // Skip rearranging if wave animation is active
 
+        var dockCenter = _hand.transform.position;
         for (var i = 0; i < PlayerHand.NumCardsInHand; i++)
         {
             var card = PlayerHand.CardsInHand[i];
             var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
-
             StartCoroutine(AnimateCardToPosition(card.UI?.transform, targetPosition, Quaternion.Euler(90f, 180f, 0f)));
-            Debug.Log($"Animating card {card.UI.name} to position {targetPosition}");
         }
     }
 
@@ -441,7 +454,7 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        if (StageAreaController.NumCardsStaged is 0) return;
+        if (StageAreaController.NumCardsStaged == 0) return;
         if (PlaysRemaining == 0) return;
         
         switch (StageAreaController.NumCardsStaged)
@@ -671,5 +684,98 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // **Wave Animation Methods**
 
+    /// <summary>
+    /// Starts the wave animation effect if enabled and not already active.
+    /// </summary>
+    public void StartWaveEffect()
+    {
+        if (waveEffectEnabled && !isWaveEffectActive)
+        {
+            isWaveEffectActive = true;
+            waveCoroutine = StartCoroutine(WaveEffectCoroutine());
+            Debug.Log("Wave effect started.");
+        }
+    }
+
+    /// <summary>
+    /// Stops the wave animation effect if it is active.
+    /// </summary>
+    public void StopWaveEffect()
+    {
+        if (isWaveEffectActive)
+        {
+            isWaveEffectActive = false;
+            if (waveCoroutine != null)
+            {
+                StopCoroutine(waveCoroutine);
+                waveCoroutine = null;
+            }
+
+            // Smoothly reset card positions after stopping the wave
+            foreach (var card in PlayerHand.CardsInHand)
+            {
+                if (card?.UI?.transform != null)
+                {
+                    StartCoroutine(SmoothResetPosition(card.UI.transform, PlayerHand.CardsInHand.IndexOf(card)));
+                }
+            }
+
+            Debug.Log("Wave effect stopped.");
+        }
+    }
+
+    /// <summary>
+    /// Coroutine that handles the wave animation by oscillating the cards' Y positions.
+    /// </summary>
+    private IEnumerator WaveEffectCoroutine()
+    {
+        float time = 0f;
+
+        while (isWaveEffectActive && waveEffectEnabled)
+        {
+            time += Time.deltaTime * waveSpeed;
+
+            // Adjust the position of each card in the hand area
+            for (int i = 0; i < PlayerHand.CardsInHand.Count; i++)
+            {
+                var card = PlayerHand.CardsInHand[i];
+                if (card?.UI?.transform != null)
+                {
+                    Vector3 originalPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, _hand.transform.position);
+                    float yOffset = Mathf.Sin(time + i * 0.5f) * waveAmplitude; // Offset each card slightly for smooth wave
+                    card.UI.transform.position = originalPosition + new Vector3(0, yOffset, 0);
+                }
+            }
+
+            yield return null;
+        }
+    }
+
+    /// <summary>
+    /// Smoothly resets the card's position to its original position after stopping the wave.
+    /// </summary>
+    /// <param name="cardTransform">Transform of the card to reset.</param>
+    /// <param name="cardIndex">Index of the card in the hand.</param>
+    private IEnumerator SmoothResetPosition(Transform cardTransform, int cardIndex)
+    {
+        Vector3 targetPosition = CalculateCardPosition(cardIndex, PlayerHand.NumCardsInHand, _hand.transform.position);
+        Vector3 startPosition = cardTransform.position;
+
+        float duration = 0.5f; // Time to reset smoothly
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+            t = t * t * (3f - 2f * t); // Smoothstep interpolation
+
+            cardTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
+            yield return null;
+        }
+
+        cardTransform.position = targetPosition;
+    }
 }
