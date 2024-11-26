@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _deck;
     [SerializeField] private Transform _whirlpoolCenter; // Added for spiral animation
     
-    private float _spiralDuration = 2.0f; // Duration of the spiral animation
+    private float _spiralDuration = 1.0f; // Duration of the spiral animation
     private float _spiralRadius = 5.0f;    // Starting radius of the spiral
     private float _spiralDepth = 2.0f;     // Depth the card moves downward
     private float _spiralRotationSpeed = 360f; // Degrees per second
@@ -70,6 +70,10 @@ public class GameManager : MonoBehaviour
     private const int LevelOneRequiredScore = 50;
     private const int LevelTwoRequiredScore = 100;
     private const int LevelThreeRequiredScore = 150;
+
+    public int LevelOneScore => LevelOneRequiredScore;
+    public int LevelTwoScore => LevelTwoRequiredScore;
+    public int LevelThreeScore => LevelThreeRequiredScore;
 
     public bool GameIsLost { get; set; }
     public bool GameIsWon { get; set; }
@@ -162,7 +166,7 @@ public class GameManager : MonoBehaviour
         var startRotation = card.transform.rotation;
         var endRotation = card.transform.rotation * Quaternion.Euler(0f, 180f, 0f);
 
-        var duration = 0.75f; // Duration for smoother animation
+        var duration = 0.5f; // Duration for smoother animation
         var elapsedTime = 0f;
 
         while (elapsedTime < duration)
