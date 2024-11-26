@@ -159,6 +159,8 @@ public class UIManager : MonoBehaviour
         _winPanel.SetActive(false);
         _lossPanel.SetActive(false);
         _shopPanel.SetActive(false);
+
+        Time.timeScale = 0;
     }
 
     public void ActivateWinPanel()
@@ -167,6 +169,8 @@ public class UIManager : MonoBehaviour
         _winPanel.SetActive(true);
         _lossPanel.SetActive(false);
         _shopPanel.SetActive(false);
+
+        Time.timeScale = 0;
     }
 
     public void ActivateLossPanel()
@@ -175,6 +179,8 @@ public class UIManager : MonoBehaviour
         _winPanel.SetActive(false);
         _lossPanel.SetActive(true);
         _shopPanel.SetActive(false);
+
+        Time.timeScale = 0;
     }
 
     public void ActivateShopPanel()
@@ -183,26 +189,24 @@ public class UIManager : MonoBehaviour
         _winPanel.SetActive(false);
         _lossPanel.SetActive(false);
         _shopPanel.SetActive(true);
+
+        Time.timeScale = 0;
     }
 
     public void OnClickPeekBackButton()
     {
         _peekDeckPanel.SetActive(false);
-        Time.timeScale = 0;
+        Time.timeScale = 1;
     }
 
     public void OnClickLossRestartButton()
     {
         _lossPanel.SetActive(false);
-        Time.timeScale = 1;
-        GameManager.Instance.LevelIndex = 1;
     }
 
     public void OnClickWinNextLevelButton()
     {
-        _winPanel.SetActive(true);
-        Time.timeScale = 1;
-        GameManager.Instance.LevelIndex++;
+        _winPanel.SetActive(false);
     }
 
     public void OnClickQuitButton()

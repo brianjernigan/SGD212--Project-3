@@ -22,8 +22,9 @@ public class StageAreaController : MonoBehaviour
     private bool CanStageCard(CardData card)
     {
         if (NumCardsStaged == 0) return true;
+        if (card.CardName == "Kraken") return true;
 
-        var cardsAreFull = CardsStaged.Count >= 4;
+        var cardsAreFull = CardsStaged.Count > 4;
         if (cardsAreFull) return false;
 
         var containsKraken = CardsStaged.Exists(stagedCard => stagedCard.Data.CardRank == 12);
@@ -66,10 +67,17 @@ public class StageAreaController : MonoBehaviour
 
     public bool TryRemoveCardFromStage(GameCard gameCard)
     {
+        var stageHadFour = NumCardsStaged == 4;
+        
         if (CardsStaged.Contains(gameCard) && CardsStaged.Remove(gameCard))
         {
-            gameCard.IsStaged = false;
+            if (stageHadFour)
+            {
+                GameManager.Instance.CurrentMultiplier -= 1;
+                GameManager.Instance.TriggerMultiplierChanged();
+            }
             
+            gameCard.IsStaged = false;
             GameManager.Instance.RearrangeStage();
             
             return true;

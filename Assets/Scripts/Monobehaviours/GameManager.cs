@@ -57,7 +57,7 @@ public class GameManager : MonoBehaviour
     public int CurrentMultiplier { get; set; } = 1;
 
     private const float DockWidth = 750f;
-    private const float InitialCardY = 25f;
+    private float _initialCardY;
 
     public int PlaysRemaining { get; set; } = 5;
     public int DiscardsRemaining { get; set; } = 5;
@@ -88,8 +88,6 @@ public class GameManager : MonoBehaviour
 
     private const int BaseRequiredScore = 50;
     public int CurrentRequiredScore => BaseRequiredScore * LevelIndex;
-    public bool GameIsLost { get; set; }
-    public bool GameIsWon { get; set; }
 
     #region Helpers
 
@@ -101,16 +99,20 @@ public class GameManager : MonoBehaviour
         var startX = -((totalCards - 1) * cardSpacing) / 2f;
         var xPosition = startX + (cardIndex * cardSpacing);
 
-        return dockCenter + new Vector3(xPosition, InitialCardY + cardIndex, 0f); // Straight line with fixed Y
+        var handCollider = _hand.GetComponent<BoxCollider>();
+        
+        return dockCenter + new Vector3(xPosition, handCollider.transform.TransformPoint(handCollider.center).y + cardIndex, 0f); // Straight line with fixed Y
     }
 
     public void PlaceCardInHand(GameCard gameCard)
     {
-        var dockCenter = _hand.transform.position;
+        var handCenter = _hand.transform.position;
 
-        var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
-
+        var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, handCenter);
+        
         gameCard.UI.transform.position = targetPosition;
+        
+        AudioManager.Instance.PlayBackToHandAudio();
      
         gameCard.IsInHand = true;
         gameCard.IsStaged = false;
@@ -121,6 +123,9 @@ public class GameManager : MonoBehaviour
     private void PlaceCardInStage(GameCard gameCard)
     {
         gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
+        var vector3 = gameCard.UI.transform.position;
+        vector3.y = _initialCardY;
+        gameCard.UI.transform.position = vector3;
         
         AudioManager.Instance.PlayStageCardAudio();
         
@@ -190,7 +195,7 @@ public class GameManager : MonoBehaviour
 
         /* For Testing */
         
-        // var testCards = new[] { "Whaleshark", "FishEggs", "Kraken", "Orca", "Treasure" };
+        // var testCards = new[] { "Kraken", "Orca", "Kraken", "Orca", "Treasure" };
         // foreach (var card in testCards)
         // {
         //     var specificCard = CardLibrary.Instance.GetCardDataByName(card);
@@ -277,24 +282,23 @@ public class GameManager : MonoBehaviour
         while (CardsOnScreen < HandSize && !GameDeck.IsEmpty)
         {
             var gameCard = GameDeck.DrawCard();
-            if (gameCard != null)
+            _initialCardY = _hand.transform.position.y;
+            
+            if (PlayerHand.TryAddCardToHand(gameCard))
             {
-                if (PlayerHand.TryAddCardToHand(gameCard))
-                {
-                    gameCard.IsInHand = true;
-                    gameCard.IsStaged = false;
-                }
-
-                var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
-
-                gameCard.UI.PlayBubbleEffect();
-
-                yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
-
-                gameCard.UI.StopBubbleEffect();
-
-                RearrangeHand(); // Smoothly adjust positions after each card is added
+                gameCard.IsInHand = true;
+                gameCard.IsStaged = false;
             }
+
+            var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
+
+            gameCard.UI.PlayBubbleEffect();
+
+            yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
+
+            gameCard.UI.StopBubbleEffect();
+
+            RearrangeHand(); // Smoothly adjust positions after each card is added
         }
 
         if (AdditionalCardsOnScreen > 0)
@@ -640,31 +644,25 @@ public class GameManager : MonoBehaviour
 
         if (!outOfPlays || !outOfDiscards || !outOfDraws) return;
         if (!GameDeck.IsEmpty || PlayerHand.NumCardsInHand != 0) return;
-        GameIsLost = true;
-        GameIsWon = false;
-
-        UIManager.Instance.ActivateLossPanel();
+        
         HandleLoss();
     }
 
     private void HandleLoss()
     {
-        throw new NotImplementedException();
+        UIManager.Instance.ActivateLossPanel();
     }
 
     private void CheckForGameWin()
     {
         if (CurrentScore < CurrentRequiredScore) return;
-        GameIsWon = true;
-        GameIsLost = false;
-
-        UIManager.Instance.ActivateWinPanel();
+        
         HandleWin();
     }
 
     private void HandleWin()
     {
-        throw new NotImplementedException();
+        UIManager.Instance.ActivateWinPanel();
     }
     
     private void HandleLevelChanged()

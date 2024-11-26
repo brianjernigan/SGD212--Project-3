@@ -10,7 +10,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioSource _cardFlipAudio;
     [SerializeField] private AudioSource _deckShuffleAudio;
     [SerializeField] private AudioSource _discardAudio;
-    [SerializeField] private AudioSource _playCardAudio;
+    [SerializeField] private AudioSource _backToHandAudio;
     [SerializeField] private AudioSource _scoreSetAudio;
     [SerializeField] private AudioSource _seagullAudio;
     [SerializeField] private AudioSource _stageCardAudio;
@@ -53,5 +53,10 @@ public class AudioManager : MonoBehaviour
     public void PlayScoreSetAudio()
     {
         _scoreSetAudio.Play();
+    }
+
+    public void PlayBackToHandAudio()
+    {
+        _backToHandAudio.Play();
     }
 }

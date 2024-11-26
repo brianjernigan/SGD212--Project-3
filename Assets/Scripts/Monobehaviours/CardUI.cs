@@ -100,9 +100,20 @@ public class CardUI : MonoBehaviour
             _isScaledUp = false;
         }
 
-        var position = transform.position;
-        position.y = YPositionInHand;
-        transform.position = position;
+
+        if (_gameCard.IsStaged)
+        {
+            var position = transform.position;
+            position.y = _gameCard.UI.transform.position.y;
+            transform.position = position;
+        }
+        else
+        {
+            var position = transform.position;
+            position.y = YPositionInHand;
+            transform.position = position;
+        }
+        
     }
 
     private void OnMouseDown()
@@ -137,6 +148,14 @@ public class CardUI : MonoBehaviour
 
         var mouseWorldPosition = GetMouseWorldPosition();
         transform.position = new Vector3(mouseWorldPosition.x + _offset.x, YPositionInHand, mouseWorldPosition.z + _offset.z);
+
+        foreach (var zone in _dropZones)
+        {
+            if (IsWithinDropZone(zone))
+            {
+                Debug.Log($"In {zone.gameObject.name}");
+            }
+        }
     }
 
     private void OnMouseUp()
@@ -173,6 +192,7 @@ public class CardUI : MonoBehaviour
             transform.position = _originalPosition;
         }
 
+        if (IsMouseOver) return;
         transform.localScale = _originalScale;
     }
 
