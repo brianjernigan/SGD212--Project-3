@@ -35,7 +35,6 @@ public class WaveEffect : MonoBehaviour
     /// </summary>
     private void InitializeTargets()
     {
-        Debug.Log("Initializing WaveEffect targets...");
         originalPositions.Clear();
 
         // If no targets are assigned, use all child objects
@@ -44,7 +43,6 @@ public class WaveEffect : MonoBehaviour
             foreach (Transform child in transform)
             {
                 targetObjects.Add(child);
-                Debug.Log($"Auto-added child object: {child.name}");
             }
         }
 
@@ -55,15 +53,6 @@ public class WaveEffect : MonoBehaviour
             {
                 Vector3 originalPosition = useLocalPosition ? obj.localPosition : obj.position;
                 originalPositions[obj] = originalPosition;
-                Debug.Log($"Stored original position for {obj.name}: {originalPosition}");
-            }
-            else
-            {
-                Debug.LogWarning("Target object is null. Skipping.");
-            }
-        }
-
-        Debug.Log($"WaveEffect initialized with {targetObjects.Count} target(s).");
             }
         }
     }
@@ -73,19 +62,6 @@ public class WaveEffect : MonoBehaviour
     /// </summary>
     public void StartWave()
     {
-        if (isWaveActive)
-        {
-            Debug.LogWarning("Wave effect is already active.");
-            return;
-        }
-
-        if (targetObjects.Count == 0)
-        {
-            Debug.LogError("No target objects found. Wave effect cannot start.");
-            return;
-        }
-
-        Debug.Log("Starting WaveAnimation coroutine.");
         if (isWaveActive || targetObjects.Count == 0) return;
 
         isWaveActive = true;
@@ -97,13 +73,6 @@ public class WaveEffect : MonoBehaviour
     /// </summary>
     public void StopWave()
     {
-        if (!isWaveActive)
-        {
-            Debug.LogWarning("Wave effect is not active.");
-            return;
-        }
-
-        Debug.Log("Stopping WaveAnimation coroutine.");
         if (!isWaveActive) return;
 
         isWaveActive = false;
@@ -122,7 +91,6 @@ public class WaveEffect : MonoBehaviour
     /// </summary>
     private IEnumerator WaveAnimation()
     {
-        Debug.Log("WaveAnimation coroutine started.");
         float time = 0f;
 
         while (isWaveActive)
@@ -131,17 +99,6 @@ public class WaveEffect : MonoBehaviour
 
             foreach (Transform obj in targetObjects)
             {
-                if (obj == null)
-                {
-                    Debug.LogWarning("A target object is null. Skipping.");
-                    continue;
-                }
-
-                if (!originalPositions.ContainsKey(obj))
-                {
-                    Debug.LogError($"Original position for {obj.name} is missing. Skipping animation.");
-                    continue;
-                }
                 if (obj == null || !originalPositions.ContainsKey(obj)) continue;
 
                 Vector3 originalPosition = originalPositions[obj];
@@ -150,18 +107,15 @@ public class WaveEffect : MonoBehaviour
                 if (useLocalPosition)
                 {
                     obj.localPosition = new Vector3(originalPosition.x, originalPosition.y + yOffset, originalPosition.z);
-                    Debug.Log($"{obj.name}: Updated localPosition to {obj.localPosition}");
                 }
                 else
                 {
                     obj.position = new Vector3(originalPosition.x, originalPosition.y + yOffset, originalPosition.z);
-                    Debug.Log($"{obj.name}: Updated position to {obj.position}");
                 }
             }
 
             yield return null;
         }
-        Debug.Log("WaveAnimation coroutine ended.");
     }
 
     /// <summary>
@@ -169,37 +123,6 @@ public class WaveEffect : MonoBehaviour
     /// </summary>
     private void ResetObjectPositions()
     {
-        Debug.Log("Resetting target objects to their original positions...");
-
-        foreach (Transform obj in targetObjects)
-        {
-            if (obj == null)
-            {
-                Debug.LogWarning("A target object is null during reset. Skipping.");
-                continue;
-            }
-
-            if (originalPositions.ContainsKey(obj))
-            {
-                Vector3 originalPosition = originalPositions[obj];
-                if (useLocalPosition)
-                {
-                    obj.localPosition = originalPosition;
-                    Debug.Log($"{obj.name}: Reset localPosition to {originalPosition}");
-                }
-                else
-                {
-                    obj.position = originalPosition;
-                    Debug.Log($"{obj.name}: Reset position to {originalPosition}");
-                }
-            }
-            else
-            {
-                Debug.LogWarning($"{obj.name} does not have an original position stored. Skipping reset.");
-            }
-        }
-
-        Debug.Log("All target objects have been reset.");
         foreach (Transform obj in targetObjects)
         {
             if (obj == null || !originalPositions.ContainsKey(obj)) continue;
@@ -227,11 +150,6 @@ public class WaveEffect : MonoBehaviour
             targetObjects.Add(newTarget);
             Vector3 originalPosition = useLocalPosition ? newTarget.localPosition : newTarget.position;
             originalPositions[newTarget] = originalPosition;
-            Debug.Log($"Added {newTarget.name} to the wave effect.");
-        }
-        else
-        {
-            Debug.LogWarning($"Cannot add {newTarget?.name ?? "null"} to the wave effect. It may already exist in the target list.");
         }
     }
 
@@ -245,11 +163,6 @@ public class WaveEffect : MonoBehaviour
         {
             targetObjects.Remove(target);
             originalPositions.Remove(target);
-            Debug.Log($"Removed {target.name} from the wave effect.");
-        }
-        else
-        {
-            Debug.LogWarning($"{target?.name ?? "null"} is not in the target list. Cannot remove.");
         }
     }
 
