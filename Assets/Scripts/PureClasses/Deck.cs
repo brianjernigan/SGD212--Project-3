@@ -31,10 +31,9 @@ public class Deck
             for (var i = 0; i < entry.Value; i++)
             {
                 CardDataInDeck.Add(entry.Key);
+                GameManager.Instance.TriggerCardsRemainingChanged();
             }
         }
-        
-        GameManager.Instance.TriggerCardsRemainingChanged();
     }
     
     public void ShuffleDeck()
@@ -76,9 +75,8 @@ public class Deck
         for (var i = 0; i < count; i++)
         {
             CardDataInDeck.Add(data);
+            GameManager.Instance.TriggerCardsRemainingChanged();
         }
-        
-        GameManager.Instance.TriggerCardsRemainingChanged();
     }
 
     public GameCard DrawSpecificCard(CardData data)
@@ -102,6 +100,8 @@ public class Deck
     public GameCard CreateGameCard(CardData data)
     {
         var cardUIObject = Object.Instantiate(_cardPrefab);
+        cardUIObject.tag = "Card";
+        cardUIObject.GetComponentInChildren<Collider>().tag = "Card";
         var cardUI = cardUIObject.GetComponent<CardUI>();
         var cardEffect = CardLibrary.Instance.GetCardEffectByName(data.CardName);
 

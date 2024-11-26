@@ -22,6 +22,8 @@ public class CookieCutterEffect : ICardEffect
                 discardCount++;
             }
         }
+        
+        GameManager.Instance.StageAreaController.ClearStageArea();
 
         for (var i = 0; i < discardCount; i++)
         {
@@ -30,7 +32,5 @@ public class CookieCutterEffect : ICardEffect
 
             GameManager.Instance.PlayerHand.TryAddCardToHand(drawnCard);
         }
-        
-        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }

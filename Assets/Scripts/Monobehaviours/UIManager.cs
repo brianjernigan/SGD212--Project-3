@@ -22,7 +22,7 @@ public class UIManager : MonoBehaviour
     [Header("Panels")] 
     [SerializeField] private GameObject _peekDeckPanel;
     [SerializeField] private GameObject _winPanel;
-    [SerializeField] private GameObject _losePanel;
+    [SerializeField] private GameObject _lossPanel;
     [SerializeField] private GameObject _shopPanel;
 
     [SerializeField] private List<TMP_Text> _cardCountTexts;
@@ -157,7 +157,7 @@ public class UIManager : MonoBehaviour
     {
         _peekDeckPanel.SetActive(true);
         _winPanel.SetActive(false);
-        _losePanel.SetActive(false);
+        _lossPanel.SetActive(false);
         _shopPanel.SetActive(false);
     }
 
@@ -165,15 +165,15 @@ public class UIManager : MonoBehaviour
     {
         _peekDeckPanel.SetActive(false);
         _winPanel.SetActive(true);
-        _losePanel.SetActive(false);
+        _lossPanel.SetActive(false);
         _shopPanel.SetActive(false);
     }
 
-    public void ActivateLosePanel()
+    public void ActivateLossPanel()
     {
         _peekDeckPanel.SetActive(false);
         _winPanel.SetActive(false);
-        _losePanel.SetActive(true);
+        _lossPanel.SetActive(true);
         _shopPanel.SetActive(false);
     }
 
@@ -181,13 +181,32 @@ public class UIManager : MonoBehaviour
     {
         _peekDeckPanel.SetActive(false);
         _winPanel.SetActive(false);
-        _losePanel.SetActive(false);
+        _lossPanel.SetActive(false);
         _shopPanel.SetActive(true);
     }
 
     public void OnClickPeekBackButton()
     {
         _peekDeckPanel.SetActive(false);
+        Time.timeScale = 0;
+    }
+
+    public void OnClickLossRestartButton()
+    {
+        _lossPanel.SetActive(false);
         Time.timeScale = 1;
+        GameManager.Instance.LevelIndex = 1;
+    }
+
+    public void OnClickWinNextLevelButton()
+    {
+        _winPanel.SetActive(true);
+        Time.timeScale = 1;
+        GameManager.Instance.LevelIndex++;
+    }
+
+    public void OnClickQuitButton()
+    {
+        Application.Quit();
     }
 }

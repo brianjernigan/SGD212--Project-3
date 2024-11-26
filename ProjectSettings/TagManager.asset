@@ -7,7 +7,6 @@ TagManager:
   - GameManager
   - DiscardArea
   - DeckArea
-  - HandArea
   - HandManager
   - DeckManager
   - StageArea
@@ -18,6 +17,13 @@ TagManager:
   - EndTurnButton
   - AudioManager
   - PeekDeckButton
+  - PlayArea1
+  - PlayArea2
+  - PlayArea3
+  - HandArea1
+  - HandArea2
+  - HandArea3
+  - HandArea
   layers:
   - Default
   - TransparentFX

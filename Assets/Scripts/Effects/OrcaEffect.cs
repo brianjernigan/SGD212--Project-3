@@ -23,9 +23,8 @@ public class OrcaEffect : ICardEffect
             if (drawnCard is not null)
             {
                 playerHand.TryAddCardToHand(drawnCard);
+                GameManager.Instance.TriggerCardsRemainingChanged();
             }
         }
-        
-        GameManager.Instance.TriggerCardsRemainingChanged();
     }
 }

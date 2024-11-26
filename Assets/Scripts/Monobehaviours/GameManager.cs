@@ -16,14 +16,14 @@ public class GameManager : MonoBehaviour
     [Header("Areas")]
     [SerializeField] private GameObject _stage;
     [SerializeField] private GameObject _discard;
-    [SerializeField] private GameObject _hand;
     [SerializeField] private GameObject _deck;
     [SerializeField] private Transform _whirlpoolCenter; // Added for spiral animation
 
+    // Dynamic Lookup
+    private GameObject _hand;
+    
     [Header("Play Areas")] 
-    [SerializeField] private GameObject _playArea1;
-    [SerializeField] private GameManager _playArea2;
-    [SerializeField] private GameObject _playArea3;
+    [SerializeField] private List<GameObject> _playAreas;
     
     private float _spiralDuration = 1.0f; // Duration of the spiral animation
     private float _spiralRadius = 5.0f;    // Starting radius of the spiral
@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
     
     public int CardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
 
-    private const int MaxCardsOnScreen = 7;
+    private const int MaxCardsOnScreen = 6;
     public int AdditionalCardsOnScreen { get; set; }
     public int PermanentHandSizeModifier { get; set; }
 
@@ -72,9 +72,20 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnHandSizeChanged;
     public event Action<int> OnMoneyChanged;
     public event Action<int> OnCardsRemainingChanged;
+    public event Action OnLevelChanged;
 
-    public int LevelIndex { get; set; } = 1;
-    
+    private int _levelIndex = 1;
+
+    public int LevelIndex
+    {
+        get => _levelIndex;
+        set
+        {
+            _levelIndex = value;
+            HandleLevelChanged();
+        }
+    }
+
     private const int BaseRequiredScore = 50;
     public int CurrentRequiredScore => BaseRequiredScore * LevelIndex;
     public bool GameIsLost { get; set; }
@@ -91,6 +102,32 @@ public class GameManager : MonoBehaviour
         var xPosition = startX + (cardIndex * cardSpacing);
 
         return dockCenter + new Vector3(xPosition, InitialCardY + cardIndex, 0f); // Straight line with fixed Y
+    }
+
+    public void PlaceCardInHand(GameCard gameCard)
+    {
+        var dockCenter = _hand.transform.position;
+
+        var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
+
+        gameCard.UI.transform.position = targetPosition;
+     
+        gameCard.IsInHand = true;
+        gameCard.IsStaged = false;
+        
+        RearrangeHand();
+    }
+
+    private void PlaceCardInStage(GameCard gameCard)
+    {
+        gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
+        
+        AudioManager.Instance.PlayStageCardAudio();
+        
+        gameCard.IsStaged = true;
+        gameCard.IsInHand = false;
+        
+        RearrangeStage();
     }
     
     public void RearrangeHand()
@@ -117,30 +154,6 @@ public class GameManager : MonoBehaviour
         TriggerCardsRemainingChanged();
     }
 
-    public void PlaceCardInHand(GameCard gameCard)
-    {
-        var dockCenter = _hand.transform.position;
-
-        var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
-
-        gameCard.UI.transform.position = targetPosition;
-     
-        gameCard.IsInHand = true;
-        gameCard.IsStaged = false;
-        
-        RearrangeHand();
-    }
-
-    private void PlaceCardInStage(GameCard gameCard)
-    {
-        gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
-        
-        AudioManager.Instance.PlayStageCardAudio();
-        
-        gameCard.IsStaged = true;
-        gameCard.IsInHand = false;
-    }
-
     #endregion
 
     
@@ -155,6 +168,8 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        _hand = GameObject.FindGameObjectWithTag("HandArea");
     }
 
     private void Start()
@@ -252,6 +267,7 @@ public class GameManager : MonoBehaviour
         
         DrawsRemaining--;
         TriggerDrawsChanged();
+        CheckForGameLoss();
     }
     
         private IEnumerator DrawFullHandCoroutine()
@@ -384,6 +400,8 @@ public class GameManager : MonoBehaviour
             default:
                 return;
         }
+        
+        CheckForGameLoss();
     }
 
     private void TriggerCardEffect()
@@ -406,6 +424,7 @@ public class GameManager : MonoBehaviour
         }
 
         AudioManager.Instance.PlayScoreSetAudio();
+        CheckForGameWin();
     }
     
     private void OnClickPeekDeckButton()
@@ -579,6 +598,8 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
         Destroy(gameCard.UI.gameObject);
+        
+        CheckForGameLoss();
     }
 
     private IEnumerator AnimateCardToPosition(Transform cardTransform, Vector3 targetPosition, Quaternion targetRotation)
@@ -621,13 +642,35 @@ public class GameManager : MonoBehaviour
         if (!GameDeck.IsEmpty || PlayerHand.NumCardsInHand != 0) return;
         GameIsLost = true;
         GameIsWon = false;
+
+        UIManager.Instance.ActivateLossPanel();
+        HandleLoss();
     }
 
-    private void CheckForGameWin(int levelNumber)
+    private void HandleLoss()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void CheckForGameWin()
     {
         if (CurrentScore < CurrentRequiredScore) return;
         GameIsWon = true;
         GameIsLost = false;
+
+        UIManager.Instance.ActivateWinPanel();
+        HandleWin();
+    }
+
+    private void HandleWin()
+    {
+        throw new NotImplementedException();
+    }
+    
+    private void HandleLevelChanged()
+    {
+        // Reset everything
+        throw new NotImplementedException();
     }
 
     #region Invocations
