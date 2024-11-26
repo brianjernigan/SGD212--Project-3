@@ -53,13 +53,16 @@ public class WaveEffect : MonoBehaviour
             {
                 Vector3 originalPosition = useLocalPosition ? obj.localPosition : obj.position;
                 originalPositions[obj] = originalPosition;
+                Debug.Log($"Stored original position for {obj.name}: {originalPosition}");
+            }
+            else
+            {
+                Debug.LogWarning("Target object is null. Skipping.");
             }
         }
+        Debug.Log($"WaveEffect initialized with {targetObjects.Count} target(s).");
     }
 
-    /// <summary>
-    /// Starts the wave animation.
-    /// </summary>
     public void StartWave()
     {
         if (isWaveActive || targetObjects.Count == 0) return;
