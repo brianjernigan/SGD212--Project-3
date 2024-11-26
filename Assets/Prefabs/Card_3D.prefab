@@ -691,7 +691,7 @@ MonoBehaviour:
   _topRankText: {fileID: 5538597920235505111}
   _bottomRankText: {fileID: 6623872174781506362}
   _descriptionText: {fileID: 6501287507697909518}
-  _bubbleEffect: {fileID: 0}
+  _bubbleEffect: {fileID: 3594952021802713881}
 --- !u!65 &6149115540228017616
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -854,6 +854,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0d1adb20421ed664b800c8cf3d103e70, type: 3}
+--- !u!198 &3594952021802713881 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 198000010118446818, guid: 0d1adb20421ed664b800c8cf3d103e70, type: 3}
+  m_PrefabInstance: {fileID: 3701037661478043131}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &3698176410397907105 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4000010731693402, guid: 0d1adb20421ed664b800c8cf3d103e70, type: 3}
