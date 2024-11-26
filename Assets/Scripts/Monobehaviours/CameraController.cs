@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
-public class FixedAspectRatio : MonoBehaviour
+public class CameraController : MonoBehaviour
 {
     private const float TargetAspect = 16f / 9f;
 
