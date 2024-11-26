@@ -62,15 +62,9 @@ public class WaveEffect : MonoBehaviour
                 Debug.LogWarning("Target object is null. Skipping.");
             }
         }
-
         Debug.Log($"WaveEffect initialized with {targetObjects.Count} target(s).");
-            }
-        }
     }
 
-    /// <summary>
-    /// Starts the wave animation.
-    /// </summary>
     public void StartWave()
     {
         if (isWaveActive)

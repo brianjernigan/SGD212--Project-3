@@ -70,7 +70,8 @@ public class UIManager : MonoBehaviour
 
     public void UpdateScoreText(int score)
     {
-        _scoreText.text = $"Score: {score} / {GameManager.Instance.LevelOneScore}";
+        // USE "I" AS A REPLACEMENT FOR "/"
+        _scoreText.text = $"Score: {score} I {GameManager.Instance.LevelOneScore}";
     }
 
     public void UpdatePlaysText(int plays)
