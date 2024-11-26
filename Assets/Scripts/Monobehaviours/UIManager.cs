@@ -70,22 +70,22 @@ public class UIManager : MonoBehaviour
 
     public void UpdateScoreText(int score)
     {
-        _scoreText.text = $"Score: {score}";
+        _scoreText.text = $"Score: {score} / {GameManager.Instance.LevelOneScore}";
     }
 
     public void UpdatePlaysText(int plays)
     {
-        _playsText.text = $"Plays:\n{plays}";
+        _playsText.text = $"{plays}";
     }
 
     public void UpdateDiscardsText(int discards)
     {
-        _discardsText.text = $"Discards:\n{discards}";
+        _discardsText.text = $"Discards: {discards}";
     }
     
     private void UpdateDrawsText(int draws)
     {
-        _drawsText.text = $"Draws:\n{draws}";
+        _drawsText.text = $"{draws}";
     }
 
     public void UpdateMultiplierText(int multiplier)
@@ -105,6 +105,6 @@ public class UIManager : MonoBehaviour
 
     public void UpdateCardsRemainingText(int cardsRemaining)
     {
-        _cardsRemainingText.text = $"Cards Remaining: {cardsRemaining}";
+        _cardsRemainingText.text = $"{cardsRemaining}";
     }
 }

@@ -30,7 +30,6 @@ public class WaveEffect : MonoBehaviour
         StartWave(); // Automatically start the wave animation
     }
 
-
     /// <summary>
     /// Initializes the target objects for the wave effect.
     /// </summary>
@@ -65,6 +64,8 @@ public class WaveEffect : MonoBehaviour
         }
 
         Debug.Log($"WaveEffect initialized with {targetObjects.Count} target(s).");
+            }
+        }
     }
 
     /// <summary>
@@ -85,6 +86,8 @@ public class WaveEffect : MonoBehaviour
         }
 
         Debug.Log("Starting WaveAnimation coroutine.");
+        if (isWaveActive || targetObjects.Count == 0) return;
+
         isWaveActive = true;
         waveCoroutine = StartCoroutine(WaveAnimation());
     }
@@ -101,6 +104,8 @@ public class WaveEffect : MonoBehaviour
         }
 
         Debug.Log("Stopping WaveAnimation coroutine.");
+        if (!isWaveActive) return;
+
         isWaveActive = false;
 
         if (waveCoroutine != null)
@@ -137,6 +142,7 @@ public class WaveEffect : MonoBehaviour
                     Debug.LogError($"Original position for {obj.name} is missing. Skipping animation.");
                     continue;
                 }
+                if (obj == null || !originalPositions.ContainsKey(obj)) continue;
 
                 Vector3 originalPosition = originalPositions[obj];
                 float yOffset = Mathf.Sin(time + obj.GetInstanceID() * phaseOffset) * waveAmplitude;
@@ -155,7 +161,6 @@ public class WaveEffect : MonoBehaviour
 
             yield return null;
         }
-
         Debug.Log("WaveAnimation coroutine ended.");
     }
 
@@ -195,6 +200,20 @@ public class WaveEffect : MonoBehaviour
         }
 
         Debug.Log("All target objects have been reset.");
+        foreach (Transform obj in targetObjects)
+        {
+            if (obj == null || !originalPositions.ContainsKey(obj)) continue;
+
+            Vector3 originalPosition = originalPositions[obj];
+            if (useLocalPosition)
+            {
+                obj.localPosition = originalPosition;
+            }
+            else
+            {
+                obj.position = originalPosition;
+            }
+        }
     }
 
     /// <summary>

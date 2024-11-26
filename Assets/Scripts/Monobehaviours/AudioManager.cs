@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
@@ -31,6 +29,25 @@ public class AudioManager : MonoBehaviour
 
     public void PlayCardDrawAudio()
     {
-        _cardDrawAudio.Play();
+        if (_cardDrawAudio != null)
+        {
+            _cardDrawAudio.Play();
+        }
+        else
+        {
+            Debug.LogWarning("Card draw audio source is not assigned.");
+        }
+    }
+
+    public void PlayCardFlipAudio()
+    {
+        if (_cardFlipAudio != null)
+        {
+            _cardFlipAudio.Play();
+        }
+        else
+        {
+            Debug.LogWarning("Card flip audio source is not assigned.");
+        }
     }
 }

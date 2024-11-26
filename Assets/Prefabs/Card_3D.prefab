@@ -755,7 +755,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1000012696881832, guid: 0d1adb20421ed664b800c8cf3d103e70, type: 3}
       propertyPath: m_Name
-      value: Particle jiggly bubble soapy
+      value: BubbleParticles
       objectReference: {fileID: 0}
     - target: {fileID: 4000010731693402, guid: 0d1adb20421ed664b800c8cf3d103e70, type: 3}
       propertyPath: m_LocalScale.x
@@ -828,6 +828,10 @@ PrefabInstance:
     - target: {fileID: 198000010118446818, guid: 0d1adb20421ed664b800c8cf3d103e70, type: 3}
       propertyPath: InitialModule.startSize.minScalar
       value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 198000010118446818, guid: 0d1adb20421ed664b800c8cf3d103e70, type: 3}
+      propertyPath: CollisionModule.collidesWith.m_Bits
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 198000010118446818, guid: 0d1adb20421ed664b800c8cf3d103e70, type: 3}
       propertyPath: InitialModule.startSize.minMaxState
