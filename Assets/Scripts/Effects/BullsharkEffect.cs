@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class BullsharkEffect : ICardEffect
 {
-    public string EffectDescription => "Discards all Bullsharks. Increases your hand size by 1 this round.";
+    public string EffectDescription => "Discards all Bullsharks. Permanently increase your hand size by 1 this round.";
     
     public void ActivateEffect()
     {

@@ -24,6 +24,7 @@ TagManager:
   - HandArea2
   - HandArea3
   - HandArea
+  - CardEffectsButton
   layers:
   - Default
   - TransparentFX

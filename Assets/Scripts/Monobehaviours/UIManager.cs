@@ -21,11 +21,13 @@ public class UIManager : MonoBehaviour
 
     [Header("Panels")] 
     [SerializeField] private GameObject _peekDeckPanel;
+    [SerializeField] private GameObject _cardEffectsPanel;
     [SerializeField] private GameObject _winPanel;
     [SerializeField] private GameObject _lossPanel;
     [SerializeField] private GameObject _shopPanel;
 
     [SerializeField] private List<TMP_Text> _cardCountTexts;
+    [SerializeField] private List<TMP_Text> _cardEffectsTexts;
 
     private void Awake()
     {
@@ -76,6 +78,19 @@ public class UIManager : MonoBehaviour
         UpdateHandSizeText(GameManager.Instance.HandSize);
         UpdateMoneyText(GameManager.Instance.PlayerMoney);
         UpdateCardsRemainingText(GameManager.Instance.GameDeck.CardDataInDeck.Count);
+        
+
+        SetCardEffectTexts();
+    }
+
+    private void SetCardEffectTexts()
+    {
+        for (var i = 0; i < CardLibrary.Instance.AllPossibleCards.Count; i++)
+        {
+            var cardName = CardLibrary.Instance.AllPossibleCards[i].CardName;
+            var description = CardLibrary.Instance.GetCardEffectByName(cardName).EffectDescription;
+            _cardEffectsTexts[i].text = $"{cardName}: {description}";
+        }
     }
 
     private void UpdateScoreText(int score)
@@ -159,36 +174,51 @@ public class UIManager : MonoBehaviour
         _winPanel.SetActive(false);
         _lossPanel.SetActive(false);
         _shopPanel.SetActive(false);
+        _cardEffectsPanel.SetActive(false);
+
+        Time.timeScale = 0;
+    }
+
+    public void ActivateCardEffectsPanel()
+    {
+        _cardEffectsPanel.SetActive(true);
+        _winPanel.SetActive(false);
+        _lossPanel.SetActive(false);
+        _shopPanel.SetActive(false);
+        _peekDeckPanel.SetActive(false);
 
         Time.timeScale = 0;
     }
 
     public void ActivateWinPanel()
     {
-        _peekDeckPanel.SetActive(false);
         _winPanel.SetActive(true);
+        _peekDeckPanel.SetActive(false);
         _lossPanel.SetActive(false);
         _shopPanel.SetActive(false);
+        _cardEffectsPanel.SetActive(false);
 
         Time.timeScale = 0;
     }
 
     public void ActivateLossPanel()
     {
+        _lossPanel.SetActive(true);
         _peekDeckPanel.SetActive(false);
         _winPanel.SetActive(false);
-        _lossPanel.SetActive(true);
         _shopPanel.SetActive(false);
+        _cardEffectsPanel.SetActive(false);
 
         Time.timeScale = 0;
     }
 
     public void ActivateShopPanel()
     {
+        _shopPanel.SetActive(true);
         _peekDeckPanel.SetActive(false);
         _winPanel.SetActive(false);
         _lossPanel.SetActive(false);
-        _shopPanel.SetActive(true);
+        _cardEffectsPanel.SetActive(false);
 
         Time.timeScale = 0;
     }
@@ -199,6 +229,12 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 1;
     }
 
+    public void OnClickEffectsBackButton()
+    {
+        _cardEffectsPanel.SetActive(false);
+        Time.timeScale = 1;
+    }
+
     public void OnClickLossRestartButton()
     {
         _lossPanel.SetActive(false);
@@ -206,6 +242,7 @@ public class UIManager : MonoBehaviour
 
     public void OnClickWinNextLevelButton()
     {
+        GameManager.Instance.HandleLevelChanged();
         _winPanel.SetActive(false);
     }
 

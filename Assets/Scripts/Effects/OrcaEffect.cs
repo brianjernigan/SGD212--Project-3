@@ -10,21 +10,14 @@ public class OrcaEffect : ICardEffect
     {
         var playerHand = GameManager.Instance.PlayerHand;
 
-        for (var i = 0; i < playerHand.NumCardsInHand; i++)
+        for (var i = playerHand.NumCardsInHand - 1; i >= 0; i--)
         {
             playerHand.TryDiscardCardFromHand(playerHand.CardsInHand[i]);
         }
         
         GameManager.Instance.StageAreaController.ClearStageArea();
 
-        for (var i = 0; i < GameManager.Instance.HandSize; i++)
-        {
-            var drawnCard = GameManager.Instance.GameDeck?.DrawCard();
-            if (drawnCard is not null)
-            {
-                playerHand.TryAddCardToHand(drawnCard);
-                GameManager.Instance.TriggerCardsRemainingChanged();
-            }
-        }
+        GameManager.Instance.DrawFullHand();
+        GameManager.Instance.TriggerCardsRemainingChanged();
     }
 }

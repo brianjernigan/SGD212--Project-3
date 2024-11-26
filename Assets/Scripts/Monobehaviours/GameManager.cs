@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -34,13 +35,13 @@ public class GameManager : MonoBehaviour
     public GameObject Discard => _discard;
     public GameObject Hand => _hand;
     
-    public int CardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
+    public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
 
     private const int MaxCardsOnScreen = 6;
-    public int AdditionalCardsOnScreen { get; set; }
+    public int AdditionalCardsDrawn { get; set; }
     public int PermanentHandSizeModifier { get; set; }
 
-    public int HandSize => MaxCardsOnScreen + AdditionalCardsOnScreen + PermanentHandSizeModifier;
+    public int HandSize => MaxCardsOnScreen + AdditionalCardsDrawn + PermanentHandSizeModifier;
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
@@ -76,18 +77,21 @@ public class GameManager : MonoBehaviour
 
     private int _levelIndex = 1;
 
-    public int LevelIndex
-    {
-        get => _levelIndex;
-        set
-        {
-            _levelIndex = value;
-            HandleLevelChanged();
-        }
-    }
+    // public int LevelIndex
+    // {
+    //     get => _levelIndex;
+    //     set
+    //     {
+    //         _levelIndex = value;
+    //         HandleLevelChanged();
+    //     }
+    // }
 
     private const int BaseRequiredScore = 50;
-    public int CurrentRequiredScore => BaseRequiredScore * LevelIndex;
+    public int CurrentRequiredScore => BaseRequiredScore * _levelIndex;
+    
+    public bool RoundIsWon { get; set; }
+    public bool RoundIsLost { get; set; }
 
     #region Helpers
 
@@ -189,28 +193,53 @@ public class GameManager : MonoBehaviour
         StartCoroutine(DrawInitialHandCoroutine());
     }
 
+    private bool HasScoreableSet()
+    {
+        var hasWhaleShark = PlayerHand.CardsInHand.Exists(card => card.Data.CardName == "Whaleshark");
+        var hasKraken = PlayerHand.CardsInHand.Exists(card => card.Data.CardName == "Kraken");
+
+        if (hasWhaleShark) return true;
+        
+        var groups = PlayerHand.CardsInHand.GroupBy(card => card.Data.CardName);
+
+        foreach (var group in groups)
+        {
+            if (group.Count() == 3)
+            {
+                return true;
+            }
+            
+            if (group.Count() == 2 && group.Key != "Kraken" && hasKraken)
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
     private IEnumerator DrawInitialHandCoroutine()
     {
         yield return new WaitForSeconds(0.5f);
 
         /* For Testing */
         
-        // var testCards = new[] { "Kraken", "Orca", "Kraken", "Orca", "Treasure" };
-        // foreach (var card in testCards)
-        // {
-        //     var specificCard = CardLibrary.Instance.GetCardDataByName(card);
-        //     if (specificCard is not null)
-        //     {
-        //         var cardToDraw = GameDeck.DrawSpecificCard(specificCard);
-        //         PlayerHand.TryAddCardToHand(cardToDraw);
-        //         var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand,
-        //             _hand.transform.position);
-        //
-        //         StartCoroutine(DealCardCoroutine(cardToDraw, targetPosition));
-        //     }
-        // }
+        var testCards = new[] { "Whaleshark", "Whaleshark", "Kraken", "Kraken", "CookieCutter" };
+        foreach (var card in testCards)
+        {
+            var specificCard = CardLibrary.Instance.GetCardDataByName(card);
+            if (specificCard is not null)
+            {
+                var cardToDraw = GameDeck.DrawSpecificCard(specificCard);
+                PlayerHand.TryAddCardToHand(cardToDraw);
+                var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand,
+                    _hand.transform.position);
         
-        StartCoroutine(DrawFullHandCoroutine());
+                StartCoroutine(DealCardCoroutine(cardToDraw, targetPosition));
+            }
+        }
+        
+        // StartCoroutine(DrawFullHandCoroutine());
     }
 
     private void Update()
@@ -259,11 +288,16 @@ public class GameManager : MonoBehaviour
         {
             OnClickPeekDeckButton();
         }
+
+        if (clickedObject.CompareTag("CardEffectsButton") && !IsDrawingCards)
+        {
+            OnClickCardEffectsButton();
+        }
     }
-    
+
     public void DrawFullHand()
     {
-        if (DrawsRemaining == 0) return;
+        if (DrawsRemaining == 0 || NumCardsOnScreen == HandSize) return;
         
         if (!IsDrawingCards)
         {
@@ -275,11 +309,11 @@ public class GameManager : MonoBehaviour
         CheckForGameLoss();
     }
     
-        private IEnumerator DrawFullHandCoroutine()
+    private IEnumerator DrawFullHandCoroutine()
     {
         IsDrawingCards = true;
 
-        while (CardsOnScreen < HandSize && !GameDeck.IsEmpty)
+        while (NumCardsOnScreen < HandSize && !GameDeck.IsEmpty)
         {
             var gameCard = GameDeck.DrawCard();
             _initialCardY = _hand.transform.position.y;
@@ -301,9 +335,9 @@ public class GameManager : MonoBehaviour
             RearrangeHand(); // Smoothly adjust positions after each card is added
         }
 
-        if (AdditionalCardsOnScreen > 0)
+        if (AdditionalCardsDrawn > 0)
         {
-            AdditionalCardsOnScreen = 0;
+            AdditionalCardsDrawn = 0;
             TriggerHandSizeChanged();
         }
 
@@ -433,8 +467,12 @@ public class GameManager : MonoBehaviour
     
     private void OnClickPeekDeckButton()
     {
-        Time.timeScale = 0;
         UIManager.Instance.ActivatePeekDeckPanel();
+    }
+    
+    private void OnClickCardEffectsButton()
+    {
+        UIManager.Instance.ActivateCardEffectsPanel();
     }
     
     private void HandleRightMouseClick(GameObject clickedObject)
@@ -638,18 +676,23 @@ public class GameManager : MonoBehaviour
 
     private void CheckForGameLoss()
     {
-        var outOfPlays = PlaysRemaining == 0;
-        var outOfDiscards = DiscardsRemaining == 0;
-        var outOfDraws = DrawsRemaining == 0;
+        var isOutOfPlays = PlaysRemaining == 0;
+        var isOutOfDiscards = DiscardsRemaining == 0;
+        var isOutOfDraws = DrawsRemaining == 0 || GameDeck.IsEmpty;
+        var cardsAreMaxed = NumCardsOnScreen >= HandSize;
+        var noScoreableSet = !HasScoreableSet();
 
-        if (!outOfPlays || !outOfDiscards || !outOfDraws) return;
-        if (!GameDeck.IsEmpty || PlayerHand.NumCardsInHand != 0) return;
-        
-        HandleLoss();
+        if (isOutOfPlays && isOutOfDiscards && isOutOfDraws && (cardsAreMaxed || noScoreableSet))
+        {
+            HandleLoss();
+        }
     }
 
     private void HandleLoss()
     {
+        RoundIsLost = true;
+        RoundIsWon = false;
+        Debug.Log("you lost");
         UIManager.Instance.ActivateLossPanel();
     }
 
@@ -662,13 +705,25 @@ public class GameManager : MonoBehaviour
 
     private void HandleWin()
     {
+        RoundIsWon = true;
+        RoundIsLost = false;
+        Debug.Log("you win");
         UIManager.Instance.ActivateWinPanel();
     }
     
-    private void HandleLevelChanged()
+    public void HandleLevelChanged()
     {
-        // Reset everything
-        throw new NotImplementedException();
+        _playAreas[_levelIndex - 1].SetActive(false);
+        _levelIndex++;
+        _playAreas[_levelIndex - 1].SetActive(true);
+        PlayerHand.ClearHandArea();
+        StageAreaController.ClearStageArea();
+
+        _hand = null;
+        _hand = GameObject.FindGameObjectWithTag("HandArea");
+
+        CurrentScore = 0;
+        TriggerScoreChanged();
     }
 
     #region Invocations

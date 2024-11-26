@@ -15,7 +15,7 @@ public class StingrayEffect : ICardEffect
         GameManager.Instance.GameDeck.AddCard(thisCard.Data);
         stageAreaController.ClearStageArea();
         
-        for (var i = 0; i < playerHand.CardsInHand.Count; i++)
+        for (var i = 0; i < playerHand.NumCardsInHand; i++)
         {
             GameManager.Instance.GameDeck?.AddCard(playerHand.CardsInHand[i].Data);
         }
