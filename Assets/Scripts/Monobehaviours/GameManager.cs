@@ -432,8 +432,6 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        Debug.Log("Play");
-        
         if (StageAreaController.NumCardsStaged == 0) return;
         if (PlaysRemaining == 0) return;
         
