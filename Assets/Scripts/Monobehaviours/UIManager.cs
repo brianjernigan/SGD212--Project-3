@@ -25,6 +25,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject _winPanel;
     [SerializeField] private GameObject _lossPanel;
     [SerializeField] private GameObject _shopPanel;
+    [SerializeField] private GameObject _quitButtonPanel;
 
     [SerializeField] private List<TMP_Text> _cardCountTexts;
     [SerializeField] private List<TMP_Text> _cardEffectsTexts;
@@ -175,6 +176,7 @@ public class UIManager : MonoBehaviour
         _lossPanel.SetActive(false);
         _shopPanel.SetActive(false);
         _cardEffectsPanel.SetActive(false);
+        _quitButtonPanel.SetActive(false);
 
         Time.timeScale = 0;
     }
@@ -186,6 +188,7 @@ public class UIManager : MonoBehaviour
         _lossPanel.SetActive(false);
         _shopPanel.SetActive(false);
         _peekDeckPanel.SetActive(false);
+        _quitButtonPanel.SetActive(false);
 
         Time.timeScale = 0;
     }
@@ -197,6 +200,7 @@ public class UIManager : MonoBehaviour
         _lossPanel.SetActive(false);
         _shopPanel.SetActive(false);
         _cardEffectsPanel.SetActive(false);
+        _quitButtonPanel.SetActive(false);
 
         Time.timeScale = 0;
     }
@@ -208,6 +212,7 @@ public class UIManager : MonoBehaviour
         _winPanel.SetActive(false);
         _shopPanel.SetActive(false);
         _cardEffectsPanel.SetActive(false);
+        _quitButtonPanel.SetActive(false);
 
         Time.timeScale = 0;
     }
@@ -219,6 +224,7 @@ public class UIManager : MonoBehaviour
         _winPanel.SetActive(false);
         _lossPanel.SetActive(false);
         _cardEffectsPanel.SetActive(false);
+        _quitButtonPanel.SetActive(false);
 
         Time.timeScale = 0;
     }
@@ -226,24 +232,28 @@ public class UIManager : MonoBehaviour
     public void OnClickPeekBackButton()
     {
         _peekDeckPanel.SetActive(false);
+        _quitButtonPanel.SetActive(true);
         Time.timeScale = 1;
     }
 
     public void OnClickEffectsBackButton()
     {
         _cardEffectsPanel.SetActive(false);
+        _quitButtonPanel.SetActive(true);
         Time.timeScale = 1;
     }
 
     public void OnClickLossRestartButton()
     {
         _lossPanel.SetActive(false);
+        _quitButtonPanel.SetActive(true);
     }
 
     public void OnClickWinNextLevelButton()
     {
         GameManager.Instance.HandleLevelChanged();
         _winPanel.SetActive(false);
+        _quitButtonPanel.SetActive(true);
     }
 
     public void OnClickQuitButton()

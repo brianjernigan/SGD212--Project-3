@@ -2533,6 +2533,11 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &406488158 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4610331988444857997, guid: 9af557c3a45f2024fad3429ade90df7b, type: 3}
+  m_PrefabInstance: {fileID: 9156722213951921196}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &431754986
 GameObject:
   m_ObjectHideFlags: 0
@@ -12615,6 +12620,10 @@ MonoBehaviour:
   - {fileID: 91548230}
   - {fileID: 569522118}
   - {fileID: 710824951}
+  _handAreas:
+  - {fileID: 406488158}
+  - {fileID: 581496777}
+  - {fileID: 2069707749}
 --- !u!4 &2026720658
 Transform:
   m_ObjectHideFlags: 0
@@ -12850,7 +12859,7 @@ GameObject:
   - component: {fileID: 2069707750}
   - component: {fileID: 2069707751}
   m_Layer: 2
-  m_Name: HandArea2
+  m_Name: HandArea3
   m_TagString: HandArea
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

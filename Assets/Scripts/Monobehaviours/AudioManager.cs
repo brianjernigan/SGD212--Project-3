@@ -59,4 +59,9 @@ public class AudioManager : MonoBehaviour
     {
         _backToHandAudio.Play();
     }
+
+    public void PlayAmbientAudio()
+    {
+        _ambientAudio.Play();
+    }
 }

@@ -34,6 +34,8 @@ public class GameManager : MonoBehaviour
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
     public GameObject Hand => _hand;
+
+    [SerializeField] private List<GameObject> _handAreas;
     
     public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
 
@@ -177,18 +179,20 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-
-        _hand = GameObject.FindGameObjectWithTag("HandArea");
     }
 
     private void Start()
     {
+        AudioManager.Instance.PlayAmbientAudio();
+        
         _mainCamera = Camera.main;
 
         StageAreaController = _stage.GetComponent<StageAreaController>();
         
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+
+        _hand = _handAreas[_levelIndex - 1];
         
         StartCoroutine(DrawInitialHandCoroutine());
     }
@@ -224,22 +228,22 @@ public class GameManager : MonoBehaviour
 
         /* For Testing */
         
-        var testCards = new[] { "Whaleshark", "Whaleshark", "Kraken", "Kraken", "CookieCutter" };
-        foreach (var card in testCards)
-        {
-            var specificCard = CardLibrary.Instance.GetCardDataByName(card);
-            if (specificCard is not null)
-            {
-                var cardToDraw = GameDeck.DrawSpecificCard(specificCard);
-                PlayerHand.TryAddCardToHand(cardToDraw);
-                var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand,
-                    _hand.transform.position);
+        // var testCards = new[] { "Whaleshark", "Whaleshark", "Kraken", "Kraken", "CookieCutter" };
+        // foreach (var card in testCards)
+        // {
+        //     var specificCard = CardLibrary.Instance.GetCardDataByName(card);
+        //     if (specificCard is not null)
+        //     {
+        //         var cardToDraw = GameDeck.DrawSpecificCard(specificCard);
+        //         PlayerHand.TryAddCardToHand(cardToDraw);
+        //         var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand,
+        //             _hand.transform.position);
+        //
+        //         StartCoroutine(DealCardCoroutine(cardToDraw, targetPosition));
+        //     }
+        // }
         
-                StartCoroutine(DealCardCoroutine(cardToDraw, targetPosition));
-            }
-        }
-        
-        // StartCoroutine(DrawFullHandCoroutine());
+        StartCoroutine(DrawFullHandCoroutine());
     }
 
     private void Update()
@@ -409,7 +413,6 @@ public class GameManager : MonoBehaviour
     public void OnClickPlayButton()
     {
         if (StageAreaController.NumCardsStaged == 0) return;
-        if (PlaysRemaining == 0) return;
         
         switch (StageAreaController.NumCardsStaged)
         {
@@ -420,6 +423,7 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
+                    if (PlaysRemaining == 0) return;
                     TriggerCardEffect();
                     PlaysRemaining--;
                     TriggerPlaysChanged();
@@ -720,7 +724,7 @@ public class GameManager : MonoBehaviour
         StageAreaController.ClearStageArea();
 
         _hand = null;
-        _hand = GameObject.FindGameObjectWithTag("HandArea");
+        _hand = _handAreas[_levelIndex - 1];
 
         CurrentScore = 0;
         TriggerScoreChanged();
@@ -772,4 +776,9 @@ public class GameManager : MonoBehaviour
     }
 
     #endregion
+
+    public void OnClickQuitButton()
+    {
+        Application.Quit();
+    }
 }
