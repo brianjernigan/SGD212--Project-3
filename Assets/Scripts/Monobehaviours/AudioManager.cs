@@ -8,6 +8,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioSource _buttonClickAudio;
     [SerializeField] private AudioSource _cardDrawAudio;
     [SerializeField] private AudioSource _cardFlipAudio;
+    [SerializeField] private AudioSource _cardSelectAudio; // New audio source for card selection
     [SerializeField] private AudioSource _discardAudio;
     [SerializeField] private AudioSource _matchAudio;
     [SerializeField] private AudioSource _playCardAudio;
@@ -48,6 +49,18 @@ public class AudioManager : MonoBehaviour
         else
         {
             Debug.LogWarning("Card flip audio source is not assigned.");
+        }
+    }
+
+    public void PlayCardSelectAudio()
+    {
+        if (_cardSelectAudio != null)
+        {
+            _cardSelectAudio.Play();
+        }
+        else
+        {
+            Debug.LogWarning("Card select audio source is not assigned.");
         }
     }
 }
