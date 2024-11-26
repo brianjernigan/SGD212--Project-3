@@ -6,13 +6,15 @@ using UnityEngine;
 public class WhaleSharkEffect : ICardEffect
 {
     public string EffectDescription =>
-        "This card can always be scored. Value is multiplied by the number of plankton remaining in deck.";
+        "This card can be scored as a set of 1, 2, 3, or 4. Value is multiplied by the number of remaining plankton.";
     
     public void ActivateEffect()
     {
-        var planktonCount = GameManager.Instance.GameDeck.CardDataInDeck.Count(card => card.CardName == "Plankton");
+        var planktonCountInDeck = GameManager.Instance.GameDeck.CardDataInDeck.Count(card => card.CardName == "Plankton");
+        var planktonCountInHand =
+            GameManager.Instance.PlayerHand.CardsInHand.Count(card => card.Data.CardName == "Plankton");
 
-        GameManager.Instance.CurrentMultiplier += planktonCount;
+        GameManager.Instance.CurrentMultiplier += planktonCountInDeck + planktonCountInHand;
         GameManager.Instance.TriggerMultiplierChanged();
     }
 }

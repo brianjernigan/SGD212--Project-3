@@ -8,7 +8,6 @@ public class KrakenEffect : ICardEffect
 
     public void ActivateEffect()
     {
-        Debug.Log("No effect! This card can be played as any rank.");
         return;
     }
 }

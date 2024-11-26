@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class AnemoneEffect : ICardEffect
 {
-    public string EffectDescription => "Add 2 clownfish to your deck. Discards this card.";
+    public string EffectDescription => "Adds 2 clownfish to your deck. Discards this card.";
     
     public void ActivateEffect()
     {

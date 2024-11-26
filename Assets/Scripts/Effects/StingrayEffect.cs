@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class StingrayEffect : ICardEffect
 {
-    public string EffectDescription => "Shuffle this card and your entire hand back into the deck. Redraw a full hand.";
+    public string EffectDescription => "Shuffles this card and your entire hand back into the deck. Redraws a full hand.";
     
     public void ActivateEffect()
     {

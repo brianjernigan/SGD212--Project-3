@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class SeahorseEffect : ICardEffect
 {
-    public string EffectDescription => "Transform all Fish Eggs remaining into Seahorses. This card remains staged.";
+    public string EffectDescription => "Transforms all Fish Eggs remaining into Seahorses. This card remains staged.";
     
     public void ActivateEffect()
     {

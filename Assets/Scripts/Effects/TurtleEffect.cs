@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TurtleEffect : ICardEffect
 {
-    public string EffectDescription => "Next turn, draw 2 additional cards. Discards this card.";
+    public string EffectDescription => "The next draw draws 2 additional cards. Discards this card.";
     
     public void ActivateEffect()
     {

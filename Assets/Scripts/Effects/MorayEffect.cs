@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class MorayEffect : ICardEffect
 {
-    public string EffectDescription => "Discards all cards that are unable to form a set (2 or less remaining).";
+    public string EffectDescription =>
+        "Discards all cards that are unable to form a set (2 or less remaining). Discards this card.";
     
     public void ActivateEffect()
     {

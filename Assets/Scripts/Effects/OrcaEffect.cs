@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class OrcaEffect : ICardEffect
 {
-    public string EffectDescription => "Discard your entire hand. Redraw a full hand.";
+    public string EffectDescription => "Discards this card and your entire hand. Redraws a full hand.";
     
     public void ActivateEffect()
     {
@@ -14,6 +14,8 @@ public class OrcaEffect : ICardEffect
         {
             playerHand.TryDiscardCardFromHand(playerHand.CardsInHand[i]);
         }
+        
+        GameManager.Instance.StageAreaController.ClearStageArea();
 
         for (var i = 0; i < GameManager.Instance.HandSize; i++)
         {

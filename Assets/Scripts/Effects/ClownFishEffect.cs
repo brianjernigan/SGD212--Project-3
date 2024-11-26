@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class ClownFishEffect : ICardEffect
 {
-    public string EffectDescription => "Next played set receives x-Mult for each anemone in deck or hand. Discards this card.";
+    public string EffectDescription => "The next played set receives x-Mult for each anemone in deck or hand. Discards this card.";
     
     public void ActivateEffect()
     {
