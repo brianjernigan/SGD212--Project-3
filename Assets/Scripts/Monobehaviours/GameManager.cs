@@ -135,7 +135,11 @@ public class GameManager : MonoBehaviour
 
     private void HandleLeftMouseClick(GameObject clickedObject)
     {
-        if (clickedObject.CompareTag("DrawButton"))
+        if (clickedObject.CompareTag("Card"))
+        {
+            SelectCard(clickedObject);
+        }
+        else if (clickedObject.CompareTag("DrawButton"))
         {
             DrawFullHand();
         }
@@ -144,6 +148,15 @@ public class GameManager : MonoBehaviour
             OnClickPlayButton();
         }
     }
+
+    private void SelectCard(GameObject card)
+    {
+        // Play card selection audio
+        AudioManager.Instance.PlayCardSelectAudio();
+
+        // Additional logic for selecting the card...
+    }
+
     
     private void HandleRightMouseClick(GameObject clickedObject)
     {
