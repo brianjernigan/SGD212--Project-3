@@ -44,8 +44,9 @@ public class GameManager : MonoBehaviour
 
     private Camera _mainCamera;
 
-    private bool _isDrawingCards;
+    public bool IsDrawingCards { get; set; }
     public bool IsDraggingCard { get; set; }
+    public bool IsFlippingCard { get; set; }
     
     public int CurrentScore { get; set; }
     public int CurrentMultiplier { get; set; } = 1;
@@ -53,8 +54,8 @@ public class GameManager : MonoBehaviour
     private const float DockWidth = 750f;
     private const float InitialCardY = 25f;
 
-    public int PlaysRemaining { get; set; } = 7;
-    public int DiscardsRemaining { get; set; } = 10;
+    public int PlaysRemaining { get; set; } = 5;
+    public int DiscardsRemaining { get; set; } = 5;
     public int DrawsRemaining { get; set; } = 5;
     public int PlayerMoney { get; set; }
 
@@ -105,7 +106,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator DrawInitialHandCoroutine()
     {
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(0.5f);
         StartCoroutine(DrawFullHandCoroutine());
     }
 
@@ -141,12 +142,12 @@ public class GameManager : MonoBehaviour
 
     private void HandleLeftMouseClick(GameObject clickedObject)
     {
-        if (clickedObject.CompareTag("DrawButton"))
+        if (clickedObject.CompareTag("DrawButton") && !IsDrawingCards)
         {
             DrawFullHand();
         }
         
-        if (clickedObject.CompareTag("PlayButton"))
+        if (clickedObject.CompareTag("PlayButton") && !IsDrawingCards)
         {
             OnClickPlayButton();
         }
@@ -168,6 +169,8 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator FlipCardCoroutine(GameObject card)
     {
+        IsFlippingCard = true;
+        
         // Play the flip audio
         AudioManager.Instance.PlayCardFlipAudio();
 
@@ -194,6 +197,25 @@ public class GameManager : MonoBehaviour
         card.transform.rotation = endRotation; // Ensure it ends exactly at the target rotation
 
         card.GetComponent<CardUI>().StopBubbleEffect(); // Stop bubbles after flipping
+
+        IsFlippingCard = false;
+
+        if (!card.GetComponent<CardUI>().IsMouseOver)
+        {
+            card.GetComponent<CardUI>().OnMouseExit();
+        }
+
+        TriggerOnMouseOverForCurrentCard();
+    }
+
+    private void TriggerOnMouseOverForCurrentCard()
+    {
+        var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out var hit))
+        {
+            var hoveredCardUI = hit.transform.GetComponent<CardUI>();
+            hoveredCardUI?.OnMouseEnter();
+        }
     }
 
     
@@ -201,7 +223,7 @@ public class GameManager : MonoBehaviour
     {
         if (DrawsRemaining == 0) return;
         
-        if (!_isDrawingCards)
+        if (!IsDrawingCards)
         {
             StartCoroutine(DrawFullHandCoroutine());
         }
@@ -212,7 +234,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator DrawFullHandCoroutine()
     {
-        _isDrawingCards = true;
+        IsDrawingCards = true;
 
         while (CardsOnScreen < HandSize && !GameDeck.IsEmpty)
         {
@@ -243,7 +265,9 @@ public class GameManager : MonoBehaviour
             TriggerHandSizeChanged();
         }
 
-        _isDrawingCards = false;
+        IsDrawingCards = false;
+        
+        TriggerOnMouseOverForCurrentCard();
         
         // StartWaveEffect();
     }
@@ -261,7 +285,8 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
     {
-        var cardTransform = gameCard.UI.transform;
+        var cardUI = gameCard.UI;
+        var cardTransform = cardUI.transform;
 
         // Lock animation
         gameCard.IsAnimating = true;
@@ -270,7 +295,7 @@ public class GameManager : MonoBehaviour
 
         AudioManager.Instance.PlayCardDrawAudio();
 
-        var duration = 1.0f; // Animation duration
+        var duration = 0.75f; // Animation duration
         var bounceDuration = 0.25f; // Bounce-back duration
         var elapsedTime = 0f;
 
@@ -430,6 +455,7 @@ public class GameManager : MonoBehaviour
         {
             var card = PlayerHand.CardsInHand[i];
             var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
+            card.UI.YPositionInHand = targetPosition.y;
             StartCoroutine(AnimateCardToPosition(card.UI?.transform, targetPosition, Quaternion.Euler(90f, 180f, 0f)));
         }
     }
