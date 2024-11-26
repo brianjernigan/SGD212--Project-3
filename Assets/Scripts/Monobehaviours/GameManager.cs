@@ -161,6 +161,9 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator FlipCardCoroutine(GameObject card)
     {
+        // Play the flip audio
+        AudioManager.Instance.PlayCardFlipAudio();
+
         card.GetComponent<CardUI>().PlayBubbleEffect();
 
         var startRotation = card.transform.rotation;
@@ -185,6 +188,7 @@ public class GameManager : MonoBehaviour
 
         card.GetComponent<CardUI>().StopBubbleEffect(); // Stop bubbles after flipping
     }
+
     
     public void DrawFullHand()
     {
