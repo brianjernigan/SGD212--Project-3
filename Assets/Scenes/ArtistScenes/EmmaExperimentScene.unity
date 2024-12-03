@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18385267, g: 0.22907074, b: 0.3035484, a: 1}
+  m_IndirectSpecularColor: {r: 0.18118729, g: 0.22678094, b: 0.3073313, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -6620,13 +6620,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1035542235}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2967711, y: -0.66130054, z: 0.07772794, w: 0.6845194}
-  m_LocalPosition: {x: 2276, y: 3, z: 907}
+  m_LocalRotation: {x: 0.71273154, y: -0.37168017, z: 0.55246204, w: 0.22057512}
+  m_LocalPosition: {x: 244, y: -244, z: 1075}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 30.604, y: -93.382, z: -19.414}
+  m_LocalEulerAnglesHint: {x: 46.477, y: -244.887, z: -155.452}
 --- !u!114 &1035542238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10659,6 +10659,7 @@ MonoBehaviour:
   _winPanel: {fileID: 756101106}
   _lossPanel: {fileID: 974879090}
   _shopPanel: {fileID: 1341919269}
+  _quitButtonPanel: {fileID: 0}
   _cardCountTexts:
   - {fileID: 1477511433}
   - {fileID: 1934715594}
