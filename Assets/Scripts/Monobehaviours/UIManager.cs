@@ -16,7 +16,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text _drawsText;
     [SerializeField] private TMP_Text _multiplierText;
     [SerializeField] private TMP_Text _handSizeText;
-    [SerializeField] private TMP_Text _moneyText;
     [SerializeField] private TMP_Text _cardsRemainingText;
 
     [Header("Panels")] 
@@ -24,7 +23,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject _cardEffectsPanel;
     [SerializeField] private GameObject _winPanel;
     [SerializeField] private GameObject _lossPanel;
-    [SerializeField] private GameObject _shopPanel;
     [SerializeField] private GameObject _quitButtonPanel;
 
     [SerializeField] private List<TMP_Text> _cardCountTexts;
@@ -51,7 +49,6 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnDrawsChanged += UpdateDrawsText;
         GameManager.Instance.OnMultiplierChanged += UpdateMultiplierText;
         GameManager.Instance.OnHandSizeChanged += UpdateHandSizeText;
-        GameManager.Instance.OnMoneyChanged += UpdateMoneyText;
         GameManager.Instance.OnCardsRemainingChanged += UpdateCardsRemainingText;
         GameManager.Instance.OnCardsRemainingChanged += UpdateCardCountsText;
     }
@@ -64,7 +61,6 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnDrawsChanged -= UpdateDrawsText;
         GameManager.Instance.OnMultiplierChanged -= UpdateMultiplierText;
         GameManager.Instance.OnHandSizeChanged -= UpdateHandSizeText;
-        GameManager.Instance.OnMoneyChanged -= UpdateMoneyText;
         GameManager.Instance.OnCardsRemainingChanged -= UpdateCardsRemainingText;
         GameManager.Instance.OnCardsRemainingChanged -= UpdateCardCountsText;
     }
@@ -77,9 +73,7 @@ public class UIManager : MonoBehaviour
         UpdateDrawsText(GameManager.Instance.DrawsRemaining);
         UpdateMultiplierText(GameManager.Instance.CurrentMultiplier);
         UpdateHandSizeText(GameManager.Instance.HandSize);
-        UpdateMoneyText(GameManager.Instance.PlayerMoney);
         UpdateCardsRemainingText(GameManager.Instance.GameDeck.CardDataInDeck.Count);
-        
 
         SetCardEffectTexts();
     }
@@ -97,7 +91,7 @@ public class UIManager : MonoBehaviour
     private void UpdateScoreText(int score)
     {
         // USE "I" AS A REPLACEMENT FOR "/"
-        _scoreText.text = $"Score: {score} I {GameManager.Instance.CurrentRequiredScore}";
+        _scoreText.text = $"Score: {score} / {GameManager.Instance.CurrentRequiredScore}";
     }
 
     private void UpdatePlaysText(int plays)
@@ -123,11 +117,6 @@ public class UIManager : MonoBehaviour
     private void UpdateHandSizeText(int size)
     {
         _handSizeText.text = $"Hand Size: {size}";
-    }
-
-    private void UpdateMoneyText(int cash)
-    {
-        _moneyText.text = $"${cash}";
     }
 
     private void UpdateCardsRemainingText(int cardsRemaining)
@@ -174,7 +163,6 @@ public class UIManager : MonoBehaviour
         _peekDeckPanel.SetActive(true);
         _winPanel.SetActive(false);
         _lossPanel.SetActive(false);
-        _shopPanel.SetActive(false);
         _cardEffectsPanel.SetActive(false);
         _quitButtonPanel.SetActive(false);
 
@@ -186,7 +174,6 @@ public class UIManager : MonoBehaviour
         _cardEffectsPanel.SetActive(true);
         _winPanel.SetActive(false);
         _lossPanel.SetActive(false);
-        _shopPanel.SetActive(false);
         _peekDeckPanel.SetActive(false);
         _quitButtonPanel.SetActive(false);
 
@@ -198,7 +185,6 @@ public class UIManager : MonoBehaviour
         _winPanel.SetActive(true);
         _peekDeckPanel.SetActive(false);
         _lossPanel.SetActive(false);
-        _shopPanel.SetActive(false);
         _cardEffectsPanel.SetActive(false);
         _quitButtonPanel.SetActive(false);
 
@@ -210,19 +196,6 @@ public class UIManager : MonoBehaviour
         _lossPanel.SetActive(true);
         _peekDeckPanel.SetActive(false);
         _winPanel.SetActive(false);
-        _shopPanel.SetActive(false);
-        _cardEffectsPanel.SetActive(false);
-        _quitButtonPanel.SetActive(false);
-
-        Time.timeScale = 0;
-    }
-
-    public void ActivateShopPanel()
-    {
-        _shopPanel.SetActive(true);
-        _peekDeckPanel.SetActive(false);
-        _winPanel.SetActive(false);
-        _lossPanel.SetActive(false);
         _cardEffectsPanel.SetActive(false);
         _quitButtonPanel.SetActive(false);
 

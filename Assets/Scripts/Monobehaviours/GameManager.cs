@@ -65,7 +65,6 @@ public class GameManager : MonoBehaviour
     public int PlaysRemaining { get; set; } = 5;
     public int DiscardsRemaining { get; set; } = 5;
     public int DrawsRemaining { get; set; } = 5;
-    public int PlayerMoney { get; set; }
 
     public event Action<int> OnScoreChanged;
     public event Action<int> OnPlaysChanged;
@@ -73,7 +72,6 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnDrawsChanged;
     public event Action<int> OnMultiplierChanged;
     public event Action<int> OnHandSizeChanged;
-    public event Action<int> OnMoneyChanged;
     public event Action<int> OnCardsRemainingChanged;
     public event Action OnLevelChanged;
 
@@ -760,11 +758,6 @@ public class GameManager : MonoBehaviour
     public void TriggerHandSizeChanged()
     {
         OnHandSizeChanged?.Invoke(HandSize);
-    }
-
-    public void TriggerMoneyChanged()
-    {
-        OnMoneyChanged?.Invoke(PlayerMoney);
     }
 
     public void TriggerCardsRemainingChanged()
