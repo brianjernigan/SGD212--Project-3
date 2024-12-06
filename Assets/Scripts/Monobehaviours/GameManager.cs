@@ -13,34 +13,22 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<Transform> _stagePositions;
 
     [Header("Areas")]
-    [SerializeField] private GameObject _stage;
-    [SerializeField] private GameObject _discard;
+    [SerializeField] private GameObject _stageArea;
+    [SerializeField] private GameObject _discardArea;
     [SerializeField] private GameObject _deck;
     [SerializeField] private Transform _whirlpoolCenter; // Added for spiral animation
-
-    // Dynamic Lookup
-    private GameObject _hand;
     
-    [Header("Play Areas")] 
-    [SerializeField] private List<GameObject> _playAreas;
-    
-    private float _spiralDuration = 1.0f; // Duration of the spiral animation
-    private float _spiralRadius = 5.0f;    // Starting radius of the spiral
-    private float _spiralDepth = 2.0f;     // Depth the card moves downward
-    private float _spiralRotationSpeed = 360f; // Degrees per second
-
-    public GameObject Stage => _stage;
-    public GameObject Discard => _discard;
-    public GameObject Hand => _hand;
-
+    [SerializeField] private List<GameObject> _levels;
     [SerializeField] private List<GameObject> _handAreas;
+    public GameObject StageArea => _stageArea;
+    public GameObject DiscardArea => _discardArea;
+    public GameObject HandArea { get; private set; }
+    private int _levelIndex = 0;
     
     public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
-
     private const int MaxCardsOnScreen = 5;
     public int AdditionalCardsDrawn { get; set; }
     public int PermanentHandSizeModifier { get; set; }
-
     public int HandSize => MaxCardsOnScreen + AdditionalCardsDrawn + PermanentHandSizeModifier;
 
     public Deck GameDeck { get; set; }
@@ -59,6 +47,11 @@ public class GameManager : MonoBehaviour
 
     private const float DockWidth = 750f;
     private float _initialCardY;
+    
+    private readonly float _spiralDuration = 1.0f; // Duration of the spiral animation
+    private readonly float _spiralRadius = 5.0f;    // Starting radius of the spiral
+    private readonly float _spiralDepth = 2.0f;     // Depth the card moves downward
+    private readonly float _spiralRotationSpeed = 360f; // Degrees per second
 
     public int PlaysRemaining { get; set; } = 5;
     public int DiscardsRemaining { get; set; } = 5;
@@ -71,19 +64,6 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnMultiplierChanged;
     public event Action<int> OnHandSizeChanged;
     public event Action<int> OnCardsRemainingChanged;
-    public event Action OnLevelChanged;
-
-    private int _levelIndex = 1;
-
-    // public int LevelIndex
-    // {
-    //     get => _levelIndex;
-    //     set
-    //     {
-    //         _levelIndex = value;
-    //         HandleLevelChanged();
-    //     }
-    // }
 
     private const int BaseRequiredScore = 50;
     public int CurrentRequiredScore => BaseRequiredScore * _levelIndex;
@@ -98,14 +78,14 @@ public class GameManager : MonoBehaviour
         var startX = -((totalCards - 1) * cardSpacing) / 2f;
         var xPosition = startX + (cardIndex * cardSpacing);
 
-        var handCollider = _hand.GetComponent<BoxCollider>();
+        var handCollider = HandArea.GetComponent<BoxCollider>();
         
         return dockCenter + new Vector3(xPosition, handCollider.transform.TransformPoint(handCollider.center).y + cardIndex, 0f); // Straight line with fixed Y
     }
 
     public void PlaceCardInHand(GameCard gameCard)
     {
-        var handCenter = _hand.transform.position;
+        var handCenter = HandArea.transform.position;
 
         var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, handCenter);
         
@@ -136,7 +116,7 @@ public class GameManager : MonoBehaviour
     
     public void RearrangeHand()
     {
-        var dockCenter = _hand.transform.position;
+        var dockCenter = HandArea.transform.position;
         for (var i = 0; i < PlayerHand.NumCardsInHand; i++)
         {
             var card = PlayerHand.CardsInHand[i];
@@ -180,12 +160,12 @@ public class GameManager : MonoBehaviour
         
         _mainCamera = Camera.main;
 
-        StageAreaController = _stage.GetComponent<StageAreaController>();
+        StageAreaController = _stageArea.GetComponent<StageAreaController>();
         
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
 
-        _hand = _handAreas[_levelIndex - 1];
+        HandArea = _handAreas[_levelIndex - 1];
         
         StartCoroutine(DrawInitialHandCoroutine());
     }
@@ -288,7 +268,7 @@ public class GameManager : MonoBehaviour
         while (NumCardsOnScreen < HandSize && !GameDeck.IsEmpty)
         {
             var gameCard = GameDeck.DrawCard();
-            _initialCardY = _hand.transform.position.y;
+            _initialCardY = HandArea.transform.position.y;
             
             if (PlayerHand.TryAddCardToHand(gameCard))
             {
@@ -296,7 +276,7 @@ public class GameManager : MonoBehaviour
                 gameCard.IsStaged = false;
             }
 
-            var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
+            var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, HandArea.transform.position);
 
             gameCard.UI.PlayBubbleEffect();
 
@@ -520,7 +500,7 @@ public class GameManager : MonoBehaviour
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
     {
         // Destage
-        if (dropArea == _hand.transform)
+        if (dropArea == HandArea.transform)
         {
             if (PlayerHand.TryAddCardToHand(gameCard) && StageAreaController.TryRemoveCardFromStage(gameCard))
             {
@@ -529,7 +509,7 @@ public class GameManager : MonoBehaviour
             }
         }
         // Stage Card
-        if (dropArea == _stage.transform)
+        if (dropArea == _stageArea.transform)
         {
             if (StageAreaController.TryAddCardToStage(gameCard) && PlayerHand.TryRemoveCardFromHand(gameCard))
             {
@@ -538,7 +518,7 @@ public class GameManager : MonoBehaviour
             }
         }
         // Discard
-        if (dropArea == _discard.transform)
+        if (dropArea == _discardArea.transform)
         {
             if (DiscardsRemaining == 0) return false;
             
@@ -723,17 +703,26 @@ public class GameManager : MonoBehaviour
     
     public void HandleLevelChanged()
     {
-        _playAreas[_levelIndex - 1].SetActive(false);
+        InitializeNewLevel();
+
+        // TODO - Implement Stat Resets
+    }
+
+    private void InitializeNewLevel()
+    {
+        _levels[_levelIndex].SetActive(false);
         _levelIndex++;
-        _playAreas[_levelIndex - 1].SetActive(true);
+        _levels[_levelIndex].SetActive(true);
         PlayerHand.ClearHandArea();
         StageAreaController.ClearStageArea();
 
-        _hand = null;
-        _hand = _handAreas[_levelIndex - 1];
+        HandArea = null;
+        HandArea = _handAreas[_levelIndex];
+    }
 
-        CurrentScore = 0;
-        TriggerScoreChanged();
+    private void ResetStats()
+    {
+        throw new NotImplementedException();
     }
 
     #region Invocations

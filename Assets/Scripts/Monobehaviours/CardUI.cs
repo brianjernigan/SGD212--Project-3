@@ -41,9 +41,9 @@ public class CardUI : MonoBehaviour
 
         _dropZones = new List<Transform>()
         {
-            GameManager.Instance.Hand.transform,
-            GameManager.Instance.Stage.transform,
-            GameManager.Instance.Discard.transform
+            GameManager.Instance.HandArea.transform,
+            GameManager.Instance.StageArea.transform,
+            GameManager.Instance.DiscardArea.transform
         };
     }
     
