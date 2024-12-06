@@ -67,7 +67,7 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         UpdateScoreText(GameManager.Instance.CurrentScore);
-        UpdatePlaysText(GameManager.Instance.PlaysRemaining);
+        UpdatePlaysText(GameManager.Instance.PlaysRemaining.ToString());
         UpdateDiscardsText(GameManager.Instance.DiscardsRemaining);
         UpdateDrawsText(GameManager.Instance.DrawsRemaining);
         UpdateMultiplierText(GameManager.Instance.CurrentMultiplier);
@@ -93,9 +93,9 @@ public class UIManager : MonoBehaviour
         _scoreText.text = $"Score: {score} / {GameManager.Instance.CurrentRequiredScore}";
     }
 
-    private void UpdatePlaysText(int plays)
+    public void UpdatePlaysText(string plays)
     {
-        _playsText.text = $"{plays}";
+        _playsText.text = plays;
     }
 
     private void UpdateDiscardsText(int discards)

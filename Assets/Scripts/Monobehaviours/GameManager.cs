@@ -65,7 +65,7 @@ public class GameManager : MonoBehaviour
     public int DrawsRemaining { get; set; } = 5;
 
     public event Action<int> OnScoreChanged;
-    public event Action<int> OnPlaysChanged;
+    public event Action<string> OnPlaysChanged;
     public event Action<int> OnDiscardsChanged;
     public event Action<int> OnDrawsChanged;
     public event Action<int> OnMultiplierChanged;
@@ -438,6 +438,7 @@ public class GameManager : MonoBehaviour
         }
 
         AudioManager.Instance.PlayScoreSetAudio();
+        TriggerPlaysChanged();
         CheckForGameWin();
     }
     
@@ -652,15 +653,15 @@ public class GameManager : MonoBehaviour
 
     private void CheckForGameLoss()
     {
-        var isOutOfPlays = PlaysRemaining == 0;
-        var isOutOfDiscards = DiscardsRemaining == 0;
-
         if (HasScoreableSet()) return;
-        if (!isOutOfPlays) return;
-        if (!isOutOfDiscards) return;
-        if (!CanDrawCards()) return;
 
-        HandleLoss();
+        var canDiscard = DiscardsRemaining > 0;
+        var canPlay = PlaysRemaining > 0;
+
+        if (!CanDrawCards() && !canDiscard && !canPlay)
+        {
+            HandleLoss();
+        }
     }
 
     private bool CanDrawCards()
@@ -744,7 +745,7 @@ public class GameManager : MonoBehaviour
 
     public void TriggerPlaysChanged()
     {
-        OnPlaysChanged?.Invoke(PlaysRemaining);
+        OnPlaysChanged?.Invoke(PlaysRemaining.ToString());
     }
 
     public void TriggerDiscardsChanged()

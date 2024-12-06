@@ -17,6 +17,10 @@ public class StageAreaController : MonoBehaviour
     {
         var canBeScored = StageContainsWhaleShark() || NumCardsStaged >= 3;
         _playButtonText.text = canBeScored ? "Score" : "Play";
+        if (canBeScored)
+        {
+            UIManager.Instance.UpdatePlaysText("!");
+        }
     }
     
     private bool CanStageCard(CardData card)
