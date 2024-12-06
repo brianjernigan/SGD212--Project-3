@@ -9997,7 +9997,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1782939087}
   m_LocalRotation: {x: 0.7071068, y: 0.000000029802319, z: -0.000000029802319, w: 0.70710677}
-  m_LocalPosition: {x: 0, y: 0, z: -1839.4463}
+  m_LocalPosition: {x: 0, y: 0, z: -1840}
   m_LocalScale: {x: 100.00002, y: 100, z: 100.00004}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10005,8 +10005,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 90}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 30.106396, y: 1111.0302}
-  m_SizeDelta: {x: 3.319734, y: 0.685596}
+  m_AnchoredPosition: {x: 33, y: 1111.0302}
+  m_SizeDelta: {x: 5.3173, y: 0.6664}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1782939089
 MonoBehaviour:
@@ -10028,7 +10028,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Hand Size: 5'
+  m_text: 'Cards Next Draw: 5'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3d716b42543073340a159b8ee51a28b3, type: 2}
   m_sharedMaterial: {fileID: 3292138066203929384, guid: 3d716b42543073340a159b8ee51a28b3, type: 2}
@@ -10055,8 +10055,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 4
-  m_fontSizeBase: 4
+  m_fontSize: 3.5
+  m_fontSizeBase: 3.5
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -10310,7 +10310,6 @@ MonoBehaviour:
   _cardEffectsPanel: {fileID: 94726092}
   _winPanel: {fileID: 756101106}
   _lossPanel: {fileID: 974879090}
-  _quitButtonPanel: {fileID: 0}
   _cardCountTexts:
   - {fileID: 1477511433}
   - {fileID: 1934715594}

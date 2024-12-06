@@ -115,7 +115,7 @@ public class UIManager : MonoBehaviour
 
     private void UpdateHandSizeText(int size)
     {
-        _handSizeText.text = $"Hand Size: {size}";
+        _handSizeText.text = $"Cards Next Draw: {size}";
     }
 
     private void UpdateCardsRemainingText(int cardsRemaining)
