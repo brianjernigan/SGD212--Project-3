@@ -31,12 +31,12 @@ public class StageAreaController : MonoBehaviour
         var cardsAreFull = CardsStaged.Count > 4;
         if (cardsAreFull) return false;
 
-        var containsKraken = CardsStaged.Exists(stagedCard => stagedCard.Data.CardRank == 12);
+        var containsKraken = CardsStaged.Exists(stagedCard => stagedCard.Data.CardName == "Kraken");
         if (containsKraken && NumCardsStaged == 1) return true;
 
         if (containsKraken && NumCardsStaged > 1)
         {
-            var nonKrakenCard = CardsStaged.Find(stagedCard => stagedCard.Data.CardRank != 12);
+            var nonKrakenCard = CardsStaged.Find(stagedCard => stagedCard.Data.CardName != "Kraken");
             if (nonKrakenCard is not null)
             {
                 return card.CardRank == nonKrakenCard.Data.CardRank;
@@ -45,7 +45,7 @@ public class StageAreaController : MonoBehaviour
 
         var firstCard = CardsStaged[0].Data;
         var cardIsMatch = firstCard.CardRank == card.CardRank;
-        var cardIsKraken = card.CardRank == 12;
+        var cardIsKraken = card.CardName == "Kraken";
 
         return cardIsMatch || cardIsKraken;
     }

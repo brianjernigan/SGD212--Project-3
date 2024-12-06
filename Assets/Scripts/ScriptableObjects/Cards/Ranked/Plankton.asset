@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8374cb81c79c2a34ab0e1921daf9353a, type: 3}
   m_Name: Plankton
   m_EditorClassIdentifier: 
+  _type: 0
   _cardName: Plankton
-  _cardMat: {fileID: 2100000, guid: 212ce2243283d6f4e90f3213aed18da0, type: 2}
-  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
-  _textBoxSprite: {fileID: 225651734, guid: 924542f8183011d44842dda9f61231a7, type: 3}
+  _frontOfCardMat: {fileID: 2100000, guid: 212ce2243283d6f4e90f3213aed18da0, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: eb40a6d574a79044ca8bd8d1a10e785e, type: 2}
   _cardRank: 1

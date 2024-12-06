@@ -10,10 +10,13 @@ public class CardUI : MonoBehaviour
     [SerializeField] private TMP_Text _topRankText;
     [SerializeField] private TMP_Text _bottomRankText;
     [SerializeField] private TMP_Text _descriptionText;
-
-    [Header("Particle Effects")]
+    
+    [Header("Particles")]
     [SerializeField] private ParticleSystem _bubbleEffect; // Reference to the BubbleEffect ParticleSystem
-
+    
+    [Header("Back of Card")]
+    [SerializeField] private GameObject _backOfCard;
+    
     private Camera _mainCamera;
     private bool _isDragging;
     private Vector3 _offset;
@@ -67,7 +70,8 @@ public class CardUI : MonoBehaviour
             _bottomRankText.text = _cardData.CardRank.ToString();
         }
         
-        GetComponent<MeshRenderer>().material = _cardData.CardMat;
+        GetComponent<MeshRenderer>().material = _cardData.FrontOfCardMat;
+        _backOfCard.GetComponent<MeshRenderer>().material = _cardData.BackOfCardMat;
         _descriptionText.text = _gameCard.Description;
     }
 

@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _type: 0
   _cardName: Clownfish
-  _cardMat: {fileID: 2100000, guid: 4b893d36abb61ef44a2766be83d1847c, type: 2}
-  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
-  _textBoxSprite: {fileID: 2010005858, guid: ccd875d6844720642ab93c21e486e548, type: 3}
+  _frontOfCardMat: {fileID: 2100000, guid: 4b893d36abb61ef44a2766be83d1847c, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: fafc4acce356642429c9955b1ecb0f95, type: 2}
   _cardRank: 4

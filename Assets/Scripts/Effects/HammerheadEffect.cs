@@ -5,7 +5,7 @@ using UnityEngine;
 public class HammerheadEffect : ICardEffect
 {
     public string EffectDescription =>
-        "Discards all remaining Stingrays. The next played set receives x-Mult for each Stingray discarded. Discards this card.";
+        "Discards all remaining Stingrays including this card. The next played set receives x-Mult for each Stingray discarded.";
     
     public void ActivateEffect()
     {

@@ -3386,6 +3386,10 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
+    - target: {fileID: 8101881556879854219, guid: 7a7a0ff4526e1c24db3ab9eba9e4e2c9, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 3292138066203929384, guid: 3d716b42543073340a159b8ee51a28b3, type: 2}
     - target: {fileID: 8265512507073375130, guid: 7a7a0ff4526e1c24db3ab9eba9e4e2c9, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -11872,14 +11876,11 @@ MonoBehaviour:
   - {fileID: 217687374}
   - {fileID: 819540317}
   - {fileID: 1745837309}
-  _stage: {fileID: 1317199621}
-  _discard: {fileID: 2121663339}
+  _stageArea: {fileID: 1317199621}
+  _discardArea: {fileID: 2121663339}
   _deck: {fileID: 434595113}
   _whirlpoolCenter: {fileID: 2121663343}
-  _playAreas:
-  - {fileID: 91548230}
-  - {fileID: 569522118}
-  - {fileID: 710824951}
+  _levels: []
   _handAreas:
   - {fileID: 406488158}
   - {fileID: 581496777}

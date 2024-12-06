@@ -165,7 +165,7 @@ public class GameManager : MonoBehaviour
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
 
-        HandArea = _handAreas[_levelIndex - 1];
+        HandArea = _handAreas[_levelIndex];
         
         StartCoroutine(DrawInitialHandCoroutine());
     }

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8374cb81c79c2a34ab0e1921daf9353a, type: 3}
   m_Name: Stingray
   m_EditorClassIdentifier: 
+  _type: 0
   _cardName: Stingray
-  _cardMat: {fileID: 2100000, guid: 2bea56bfe1c29774ebb5ef164efd7fab, type: 2}
-  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
-  _textBoxSprite: {fileID: 21300000, guid: 563a31501ad05b949a03a510b6f6589e, type: 3}
+  _frontOfCardMat: {fileID: 2100000, guid: 2bea56bfe1c29774ebb5ef164efd7fab, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: ae8656e94a49b954a802671cdc7b82bf, type: 2}
   _cardRank: 7

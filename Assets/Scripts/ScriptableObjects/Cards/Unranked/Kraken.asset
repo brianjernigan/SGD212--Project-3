@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _type: 1
   _cardName: Kraken
-  _cardMat: {fileID: 2100000, guid: 3b7b3a1ca1bad5544a31b0f886b33ea8, type: 2}
-  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
-  _textBoxSprite: {fileID: 2126485045, guid: 0c3046ed6ba393a4286118876b24f994, type: 3}
+  _frontOfCardMat: {fileID: 2100000, guid: 3b7b3a1ca1bad5544a31b0f886b33ea8, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: a229cab2e46ed524c8b1004aa6c720fe, type: 2}
   _cardRank: 12

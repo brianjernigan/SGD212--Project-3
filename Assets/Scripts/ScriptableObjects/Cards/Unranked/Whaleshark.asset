@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _type: 1
   _cardName: Whaleshark
-  _cardMat: {fileID: 2100000, guid: 35260c01130bd454cabd78fdc8dcd86b, type: 2}
-  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
-  _textBoxSprite: {fileID: 21300000, guid: d50d9a2b4d5956149b3e0fd027a8224c, type: 3}
-  _cardRank: 16
+  _frontOfCardMat: {fileID: 2100000, guid: 35260c01130bd454cabd78fdc8dcd86b, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: 174097ed39033f6458150d87398b0383, type: 2}
+  _cardRank: 15
