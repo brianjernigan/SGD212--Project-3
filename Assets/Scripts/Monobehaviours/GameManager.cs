@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 // Stores all possible cards for creating decks and starting the game
@@ -39,7 +37,7 @@ public class GameManager : MonoBehaviour
     
     public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
 
-    private const int MaxCardsOnScreen = 6;
+    private const int MaxCardsOnScreen = 5;
     public int AdditionalCardsDrawn { get; set; }
     public int PermanentHandSizeModifier { get; set; }
 
@@ -89,9 +87,6 @@ public class GameManager : MonoBehaviour
 
     private const int BaseRequiredScore = 50;
     public int CurrentRequiredScore => BaseRequiredScore * _levelIndex;
-    
-    public bool RoundIsWon { get; set; }
-    public bool RoundIsLost { get; set; }
 
     #region Helpers
 
@@ -193,31 +188,6 @@ public class GameManager : MonoBehaviour
         _hand = _handAreas[_levelIndex - 1];
         
         StartCoroutine(DrawInitialHandCoroutine());
-    }
-
-    private bool HasScoreableSet()
-    {
-        var hasWhaleShark = PlayerHand.CardsInHand.Exists(card => card.Data.CardName == "Whaleshark");
-        var hasKraken = PlayerHand.CardsInHand.Exists(card => card.Data.CardName == "Kraken");
-
-        if (hasWhaleShark) return true;
-        
-        var groups = PlayerHand.CardsInHand.GroupBy(card => card.Data.CardName);
-
-        foreach (var group in groups)
-        {
-            if (group.Count() == 3)
-            {
-                return true;
-            }
-            
-            if (group.Count() == 2 && group.Key != "Kraken" && hasKraken)
-            {
-                return true;
-            }
-        }
-        
-        return false;
     }
 
     private IEnumerator DrawInitialHandCoroutine()
@@ -418,6 +388,10 @@ public class GameManager : MonoBehaviour
                 if (StageAreaController.GetFirstStagedCard().Data.CardName == "Whaleshark")
                 {
                     ScoreSet();
+                }
+                else if (StageAreaController.GetFirstStagedCard().Data.CardName == "Kraken")
+                {
+                    return;
                 }
                 else
                 {
@@ -680,21 +654,52 @@ public class GameManager : MonoBehaviour
     {
         var isOutOfPlays = PlaysRemaining == 0;
         var isOutOfDiscards = DiscardsRemaining == 0;
-        var isOutOfDraws = DrawsRemaining == 0 || GameDeck.IsEmpty;
-        var cardsAreMaxed = NumCardsOnScreen >= HandSize;
-        var noScoreableSet = !HasScoreableSet();
 
-        if (isOutOfPlays && isOutOfDiscards && isOutOfDraws && (cardsAreMaxed || noScoreableSet))
+        if (HasScoreableSet()) return;
+        if (!isOutOfPlays) return;
+        if (!isOutOfDiscards) return;
+        if (!CanDrawCards()) return;
+
+        HandleLoss();
+    }
+
+    private bool CanDrawCards()
+    {
+        if (DrawsRemaining == 0 || GameDeck.IsEmpty)
         {
-            HandleLoss();
+            return false;
         }
+
+        return NumCardsOnScreen < HandSize;
+    }
+    
+    private bool HasScoreableSet()
+    {
+        var hasWhaleShark = PlayerHand.CardsInHand.Exists(card => card.Data.CardName == "Whaleshark");
+        var hasKraken = PlayerHand.CardsInHand.Exists(card => card.Data.CardName == "Kraken");
+
+        if (hasWhaleShark) return true;
+        
+        var groups = PlayerHand.CardsInHand.GroupBy(card => card.Data.CardName);
+
+        foreach (var group in groups)
+        {
+            if (group.Count() == 3)
+            {
+                return true;
+            }
+            
+            if (group.Count() == 2 && group.Key != "Kraken" && hasKraken)
+            {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     private void HandleLoss()
     {
-        RoundIsLost = true;
-        RoundIsWon = false;
-        Debug.Log("you lost");
         UIManager.Instance.ActivateLossPanel();
     }
 
@@ -707,10 +712,12 @@ public class GameManager : MonoBehaviour
 
     private void HandleWin()
     {
-        RoundIsWon = true;
-        RoundIsLost = false;
-        Debug.Log("you win");
         UIManager.Instance.ActivateWinPanel();
+    }
+
+    public void RestartCurrentLevel()
+    {
+        throw new NotImplementedException();
     }
     
     public void HandleLevelChanged()
@@ -769,9 +776,4 @@ public class GameManager : MonoBehaviour
     }
 
     #endregion
-
-    public void OnClickQuitButton()
-    {
-        Application.Quit();
-    }
 }

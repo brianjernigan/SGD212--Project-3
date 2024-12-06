@@ -36,5 +36,7 @@ public class MorayEffect : ICardEffect
                 gameDeck.RemoveCard(cardData);
             }
         }
+        
+        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }

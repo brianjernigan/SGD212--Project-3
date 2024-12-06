@@ -5,7 +5,7 @@ using UnityEngine;
 public class CookieCutterEffect : ICardEffect
 {
     public string EffectDescription =>
-        "Discard this card and all higher ranked and unranked cards in hand. Next turn, draw 1 additional card for each card discarded.";
+        "Discard this card, all higher ranked cards, and all unranked cards in hand. Next turn, draw 1 additional card for each card discarded.";
     
     public void ActivateEffect()
     {
@@ -25,5 +25,7 @@ public class CookieCutterEffect : ICardEffect
 
         GameManager.Instance.AdditionalCardsDrawn += discardCount + 1;
         GameManager.Instance.TriggerHandSizeChanged();
+        
+        GameManager.Instance.StageAreaController.ClearStageArea();
     }
 }
