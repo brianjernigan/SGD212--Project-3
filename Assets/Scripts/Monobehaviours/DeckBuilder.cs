@@ -26,7 +26,7 @@ public class DeckBuilder : MonoBehaviour
             { "Plankton", 4 },
             { "FishEggs", 4 },
             { "Seahorse", 4 },
-            { "Clownfish", 4 },
+            { "ClownFish", 4 },
             { "CookieCutter", 4 },
             { "Turtle", 4 },
             { "Stingray", 4 },

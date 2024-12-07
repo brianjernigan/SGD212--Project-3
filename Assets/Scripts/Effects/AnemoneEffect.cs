@@ -4,7 +4,7 @@ public class AnemoneEffect : ICardEffect
     
     public void ActivateEffect()
     {
-        var clownFishData = CardLibrary.Instance.GetCardDataByName("Clownfish");
+        var clownFishData = CardLibrary.Instance.GetCardDataByName("ClownFish");
         if (clownFishData is null) return;
 
         GameManager.Instance.GameDeck?.AddCard(clownFishData, 2);
