@@ -40,7 +40,7 @@ public class BullsharkEffect : ICardEffect
 
         if (discardedFromDeck.Count == 0 && discardedFromHand.Count == 0) return;
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
 
         GameManager.Instance.PermanentHandSizeModifier += 1;
         GameManager.Instance.TriggerHandSizeChanged();

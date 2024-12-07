@@ -39,6 +39,6 @@ public class NetEffect : ICardEffect
             gameDeck.AddCard(randomCard, 2);
         }
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

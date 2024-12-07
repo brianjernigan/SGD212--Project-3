@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class TurtleEffect : ICardEffect
 {
     public string EffectDescription => "The next draw draws 2 additional cards. Discards this card.";
@@ -11,6 +7,6 @@ public class TurtleEffect : ICardEffect
         GameManager.Instance.AdditionalCardsDrawn += 2;
         GameManager.Instance.TriggerHandSizeChanged();
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

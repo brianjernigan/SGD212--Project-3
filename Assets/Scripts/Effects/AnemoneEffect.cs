@@ -12,6 +12,6 @@ public class AnemoneEffect : ICardEffect
         if (clownFishData is null) return;
 
         GameManager.Instance.GameDeck?.AddCard(clownFishData, 2);
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

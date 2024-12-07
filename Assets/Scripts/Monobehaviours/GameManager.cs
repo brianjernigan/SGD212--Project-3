@@ -296,8 +296,6 @@ public class GameManager : MonoBehaviour
         IsDrawingCards = false;
         
         TriggerOnMouseOverForCurrentCard();
-        
-        // StartWaveEffect();
     }
     
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
@@ -409,7 +407,7 @@ public class GameManager : MonoBehaviour
     {
         CurrentScore += StageAreaController.CalculateScore();
         TriggerScoreChanged();
-        StageAreaController.ClearStageArea();
+        StageAreaController.ClearStageArea(true);
 
         if (CurrentMultiplier > 1)
         {
@@ -524,7 +522,7 @@ public class GameManager : MonoBehaviour
             
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
-                StartCoroutine(SpiralDiscardAnimation(gameCard)); // Start spiral animation instead of immediate discard
+                FullDiscard(gameCard, false);
                 return true;
             }
         }
@@ -532,13 +530,22 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    private IEnumerator SpiralDiscardAnimation(GameCard gameCard)
+    public void FullDiscard(GameCard gameCard, bool isFromPlay)
+    {
+        StartCoroutine(SpiralDiscardAnimation(gameCard, isFromPlay));
+    }
+
+    private IEnumerator SpiralDiscardAnimation(GameCard gameCard, bool isFromPlay)
     {
         AudioManager.Instance.PlayDiscardAudio();
         gameCard.IsStaged = false;
         gameCard.IsInHand = false;
-        DiscardsRemaining--;
-        TriggerDiscardsChanged();
+
+        if (!isFromPlay)
+        {
+            DiscardsRemaining--;
+            TriggerDiscardsChanged();
+        }
         
         var cardTransform = gameCard.UI.transform;
 
@@ -714,7 +721,7 @@ public class GameManager : MonoBehaviour
         _levelIndex++;
         _levels[_levelIndex - 1].SetActive(true);
         PlayerHand.ClearHandArea();
-        StageAreaController.ClearStageArea();
+        StageAreaController.ClearStageArea(true);
 
         HandArea = null;
         HandArea = _handAreas[_levelIndex - 1];

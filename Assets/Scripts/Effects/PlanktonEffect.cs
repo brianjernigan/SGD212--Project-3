@@ -23,6 +23,6 @@ public class PlanktonEffect : ICardEffect
             GameManager.Instance.GameDeck?.AddCard(planktonCard);
         }
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

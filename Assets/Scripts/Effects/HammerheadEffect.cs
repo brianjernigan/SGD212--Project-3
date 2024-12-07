@@ -36,6 +36,6 @@ public class HammerheadEffect : ICardEffect
         GameManager.Instance.CurrentMultiplier += stingrayCount;
         GameManager.Instance.TriggerMultiplierChanged();
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

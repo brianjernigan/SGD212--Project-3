@@ -15,7 +15,7 @@ public class OrcaEffect : ICardEffect
             playerHand.TryDiscardCardFromHand(playerHand.CardsInHand[i]);
         }
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
 
         GameManager.Instance.DrawFullHand();
         GameManager.Instance.TriggerCardsRemainingChanged();

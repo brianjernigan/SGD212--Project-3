@@ -152,14 +152,6 @@ public class CardUI : MonoBehaviour
 
         var mouseWorldPosition = GetMouseWorldPosition();
         transform.position = new Vector3(mouseWorldPosition.x + _offset.x, YPositionInHand, mouseWorldPosition.z + _offset.z);
-
-        foreach (var zone in _dropZones)
-        {
-            if (IsWithinDropZone(zone))
-            {
-                Debug.Log($"In {zone.gameObject.name}");
-            }
-        }
     }
 
     private void OnMouseUp()

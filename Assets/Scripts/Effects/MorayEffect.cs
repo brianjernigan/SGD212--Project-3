@@ -37,6 +37,6 @@ public class MorayEffect : ICardEffect
             }
         }
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

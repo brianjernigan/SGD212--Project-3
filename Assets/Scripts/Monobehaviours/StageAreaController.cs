@@ -95,14 +95,14 @@ public class StageAreaController : MonoBehaviour
         return NumCardsStaged > 0 ? CardsStaged[0] : null;
     }
 
-    public void ClearStageArea()
+    public void ClearStageArea(bool isFromPlay)
     {
         foreach (var gameCard in CardsStaged.ToList())
         {
             if (gameCard.UI is not null)
             {
                 gameCard.IsStaged = false;
-                Destroy(gameCard.UI.gameObject);
+                GameManager.Instance.FullDiscard(gameCard, isFromPlay);
             }
         }
         
