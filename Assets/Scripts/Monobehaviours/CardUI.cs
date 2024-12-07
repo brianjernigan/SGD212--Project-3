@@ -29,6 +29,7 @@ public class CardUI : MonoBehaviour
     private Vector3 _hoverPosition;
     private Vector3 _originalScale;
     private Transform _lastDropZone;
+    private Vector3 _basePositionBeforeHover;
 
     private List<Transform> _dropZones;
 
@@ -75,19 +76,32 @@ public class CardUI : MonoBehaviour
         _descriptionText.text = _gameCard.Description;
     }
 
+
+
     private void OnMouseEnter()
     {
         if (GameManager.Instance.IsDraggingCard) return;
         _isHovered = true;
-        StartCoroutine(MoveCard(_hoverPosition));
+
+        // Record the current position as the base
+        _basePositionBeforeHover = transform.position;
+
+        // Hover position is now just the current position plus hoverHeight
+        var hoverTarget = _basePositionBeforeHover + new Vector3(0, hoverHeight, 0);
+        StartCoroutine(MoveCard(hoverTarget));
     }
 
     private void OnMouseExit()
     {
         if (GameManager.Instance.IsDraggingCard) return;
         _isHovered = false;
-        StartCoroutine(MoveCard(_originalPosition));
+
+        // Move back to the base position recorded on mouse enter
+        StartCoroutine(MoveCard(_basePositionBeforeHover));
     }
+
+
+
 
     private void OnMouseDown()
     {

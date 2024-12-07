@@ -5,7 +5,6 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 
-// Stores all possible cards for creating decks and starting the game
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -18,12 +17,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _discard;
     [SerializeField] private GameObject _hand;
     [SerializeField] private GameObject _deck;
-    [SerializeField] private Transform _whirlpoolCenter; // Added for spiral animation
+    [SerializeField] private Transform _whirlpoolCenter;
     
-    private float _spiralDuration = 1.0f; // Duration of the spiral animation
-    private float _spiralRadius = 5.0f;    // Starting radius of the spiral
-    private float _spiralDepth = 2.0f;     // Depth the card moves downward
-    private float _spiralRotationSpeed = 360f; // Degrees per second
+    private float _spiralDuration = 1.0f;
+    private float _spiralRadius = 5.0f;
+    private float _spiralDepth = 2.0f;
+    private float _spiralRotationSpeed = 360f;
 
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
@@ -41,7 +40,6 @@ public class GameManager : MonoBehaviour
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
-    
     public StageAreaController StageAreaController { get; private set; }
 
     private Camera _mainCamera;
@@ -96,22 +94,16 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         _mainCamera = Camera.main;
-
         StageAreaController = _stage.GetComponent<StageAreaController>();
-        
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
-        
-        // StartCoroutine(DrawFullHandCoroutine());
     }
 
     private void Update()
     {
-
-        if (IsInTutorial) return; // Disable inputs during tutorial unless allowed
-        {
-
-        }
+        // During tutorial automation, we do not rely on user input.
+        // If you wanted to allow manual input after tutorial, you can remove this check or condition it differently.
+        if (IsInTutorial) return;
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -159,13 +151,9 @@ public class GameManager : MonoBehaviour
 
     private void SelectCard(GameObject card)
     {
-        // Play card selection audio
         AudioManager.Instance.PlayCardSelectAudio();
-
-        // Additional logic for selecting the card...
     }
 
-    
     private void HandleRightMouseClick(GameObject clickedObject)
     {
         if (clickedObject.CompareTag("Card"))
@@ -182,35 +170,29 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator FlipCardCoroutine(GameObject card)
     {
-        // Play the flip audio
         AudioManager.Instance.PlayCardFlipAudio();
-
         card.GetComponent<CardUI>().PlayBubbleEffect();
 
         var startRotation = card.transform.rotation;
         var endRotation = card.transform.rotation * Quaternion.Euler(0f, 180f, 0f);
 
-        var duration = 0.5f; // Duration for smoother animation
+        var duration = 0.5f;
         var elapsedTime = 0f;
 
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
-
             float t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t); // Smoothstep interpolation
+            t = t * t * (3f - 2f * t);
 
             card.transform.rotation = Quaternion.Slerp(startRotation, endRotation, t);
-
             yield return null;
         }
 
-        card.transform.rotation = endRotation; // Ensure it ends exactly at the target rotation
-
-        card.GetComponent<CardUI>().StopBubbleEffect(); // Stop bubbles after flipping
+        card.transform.rotation = endRotation;
+        card.GetComponent<CardUI>().StopBubbleEffect();
     }
 
-    
     public void DrawFullHand()
     {
         if (DrawsRemaining == 0) return;
@@ -239,15 +221,17 @@ public class GameManager : MonoBehaviour
                     gameCard.IsStaged = false;
                 }
 
-                var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
+                var targetPosition = CalculateCardPosition(
+                    PlayerHand.NumCardsInHand - 1,
+                    PlayerHand.NumCardsInHand,
+                    _hand.transform.position
+                );
 
                 gameCard.UI.PlayBubbleEffect();
-
                 yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
-
                 gameCard.UI.StopBubbleEffect();
 
-                RearrangeHand(); // Smoothly adjust positions after each card is added
+                RearrangeHand();
             }
         }
 
@@ -258,63 +242,50 @@ public class GameManager : MonoBehaviour
         }
 
         _isDrawingCards = false;
-        
-        // StartWaveEffect();
     }
 
     private Vector3 CalculateCardPosition(int cardIndex, int totalCards, Vector3 dockCenter)
     {
         totalCards = Mathf.Max(totalCards, 1);
-
-        var cardSpacing = Mathf.Min(DockWidth / totalCards, 140f); // Dynamic spacing with a max cap
+        var cardSpacing = Mathf.Min(DockWidth / totalCards, 140f);
         var startX = -((totalCards - 1) * cardSpacing) / 2f;
         var xPosition = startX + (cardIndex * cardSpacing);
 
-        return dockCenter + new Vector3(xPosition, InitialCardY + cardIndex, 0f); // Straight line with fixed Y
+        return dockCenter + new Vector3(xPosition, InitialCardY + cardIndex, 0f);
     }
 
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
     {
         var cardTransform = gameCard.UI.transform;
-
-        // Lock animation
         gameCard.IsAnimating = true;
 
         cardTransform.position = _deck.transform.position;
-
         AudioManager.Instance.PlayCardDrawAudio();
 
-        var duration = 1.0f; // Animation duration
-        var bounceDuration = 0.25f; // Bounce-back duration
+        var duration = 1.0f;
+        var bounceDuration = 0.25f;
         var elapsedTime = 0f;
 
         var startPosition = cardTransform.position;
-        var overshootPosition = targetPosition + Vector3.up * 1.5f; // Slight overshoot above final position
+        var overshootPosition = targetPosition + Vector3.up * 1.5f;
 
-        // Move to overshoot position
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
-
-            // Smooth step easing
             var t = elapsedTime / duration;
             t = t * t * (3f - 2f * t);
 
             var arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
             cardTransform.position = arcPosition;
-
             yield return null;
         }
 
-        // Bounce back to final position
-        elapsedTime = 0f; // Reset elapsed time for bounce
+        elapsedTime = 0f;
         var bounceStartPosition = cardTransform.position;
 
         while (elapsedTime < bounceDuration)
         {
             elapsedTime += Time.deltaTime;
-
-            // Smoothstep easing
             var t = elapsedTime / bounceDuration;
             t = t * t * (3f - 2f * t);
 
@@ -324,15 +295,12 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
 
-        cardTransform.position = targetPosition; // Ensure final position
-
-        // Unlock animation
+        cardTransform.position = targetPosition;
         gameCard.IsAnimating = false;
     }
-    
+
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
     {
-        // Destage
         if (dropArea == _hand.transform)
         {
             if (PlayerHand.TryAddCardToHand(gameCard) && StageAreaController.TryRemoveCardFromStage(gameCard))
@@ -341,7 +309,7 @@ public class GameManager : MonoBehaviour
                 return true;
             }
         }
-        // Stage Card
+
         if (dropArea == _stage.transform)
         {
             if (StageAreaController.TryAddCardToStage(gameCard) && PlayerHand.TryRemoveCardFromHand(gameCard))
@@ -350,14 +318,13 @@ public class GameManager : MonoBehaviour
                 return true;
             }
         }
-        // Discard
+
         if (dropArea == _discard.transform)
         {
             if (DiscardsRemaining == 0) return false;
-            
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
-                StartCoroutine(SpiralDiscardAnimation(gameCard)); // Start spiral animation instead of immediate discard
+                StartCoroutine(SpiralDiscardAnimation(gameCard));
                 return true;
             }
         }
@@ -368,59 +335,38 @@ public class GameManager : MonoBehaviour
     private IEnumerator SpiralDiscardAnimation(GameCard gameCard)
     {
         var cardTransform = gameCard.UI.transform;
-
-        // Reset rotation to upright
-        cardTransform.rotation = Quaternion.Euler(0f, 0f, 0f); // Adjusted to lay flat before animation
-
+        cardTransform.rotation = Quaternion.Euler(0f, 0f, 0f);
         var endPosition = _whirlpoolCenter.position;
 
         var elapsedTime = 0f;
         var angle = 0f;
-
-        // Capture the initial scale of the card
         var initialScale = cardTransform.localScale;
-        var targetScale = Vector3.zero; // Scale down to zero
+        var targetScale = Vector3.zero;
 
         while (elapsedTime < _spiralDuration)
         {
             elapsedTime += Time.deltaTime;
-
-            // Calculate progress
             var t = Mathf.Clamp01(elapsedTime / _spiralDuration);
+            var easedT = t * t * (3f - 2f * t);
 
-            // Apply easing (optional for smoother scaling)
-            var easedT = t * t * (3f - 2f * t); // Smoothstep interpolation
-
-            // Reduce radius over time
             var radius = Mathf.Lerp(_spiralRadius, 0, easedT);
-
-            // Move downward into the whirlpool
             var depth = Mathf.Lerp(0, -_spiralDepth, easedT);
-
-            // Rotate around the whirlpool center
-            angle += _spiralRotationSpeed * Time.deltaTime; // Degrees per second
+            angle += _spiralRotationSpeed * Time.deltaTime;
             var radian = angle * Mathf.Deg2Rad;
 
             var offset = new Vector3(Mathf.Cos(radian), depth, Mathf.Sin(radian)) * radius;
             var newPosition = endPosition + offset;
 
-            // Update card position
             cardTransform.position = newPosition;
-
-            // Rotate the card around its Y-axis for a spinning effect
-            cardTransform.Rotate(Vector3.up, 720 * Time.deltaTime); // 720 degrees per second
-
-            // Scale the card down over time
+            cardTransform.Rotate(Vector3.up, 720 * Time.deltaTime);
             cardTransform.localScale = Vector3.Lerp(initialScale, targetScale, easedT);
 
             yield return null;
         }
 
-        // Ensure the card ends at the center of the whirlpool with zero scale
         cardTransform.position = endPosition;
         cardTransform.localScale = targetScale;
 
-        // Optional: Add a slight delay before destruction to ensure the last frame is visible
         yield return new WaitForSeconds(0.5f);
 
         DiscardGameCard(gameCard);
@@ -428,14 +374,20 @@ public class GameManager : MonoBehaviour
 
     private void DiscardGameCard(GameCard gameCard)
     {
+        if (gameCard == null) return;
+
         gameCard.IsStaged = false;
         gameCard.IsInHand = false;
-        Destroy(gameCard.UI.gameObject);
+
+        if (gameCard.UI != null)
+        {
+            Destroy(gameCard.UI.gameObject);
+        }
+
         DiscardsRemaining--;
         TriggerDiscardsChanged();
     }
 
-    // TODO
     public void RearrangeHand()
     {
         var dockCenter = _hand.transform.position;
@@ -496,8 +448,8 @@ public class GameManager : MonoBehaviour
     private void TriggerCardEffect()
     {
         var firstStagedCard = StageAreaController.GetFirstStagedCard();
-
         firstStagedCard?.ActivateEffect();
+        // After effect activates, sets might be cleared or modified. No scoring directly unless WhaleShark or sets formed.
     }
 
     private void ScoreSet()
@@ -509,7 +461,7 @@ public class GameManager : MonoBehaviour
             bonusMultiplier = 2;
         }
 
-        CurrentScore += StageAreaController.CalculateScore() * bonusMultiplier;
+        CurrentScore += StageAreaController.CalculateScore() * bonusMultiplier * CurrentMultiplier;
         TriggerScoreChanged();
         StageAreaController.ClearStageArea();
 
@@ -523,11 +475,8 @@ public class GameManager : MonoBehaviour
     public void PlaceCardInHand(GameCard gameCard)
     {
         var dockCenter = _hand.transform.position;
-
         var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, dockCenter);
-
         gameCard.UI.transform.position = targetPosition;
-     
         gameCard.IsInHand = true;
         gameCard.IsStaged = false;
         
@@ -537,27 +486,27 @@ public class GameManager : MonoBehaviour
     private void PlaceCardInStage(GameCard gameCard)
     {
         gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
-        
         gameCard.IsStaged = true;
         gameCard.IsInHand = false;
     }
 
     private IEnumerator AnimateCardToPosition(Transform cardTransform, Vector3 targetPosition, Quaternion targetRotation)
     {
-        if (cardTransform is null) yield break;
+        if (cardTransform == null) yield break;
 
         var startPosition = cardTransform.position;
         var startRotation = cardTransform.rotation;
 
-        var duration = 0.5f; // Animation duration
+        var duration = 0.5f;
         var elapsedTime = 0f;
 
         while (elapsedTime < duration)
         {
-            elapsedTime += Time.deltaTime;
+            if (cardTransform == null) yield break;
 
+            elapsedTime += Time.deltaTime;
             var t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t); // Smooth step interpolation
+            t = t * t * (3f - 2f * t);
 
             cardTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
             cardTransform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
@@ -565,34 +514,11 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
 
-        cardTransform.position = targetPosition;
-        cardTransform.rotation = targetRotation;
-    }
-
-    private void CheckForGameLoss()
-    {
-        var outOfPlays = PlaysRemaining == 0;
-        var outOfDiscards = DiscardsRemaining == 0;
-        var outOfDraws = DrawsRemaining == 0;
-
-        if (!outOfPlays || !outOfDiscards || !outOfDraws) return;
-        GameIsLost = true;
-        GameIsWon = false;
-    }
-
-    private void CheckForGameWin(int levelNumber)
-    {
-        var requiredScore = levelNumber switch
+        if (cardTransform != null)
         {
-            1 => LevelOneRequiredScore,
-            2 => LevelTwoRequiredScore,
-            3 => LevelThreeRequiredScore,
-            _ => 0
-        };
-
-        if (CurrentScore < requiredScore) return;
-        GameIsWon = true;
-        GameIsLost = false;
+            cardTransform.position = targetPosition;
+            cardTransform.rotation = targetRotation;
+        }
     }
 
     public void TriggerScoreChanged()
@@ -637,7 +563,13 @@ public class GameManager : MonoBehaviour
             OnCardsRemainingChanged?.Invoke(GameDeck.CardDataInDeck.Count);
         }
     }
+
     public void DrawSpecificHand(List<string> cardNames)
+    {
+        StartCoroutine(DrawSpecificHandCoroutine(cardNames));
+    }
+
+    private IEnumerator DrawSpecificHandCoroutine(List<string> cardNames)
     {
         foreach (string cardName in cardNames)
         {
@@ -653,12 +585,14 @@ public class GameManager : MonoBehaviour
                         gameCard.IsStaged = false;
                     }
 
-                    var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
+                    var targetPosition = CalculateCardPosition(
+                        PlayerHand.NumCardsInHand - 1,
+                        PlayerHand.NumCardsInHand,
+                        _hand.transform.position
+                    );
 
                     gameCard.UI.PlayBubbleEffect();
-
-                    StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
-
+                    yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
                     gameCard.UI.StopBubbleEffect();
                 }
             }
