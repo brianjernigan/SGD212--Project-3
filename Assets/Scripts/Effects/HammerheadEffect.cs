@@ -10,7 +10,7 @@ public class HammerheadEffect : ICardEffect
 
         var stingrayCount = 0;
         
-        for (var i = playerHand.CardsInHand.Count; i >= 0; i--)
+        for (var i = playerHand.CardsInHand.Count - 1; i >= 0; i--)
         {
             if (playerHand.CardsInHand[i].Data.CardName == "Stingray")
             {
@@ -19,7 +19,7 @@ public class HammerheadEffect : ICardEffect
             }
         }
 
-        for (var i = deck.CardDataInDeck.Count; i >= 0; i--)
+        for (var i = deck.CardDataInDeck.Count - 1; i >= 0; i--)
         {
             if (deck.CardDataInDeck[i].CardName == "Stingray")
             {
