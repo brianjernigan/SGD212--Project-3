@@ -1,4 +1,3 @@
-using System; // Added to recognize 'Action'
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -20,13 +19,8 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private float typingSpeed = 0.05f;
     [SerializeField] private float fadeDuration = 0.5f;
 
-    public event Action OnDialogueComplete;
-    public event Action OnSkipTutorial;
-
     private Queue<string> dialogueQueue;
     private bool isTyping = false;
-
-
 
     private void Awake()
     {
@@ -205,23 +199,19 @@ public class DialogueManager : MonoBehaviour
         {
             Debug.Log("[DIALOGUE] Dialogue sequence complete.");
             StartCoroutine(FadeOutDialoguePanel());
-            OnDialogueComplete?.Invoke(); // Notify listeners that dialogue is complete
         }
     }
 
-    public bool IsDialogueActive()
+    private void SkipDialogue()
     {
-        return dialogueCanvasGroup.alpha > 0 || isTyping;
-    }
-
-    public void ClearDialogue()
-    {
+        Debug.Log("[DIALOGUE] Skipping dialogue.");
         dialogueQueue.Clear();
-        dialogueText.text = "";
-        StopAllCoroutines();
-        StartCoroutine(FadeOutDialoguePanel());
-    }
 
+        StartCoroutine(FadeOutDialoguePanel());
+
+        if (helpButton != null) helpButton.gameObject.SetActive(true);
+        if (skipButton != null) skipButton.gameObject.SetActive(false);
+    }
 
     private IEnumerator FadeOutDialoguePanel()
     {
@@ -262,20 +252,4 @@ public class DialogueManager : MonoBehaviour
             helpButton.gameObject.SetActive(false);
         }
     }
-
-    private void SkipDialogue()
-    {
-        Debug.Log("[DIALOGUE] Skipping dialogue.");
-        dialogueQueue.Clear();
-
-        StartCoroutine(FadeOutDialoguePanel());
-
-        if (helpButton != null) helpButton.gameObject.SetActive(true);
-        if (skipButton != null) skipButton.gameObject.SetActive(false);
-
-        OnSkipTutorial?.Invoke(); // Add this line to notify listeners
-    }
-
-
-
 }

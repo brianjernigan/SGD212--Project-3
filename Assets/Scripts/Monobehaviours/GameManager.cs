@@ -28,9 +28,7 @@ public class GameManager : MonoBehaviour
     public GameObject Stage => _stage;
     public GameObject Discard => _discard;
     public GameObject Hand => _hand;
-
-    public bool IsInTutorial { get; set; } = true;
-
+    
     public int CardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
 
     private const int MaxCardsOnScreen = 5;
@@ -107,12 +105,6 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-
-        if (IsInTutorial) return; // Disable inputs during tutorial unless allowed
-        {
-
-        }
-
         if (Input.GetMouseButtonDown(0))
         {
             HandleMouseClick(true);
@@ -636,34 +628,5 @@ public class GameManager : MonoBehaviour
         {
             OnCardsRemainingChanged?.Invoke(GameDeck.CardDataInDeck.Count);
         }
-    }
-    public void DrawSpecificHand(List<string> cardNames)
-    {
-        foreach (string cardName in cardNames)
-        {
-            CardData cardData = CardLibrary.Instance.GetCardDataByName(cardName);
-            if (cardData != null)
-            {
-                GameCard gameCard = GameDeck.DrawSpecificCard(cardData);
-                if (gameCard != null)
-                {
-                    if (PlayerHand.TryAddCardToHand(gameCard))
-                    {
-                        gameCard.IsInHand = true;
-                        gameCard.IsStaged = false;
-                    }
-
-                    var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, _hand.transform.position);
-
-                    gameCard.UI.PlayBubbleEffect();
-
-                    StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
-
-                    gameCard.UI.StopBubbleEffect();
-                }
-            }
-        }
-
-        RearrangeHand();
     }
 }

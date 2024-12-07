@@ -14,26 +14,21 @@ public class CardUI : MonoBehaviour
     [Header("Particle Effects")]
     [SerializeField] private ParticleSystem _bubbleEffect; // Reference to the BubbleEffect ParticleSystem
 
-    [Header("Hover Settings")]
-    [SerializeField] private float hoverHeight = 1.0f; // Adjustable height for hover effect
-
     private Camera _mainCamera;
     private bool _isDragging;
     private Vector3 _offset;
     private float _originalYPosition;
-
+    
     private CardData _cardData;
     private GameCard _gameCard;
 
     private Vector3 _originalPosition;
-    private Vector3 _hoverPosition;
     private Vector3 _originalScale;
     private Transform _lastDropZone;
 
     private List<Transform> _dropZones;
 
     private const float CardScaleFactor = 1.25f;
-    private bool _isHovered = false; // Ensure this is declared here
 
     private void Start()
     {
@@ -46,11 +41,8 @@ public class CardUI : MonoBehaviour
             GameManager.Instance.Stage.transform,
             GameManager.Instance.Discard.transform
         };
-
-        _originalPosition = transform.position;
-        _hoverPosition = _originalPosition + new Vector3(0, hoverHeight, 0); // Now hoverHeight is defined
     }
-
+    
     public void InitializeCard(CardData data, GameCard gameCard)
     {
         _cardData = data;
@@ -70,7 +62,7 @@ public class CardUI : MonoBehaviour
             _topRankText.text = _cardData.CardRank.ToString();
             _bottomRankText.text = _cardData.CardRank.ToString();
         }
-
+        
         GetComponent<MeshRenderer>().material = _cardData.CardMat;
         _descriptionText.text = _gameCard.Description;
     }
@@ -78,15 +70,13 @@ public class CardUI : MonoBehaviour
     private void OnMouseEnter()
     {
         if (GameManager.Instance.IsDraggingCard) return;
-        _isHovered = true;
-        StartCoroutine(MoveCard(_hoverPosition));
+        transform.localScale *= CardScaleFactor;
     }
 
     private void OnMouseExit()
     {
         if (GameManager.Instance.IsDraggingCard) return;
-        _isHovered = false;
-        StartCoroutine(MoveCard(_originalPosition));
+        transform.localScale = _originalScale;
     }
 
     private void OnMouseDown()
@@ -97,12 +87,12 @@ public class CardUI : MonoBehaviour
         _originalPosition = transform.position;
         transform.localScale = _originalScale;
         transform.localScale *= CardScaleFactor;
-
+        
         _originalYPosition = transform.position.y;
 
         var mouseWorldPosition = GetMouseWorldPosition();
         _offset = transform.position - mouseWorldPosition;
-
+        
         foreach (var zone in _dropZones)
         {
             if (IsWithinDropZone(zone))
@@ -125,7 +115,7 @@ public class CardUI : MonoBehaviour
     {
         _isDragging = false;
         GameManager.Instance.IsDraggingCard = false;
-
+        
         Transform newDropZone = null;
 
         foreach (var zone in _dropZones)
@@ -137,7 +127,7 @@ public class CardUI : MonoBehaviour
             }
         }
 
-        if (newDropZone != null && _lastDropZone != newDropZone)
+        if (newDropZone is not null && _lastDropZone != newDropZone)
         {
             if (!GameManager.Instance.TryDropCard(newDropZone, _gameCard))
             {
@@ -167,7 +157,7 @@ public class CardUI : MonoBehaviour
     private bool IsWithinDropZone(Transform zone)
     {
         var zoneCollider = zone.GetComponent<Collider>();
-        if (zoneCollider != null)
+        if (zoneCollider is not null)
         {
             return zoneCollider.bounds.Contains(transform.position);
         }
@@ -195,22 +185,5 @@ public class CardUI : MonoBehaviour
         {
             _bubbleEffect.Stop();
         }
-    }
-
-    private IEnumerator MoveCard(Vector3 targetPosition)
-    {
-        float duration = 0.2f;
-        float elapsedTime = 0f;
-        Vector3 startingPosition = transform.position;
-
-        while (elapsedTime < duration)
-        {
-            elapsedTime += Time.deltaTime;
-            float t = elapsedTime / duration;
-            transform.position = Vector3.Lerp(startingPosition, targetPosition, t);
-            yield return null;
-        }
-
-        transform.position = targetPosition;
     }
 }

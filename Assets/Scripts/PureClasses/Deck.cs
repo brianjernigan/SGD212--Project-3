@@ -121,22 +121,4 @@ public class Deck
         
         GameManager.Instance.TriggerCardsRemainingChanged();
     }
-
-    public void ClearDeck()
-    {
-        CardDataInDeck.Clear();
-        GameManager.Instance.TriggerCardsRemainingChanged();
-    }
-
-    public void AddCards(Dictionary<string, int> cardsToAdd)
-    {
-        foreach (var entry in cardsToAdd)
-        {
-            CardData cardData = CardLibrary.Instance.GetCardDataByName(entry.Key);
-            if (cardData != null)
-            {
-                AddCard(cardData, entry.Value);
-            }
-        }
-    }
 }
