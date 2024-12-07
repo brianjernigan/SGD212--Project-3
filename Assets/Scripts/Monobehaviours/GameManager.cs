@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
     public GameObject StageArea => _stageArea;
     public GameObject DiscardArea => _discardArea;
     public GameObject HandArea { get; private set; }
-    private int _levelIndex = 0;
+    private int _levelIndex = 1;
     
     public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
     private const int MaxCardsOnScreen = 5;
@@ -165,7 +165,7 @@ public class GameManager : MonoBehaviour
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
 
-        HandArea = _handAreas[_levelIndex];
+        HandArea = _handAreas[_levelIndex - 1];
         
         StartCoroutine(DrawInitialHandCoroutine());
     }
@@ -710,14 +710,14 @@ public class GameManager : MonoBehaviour
 
     private void InitializeNewLevel()
     {
-        _levels[_levelIndex].SetActive(false);
+        _levels[_levelIndex - 1].SetActive(false);
         _levelIndex++;
-        _levels[_levelIndex].SetActive(true);
+        _levels[_levelIndex - 1].SetActive(true);
         PlayerHand.ClearHandArea();
         StageAreaController.ClearStageArea();
 
         HandArea = null;
-        HandArea = _handAreas[_levelIndex];
+        HandArea = _handAreas[_levelIndex - 1];
     }
 
     private void ResetStats()

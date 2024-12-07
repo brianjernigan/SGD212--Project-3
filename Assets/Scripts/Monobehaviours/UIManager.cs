@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -24,8 +25,12 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject _winPanel;
     [SerializeField] private GameObject _lossPanel;
 
+    [Header("Text Lists")]
     [SerializeField] private List<TMP_Text> _cardCountTexts;
     [SerializeField] private List<TMP_Text> _cardEffectsTexts;
+
+    [Header("Images")] 
+    [SerializeField] private Image _scoreBarFill;
 
     private void Awake()
     {
@@ -91,6 +96,12 @@ public class UIManager : MonoBehaviour
     {
         // USE "I" AS A REPLACEMENT FOR "/"
         _scoreText.text = $"Score: {score} / {GameManager.Instance.CurrentRequiredScore}";
+        UpdateScoreBar(score);
+    }
+
+    private void UpdateScoreBar(float score)
+    {
+        _scoreBarFill.fillAmount = score / GameManager.Instance.CurrentRequiredScore;
     }
 
     public void UpdatePlaysText(string plays)
