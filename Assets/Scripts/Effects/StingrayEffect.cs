@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class StingrayEffect : ICardEffect
 {
     public string EffectDescription => "Shuffles this card and your entire hand back into the deck. Redraws a full hand.";
@@ -23,6 +19,6 @@ public class StingrayEffect : ICardEffect
         playerHand.ClearHandArea();
         
         GameManager.Instance.GameDeck?.ShuffleDeck();
-        GameManager.Instance.DrawFullHand();
+        GameManager.Instance.DrawFullHand(true);
     }
 }

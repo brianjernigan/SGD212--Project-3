@@ -175,7 +175,6 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
         /* For Testing */
-        
         // var testCards = new[] { "Whaleshark", "Whaleshark", "Kraken", "Kraken", "CookieCutter" };
         // foreach (var card in testCards)
         // {
@@ -228,7 +227,7 @@ public class GameManager : MonoBehaviour
     {
         if (clickedObject.CompareTag("DrawButton") && !IsDrawingCards)
         {
-            DrawFullHand();
+            DrawFullHand(false);
         }
         
         if (clickedObject.CompareTag("PlayButton") && !IsDrawingCards)
@@ -247,7 +246,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void DrawFullHand()
+    public void DrawFullHand(bool isFromPlay)
     {
         if (DrawsRemaining == 0 || NumCardsOnScreen == HandSize) return;
         
@@ -255,9 +254,13 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(DrawFullHandCoroutine());
         }
+
+        if (!isFromPlay)
+        {
+            DrawsRemaining--;
+            TriggerDrawsChanged();
+        }
         
-        DrawsRemaining--;
-        TriggerDrawsChanged();
         CheckForGameLoss();
     }
     

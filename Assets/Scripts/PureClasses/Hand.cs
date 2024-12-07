@@ -39,7 +39,7 @@ public class Hand
         {
             gameCard.IsInHand = false;
             GameManager.Instance.RearrangeHand();
-            Object.Destroy(gameCard.UI.gameObject);
+            GameManager.Instance.FullDiscard(gameCard, true);
             return true;
         }
 

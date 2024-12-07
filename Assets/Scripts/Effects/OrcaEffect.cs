@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class OrcaEffect : ICardEffect
 {
     public string EffectDescription => "Discards this card and your entire hand. Redraws a full hand.";
@@ -17,7 +13,7 @@ public class OrcaEffect : ICardEffect
         
         GameManager.Instance.StageAreaController.ClearStageArea(true);
 
-        GameManager.Instance.DrawFullHand();
+        GameManager.Instance.DrawFullHand(true);
         GameManager.Instance.TriggerCardsRemainingChanged();
     }
 }

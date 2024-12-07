@@ -33,12 +33,11 @@ public class DeckBuilder : MonoBehaviour
             { "Bullshark", 4 },
             { "Hammerhead", 4 },
             { "Orca", 4 },
-            { "Anemone", 2 },
-            { "Kraken", 2 },
-            { "Treasure", 2 },
-            { "Moray", 2 },
-            { "Net", 2 },
-            { "Whaleshark", 2 }
+            { "Anemone", 3 },
+            { "Kraken", 3 },
+            { "Moray", 3 },
+            { "Net", 3 },
+            { "Whaleshark", 3 }
         };
 
         var deckComposition = new Dictionary<CardData, int>();

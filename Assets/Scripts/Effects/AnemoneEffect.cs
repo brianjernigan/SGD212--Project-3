@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class AnemoneEffect : ICardEffect
 {
     public string EffectDescription => "Adds 2 clownfish to your deck. Discards this card.";

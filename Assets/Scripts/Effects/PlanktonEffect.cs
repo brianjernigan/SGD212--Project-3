@@ -1,9 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-
 public class PlanktonEffect : ICardEffect
 {
     public string EffectDescription => "Draws 1 card to your hand and adds 1 Plankton to the deck. Discards this card.";

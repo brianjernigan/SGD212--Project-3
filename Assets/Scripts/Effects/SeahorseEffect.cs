@@ -1,8 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class SeahorseEffect : ICardEffect
 {
     public string EffectDescription => "Transforms all Fish Eggs remaining into Seahorses. This card remains staged.";
