@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8374cb81c79c2a34ab0e1921daf9353a, type: 3}
   m_Name: Bullshark
   m_EditorClassIdentifier: 
+  _type: 0
   _cardName: Bullshark
-  _cardMat: {fileID: 2100000, guid: 2a8960b95598f9847a66163cac272452, type: 2}
-  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
-  _textBoxSprite: {fileID: -390513020, guid: 8251ade544c564245bd4388dd744ad63, type: 3}
+  _frontOfCardMat: {fileID: 2100000, guid: 2a8960b95598f9847a66163cac272452, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: 5220d959e18e6fc42b82130ac14eab29, type: 2}
   _cardRank: 8

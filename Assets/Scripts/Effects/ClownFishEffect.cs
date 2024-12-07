@@ -1,11 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 public class ClownFishEffect : ICardEffect
 {
-    public string EffectDescription => "Next played set receives x-Mult for each anemone in deck or hand. Discards this card.";
+    public string EffectDescription => "The next played set receives x-Mult for each anemone in deck or hand. Discards this card.";
     
     public void ActivateEffect()
     {
@@ -18,6 +15,6 @@ public class ClownFishEffect : ICardEffect
         GameManager.Instance.CurrentMultiplier += countInDeck + countInHand;
         GameManager.Instance.TriggerMultiplierChanged();
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

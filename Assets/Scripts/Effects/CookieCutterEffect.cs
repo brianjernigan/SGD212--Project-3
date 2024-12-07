@@ -1,11 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class CookieCutterEffect : ICardEffect
 {
     public string EffectDescription =>
-        "Discards all higher ranked and unranked cards in hand. Draws 1 card for each card discarded. Discards this card.";
+        "Discard this card, all higher ranked cards, and all unranked cards in hand. Next turn, draw 1 additional card for each card discarded.";
     
     public void ActivateEffect()
     {
@@ -14,7 +10,7 @@ public class CookieCutterEffect : ICardEffect
 
         var cardsInHand = GameManager.Instance.PlayerHand.CardsInHand;
 
-        for (var i = 0; i < cardsInHand.Count; i++)
+        for (var i = cardsInHand.Count - 1; i >= 0; i--)
         {
             if (cardsInHand[i].Data.CardRank > cardRank || cardsInHand[i].Data.Type == CardType.Unranked)
             {
@@ -23,14 +19,9 @@ public class CookieCutterEffect : ICardEffect
             }
         }
 
-        for (var i = 0; i < discardCount; i++)
-        {
-            var drawnCard = GameManager.Instance.GameDeck?.DrawCard();
-            if (drawnCard is null) return;
-
-            GameManager.Instance.PlayerHand.TryAddCardToHand(drawnCard);
-        }
+        GameManager.Instance.AdditionalCardsDrawn += discardCount + 1;
+        GameManager.Instance.TriggerHandSizeChanged();
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

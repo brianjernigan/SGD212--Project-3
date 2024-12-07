@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8374cb81c79c2a34ab0e1921daf9353a, type: 3}
   m_Name: Turtle
   m_EditorClassIdentifier: 
+  _type: 0
   _cardName: Turtle
-  _cardMat: {fileID: 2100000, guid: 035accbbbfa19454a8dc32e33ab744d0, type: 2}
-  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
-  _textBoxSprite: {fileID: 21300000, guid: ec50afad17d1ae747a26a01396a5e37a, type: 3}
+  _frontOfCardMat: {fileID: 2100000, guid: 035accbbbfa19454a8dc32e33ab744d0, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: b3a727f60d209984c9bdd894d0bdd9e6, type: 2}
   _cardRank: 6

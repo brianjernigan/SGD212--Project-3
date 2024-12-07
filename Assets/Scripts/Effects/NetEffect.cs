@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class NetEffect : ICardEffect
 {
     public string EffectDescription =>
-        "Draw a random pair to your hand (Will add cards to deck if no pairs remaining). Discards this card.";
+        "Draws a random pair to your hand (Will add cards to deck if no pairs remaining). Discards this card.";
     
     public void ActivateEffect()
     {
@@ -39,6 +37,6 @@ public class NetEffect : ICardEffect
             gameDeck.AddCard(randomCard, 2);
         }
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

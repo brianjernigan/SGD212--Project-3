@@ -33,5 +33,6 @@ public class GameCard
         CardEffect = newEffect;
         UI = ui;
         UI.InitializeCard(newCardData, this);
+        GameManager.Instance.TriggerCardsRemainingChanged();
     }
 }

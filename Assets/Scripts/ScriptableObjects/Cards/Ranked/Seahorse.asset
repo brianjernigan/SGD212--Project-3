@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _type: 0
   _cardName: Seahorse
-  _cardMat: {fileID: 2100000, guid: 8e7245d1d82006942a04a5c136515d0b, type: 2}
-  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
-  _textBoxSprite: {fileID: 21300000, guid: eca8318552e0ecd42826292e5f35af7c, type: 3}
+  _frontOfCardMat: {fileID: 2100000, guid: 8e7245d1d82006942a04a5c136515d0b, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: 26a33ae7111d34544a4207e64614071c, type: 2}
   _cardRank: 3

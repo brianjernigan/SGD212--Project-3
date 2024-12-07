@@ -10,15 +10,13 @@ public class CardData : ScriptableObject
 {
     [SerializeField] private CardType _type;
     [SerializeField] private string _cardName;
-    [SerializeField] private Material _cardMat;
+    [SerializeField] private Material _frontOfCardMat;
     [SerializeField] private Material _backOfCardMat;
-    [SerializeField] private Sprite _textBoxSprite;
     [SerializeField] private int _cardRank;
 
     public CardType Type => _type;
     public string CardName => _cardName;
-    public Material CardMat => _cardMat;
+    public Material FrontOfCardMat => _frontOfCardMat;
     public Material BackOfCardMat => _backOfCardMat;
-    public Sprite TextBoxSprite => _textBoxSprite;
     public int CardRank => _cardRank;
 }

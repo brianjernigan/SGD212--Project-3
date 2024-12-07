@@ -1,29 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class OrcaEffect : ICardEffect
 {
-    public string EffectDescription => "Discard your entire hand. Redraw a full hand.";
+    public string EffectDescription => "Discards this card and your entire hand. Redraws a full hand.";
     
     public void ActivateEffect()
     {
         var playerHand = GameManager.Instance.PlayerHand;
 
-        for (var i = 0; i < playerHand.NumCardsInHand; i++)
+        for (var i = playerHand.NumCardsInHand - 1; i >= 0; i--)
         {
             playerHand.TryDiscardCardFromHand(playerHand.CardsInHand[i]);
         }
-
-        for (var i = 0; i < GameManager.Instance.HandSize; i++)
-        {
-            var drawnCard = GameManager.Instance.GameDeck?.DrawCard();
-            if (drawnCard is not null)
-            {
-                playerHand.TryAddCardToHand(drawnCard);
-            }
-        }
         
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
+
+        GameManager.Instance.DrawFullHand(true);
         GameManager.Instance.TriggerCardsRemainingChanged();
     }
 }

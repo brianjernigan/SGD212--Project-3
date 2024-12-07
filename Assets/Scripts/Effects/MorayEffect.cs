@@ -1,11 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 public class MorayEffect : ICardEffect
 {
-    public string EffectDescription => "Discards all cards that are unable to form a set (2 or less remaining).";
+    public string EffectDescription =>
+        "Discards all cards that are unable to form a set (2 or less remaining). Discards this card.";
     
     public void ActivateEffect()
     {
@@ -35,5 +34,7 @@ public class MorayEffect : ICardEffect
                 gameDeck.RemoveCard(cardData);
             }
         }
+        
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

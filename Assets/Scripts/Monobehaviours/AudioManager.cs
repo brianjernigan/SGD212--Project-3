@@ -5,15 +5,15 @@ public class AudioManager : MonoBehaviour
     public static AudioManager Instance { get; private set; }
 
     [Header("Audio Sources")] 
-    [SerializeField] private AudioSource _buttonClickAudio;
+    [SerializeField] private AudioSource _ambientAudio;
     [SerializeField] private AudioSource _cardDrawAudio;
     [SerializeField] private AudioSource _cardFlipAudio;
-    [SerializeField] private AudioSource _cardSelectAudio; // New audio source for card selection
+    [SerializeField] private AudioSource _deckShuffleAudio;
     [SerializeField] private AudioSource _discardAudio;
-    [SerializeField] private AudioSource _matchAudio;
-    [SerializeField] private AudioSource _playCardAudio;
-    [SerializeField] private AudioSource _seagullsAudio;
-    [SerializeField] private AudioSource _splashAudio;
+    [SerializeField] private AudioSource _backToHandAudio;
+    [SerializeField] private AudioSource _scoreSetAudio;
+    [SerializeField] private AudioSource _seagullAudio;
+    [SerializeField] private AudioSource _stageCardAudio;
     
     private void Awake()
     {
@@ -30,37 +30,38 @@ public class AudioManager : MonoBehaviour
 
     public void PlayCardDrawAudio()
     {
-        if (_cardDrawAudio != null)
-        {
-            _cardDrawAudio.Play();
-        }
-        else
-        {
-            Debug.LogWarning("Card draw audio source is not assigned.");
-        }
+        _cardDrawAudio.time = 0.4f;
+        _cardDrawAudio.Play();
     }
 
     public void PlayCardFlipAudio()
     {
-        if (_cardFlipAudio != null)
-        {
-            _cardFlipAudio.Play();
-        }
-        else
-        {
-            Debug.LogWarning("Card flip audio source is not assigned.");
-        }
+        _cardFlipAudio.Play();
     }
 
-    public void PlayCardSelectAudio()
+    public void PlayStageCardAudio()
     {
-        if (_cardSelectAudio != null)
-        {
-            _cardSelectAudio.Play();
-        }
-        else
-        {
-            Debug.LogWarning("Card select audio source is not assigned.");
-        }
+        _stageCardAudio.time = 0.1f;
+        _stageCardAudio.Play();
+    }
+
+    public void PlayDiscardAudio()
+    {
+        _discardAudio.Play();
+    }
+
+    public void PlayScoreSetAudio()
+    {
+        _scoreSetAudio.Play();
+    }
+
+    public void PlayBackToHandAudio()
+    {
+        _backToHandAudio.Play();
+    }
+
+    public void PlayAmbientAudio()
+    {
+        _ambientAudio.Play();
     }
 }

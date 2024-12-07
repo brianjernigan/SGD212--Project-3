@@ -50,7 +50,6 @@ public class CardLibrary : MonoBehaviour
             { "Orca", new OrcaEffect() },
             { "Anemone", new AnemoneEffect() },
             { "Kraken", new KrakenEffect() },
-            { "Treasure", new TreasureEffect() },
             { "Moray", new MorayEffect() },
             { "Net", new NetEffect() },
             { "Whaleshark", new WhaleSharkEffect() }

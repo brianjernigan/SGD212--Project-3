@@ -1,11 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class HammerheadEffect : ICardEffect
 {
     public string EffectDescription =>
-        "Discard all remaining Stingrays. The next played set receives x-Mult for each Stingray discarded. Discards this card.";
+        "Discards all remaining Stingrays including this card. The next played set receives x-Mult for each Stingray discarded.";
     
     public void ActivateEffect()
     {
@@ -33,9 +29,9 @@ public class HammerheadEffect : ICardEffect
             }
         }
 
-        GameManager.Instance.CurrentMultiplier = stingrayCount;
+        GameManager.Instance.CurrentMultiplier += stingrayCount;
         GameManager.Instance.TriggerMultiplierChanged();
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

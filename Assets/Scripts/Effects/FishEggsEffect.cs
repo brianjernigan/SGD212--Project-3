@@ -1,12 +1,8 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class FishEggsEffect : ICardEffect
 {
-    public string EffectDescription => "Transform this card into a random card from your hand. The transformed card remains staged.";
+    public string EffectDescription => "Transforms this card into a random card from your hand. The transformed card remains staged.";
     
     public void ActivateEffect()
     {
@@ -17,9 +13,8 @@ public class FishEggsEffect : ICardEffect
         var stagedCard = GameManager.Instance.StageAreaController.GetFirstStagedCard();
 
         var handCardData = randomCardInHand.Data;
-        var handCardUI = randomCardInHand.UI;
         var handCardEffect = randomCardInHand.CardEffect;
 
-        stagedCard.TransformCard(handCardData, handCardUI, handCardEffect);
+        stagedCard.TransformCard(handCardData, stagedCard.UI, handCardEffect);
     }
 }

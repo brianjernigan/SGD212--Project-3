@@ -1,11 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 public class BullsharkEffect : ICardEffect
 {
-    public string EffectDescription => "Discard all Bullsharks. Increase your hand size by 1 this round.";
+    public string EffectDescription => "Discards all Bullsharks including this one. Permanently increase your hand size by 1 this round.";
     
     public void ActivateEffect()
     {
@@ -40,9 +38,9 @@ public class BullsharkEffect : ICardEffect
 
         if (discardedFromDeck.Count == 0 && discardedFromHand.Count == 0) return;
         
-        GameManager.Instance.StageAreaController.ClearStageArea();
+        GameManager.Instance.StageAreaController.ClearStageArea(true);
 
-        GameManager.Instance.HandSizeModifier += 1;
+        GameManager.Instance.PermanentHandSizeModifier += 1;
         GameManager.Instance.TriggerHandSizeChanged();
     }
 }

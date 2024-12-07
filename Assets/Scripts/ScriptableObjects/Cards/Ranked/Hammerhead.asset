@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8374cb81c79c2a34ab0e1921daf9353a, type: 3}
   m_Name: Hammerhead
   m_EditorClassIdentifier: 
+  _type: 0
   _cardName: Hammerhead
-  _cardMat: {fileID: 2100000, guid: 00cd8dcfa6a7acc48ad9b68148c19fef, type: 2}
-  _backOfCardMat: {fileID: 2100000, guid: b576be919330b894fb6767323fdbaa59, type: 2}
-  _textBoxSprite: {fileID: -761718911, guid: 8b4108141f02ad04499f566dc62073a3, type: 3}
+  _frontOfCardMat: {fileID: 2100000, guid: 00cd8dcfa6a7acc48ad9b68148c19fef, type: 2}
+  _backOfCardMat: {fileID: 2100000, guid: 375f067046402d54c9c297d8533a5b17, type: 2}
   _cardRank: 9

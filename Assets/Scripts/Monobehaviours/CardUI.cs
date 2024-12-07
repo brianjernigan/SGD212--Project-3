@@ -10,23 +10,30 @@ public class CardUI : MonoBehaviour
     [SerializeField] private TMP_Text _topRankText;
     [SerializeField] private TMP_Text _bottomRankText;
     [SerializeField] private TMP_Text _descriptionText;
-
-    [Header("Particle Effects")]
+    
+    [Header("Particles")]
     [SerializeField] private ParticleSystem _bubbleEffect; // Reference to the BubbleEffect ParticleSystem
-
+    
+    [Header("Back of Card")]
+    [SerializeField] private GameObject _backOfCard;
+    
     private Camera _mainCamera;
     private bool _isDragging;
     private Vector3 _offset;
-    private float _originalYPosition;
     
     private CardData _cardData;
     private GameCard _gameCard;
 
     private Vector3 _originalPosition;
     private Vector3 _originalScale;
+    private bool _isScaledUp;
     private Transform _lastDropZone;
 
+    public bool IsMouseOver { get; set; }
+
     private List<Transform> _dropZones;
+    
+    public float YPositionInHand { get; set; }
 
     private const float CardScaleFactor = 1.25f;
 
@@ -37,9 +44,9 @@ public class CardUI : MonoBehaviour
 
         _dropZones = new List<Transform>()
         {
-            GameManager.Instance.Hand.transform,
-            GameManager.Instance.Stage.transform,
-            GameManager.Instance.Discard.transform
+            GameManager.Instance.HandArea.transform,
+            GameManager.Instance.StageArea.transform,
+            GameManager.Instance.DiscardArea.transform
         };
     }
     
@@ -63,32 +70,66 @@ public class CardUI : MonoBehaviour
             _bottomRankText.text = _cardData.CardRank.ToString();
         }
         
-        GetComponent<MeshRenderer>().material = _cardData.CardMat;
+        GetComponent<MeshRenderer>().material = _cardData.FrontOfCardMat;
+        _backOfCard.GetComponent<MeshRenderer>().material = _cardData.BackOfCardMat;
         _descriptionText.text = _gameCard.Description;
     }
 
-    private void OnMouseEnter()
+    public void OnMouseEnter()
     {
-        if (GameManager.Instance.IsDraggingCard) return;
-        transform.localScale *= CardScaleFactor;
+        IsMouseOver = true;
+        
+        if (GameManager.Instance.IsDraggingCard || GameManager.Instance.IsDrawingCards || GameManager.Instance.IsFlippingCard) return;
+
+        if (!_isScaledUp)
+        {
+            transform.localScale *= CardScaleFactor;
+            _isScaledUp = true;
+        }
+        
+        var position = transform.position;
+        position.y += 2;
+        transform.position = position;
     }
 
-    private void OnMouseExit()
+    public void OnMouseExit()
     {
-        if (GameManager.Instance.IsDraggingCard) return;
-        transform.localScale = _originalScale;
+        IsMouseOver = false;
+
+        if (GameManager.Instance.IsFlippingCard) return;
+
+        if (_isScaledUp)
+        {
+            transform.localScale = _originalScale;
+            _isScaledUp = false;
+        }
+
+
+        if (_gameCard.IsStaged)
+        {
+            var position = transform.position;
+            position.y = _gameCard.UI.transform.position.y;
+            transform.position = position;
+        }
+        else
+        {
+            var position = transform.position;
+            position.y = YPositionInHand;
+            transform.position = position;
+        }
+        
     }
 
     private void OnMouseDown()
     {
+        if (GameManager.Instance.IsDrawingCards || GameManager.Instance.IsFlippingCard) return;
+        
         _isDragging = true;
         GameManager.Instance.IsDraggingCard = true;
 
         _originalPosition = transform.position;
         transform.localScale = _originalScale;
         transform.localScale *= CardScaleFactor;
-        
-        _originalYPosition = transform.position.y;
 
         var mouseWorldPosition = GetMouseWorldPosition();
         _offset = transform.position - mouseWorldPosition;
@@ -105,14 +146,18 @@ public class CardUI : MonoBehaviour
 
     private void OnMouseDrag()
     {
+        if (GameManager.Instance.IsDrawingCards || GameManager.Instance.IsFlippingCard) return;
+        
         if (!_isDragging) return;
 
         var mouseWorldPosition = GetMouseWorldPosition();
-        transform.position = new Vector3(mouseWorldPosition.x + _offset.x, _originalYPosition, mouseWorldPosition.z + _offset.z);
+        transform.position = new Vector3(mouseWorldPosition.x + _offset.x, YPositionInHand, mouseWorldPosition.z + _offset.z);
     }
 
     private void OnMouseUp()
     {
+        if (GameManager.Instance.IsDrawingCards || GameManager.Instance.IsFlippingCard) return;
+        
         _isDragging = false;
         GameManager.Instance.IsDraggingCard = false;
         
@@ -143,6 +188,7 @@ public class CardUI : MonoBehaviour
             transform.position = _originalPosition;
         }
 
+        if (IsMouseOver) return;
         transform.localScale = _originalScale;
     }
 
