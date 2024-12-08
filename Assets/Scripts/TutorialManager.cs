@@ -23,12 +23,13 @@ public class TutorialManager : MonoBehaviour
     public bool IsTutorialMode { get; set; } = false;
 
     [Header("Tutorial Deck Setup")]
-    public int ClownfishCount = 2;
+    public int ClownfishCount = 4; // Sufficient for reaching 50 points with multipliers
     public int AnemoneCount = 2;
     public int KrakenCount = 1;
 
     private float _dialogueWaitTime = 3f; // Time in seconds to wait between lines
     private bool isShowingTutorialDialogue = false;
+    private bool isDialogueInProgress = false;
 
     private void Awake()
     {
@@ -93,7 +94,7 @@ public class TutorialManager : MonoBehaviour
         if (cardData != null)
         {
             GameManager.Instance.GameDeck.AddCard(cardData, count);
-            Debug.Log($"[TutorialManager] Added {count} {cardName} cards to the deck.");
+            Debug.Log($"[TutorialManager] Added {count}x {cardName} to the deck.");
         }
         else
         {
@@ -232,14 +233,30 @@ public class TutorialManager : MonoBehaviour
     private IEnumerator ShowDialogueLines(string[] lines, Action onComplete = null)
     {
         var shelly = GameManager.Instance.ShellyController;
-        Debug.Log($"[TutorialManager] Showing {lines.Length} dialogue lines.");
         foreach (var line in lines)
         {
-            Debug.Log($"[TutorialManager] Showing line: {line}");
+            // Wait if a dialogue is currently in progress
+            while (isDialogueInProgress)
+            {
+                yield return null;
+            }
+
+            isDialogueInProgress = true;
             shelly.ActivateTextBox(line);
-            yield return new WaitForSeconds(_dialogueWaitTime);
+
+            // Wait until Shelly finishes (ShellyController will end the dialogue after finishing)
+            yield return new WaitUntil(() => !isDialogueInProgress);
         }
-        Debug.Log("[TutorialManager] All lines shown.");
+
         onComplete?.Invoke();
+    }
+
+    /// <summary>
+    /// Called by ShellyController when dialogue ends.
+    /// Sets isDialogueInProgress to false, allowing the next line to show.
+    /// </summary>
+    public void EndDialogue()
+    {
+        isDialogueInProgress = false;
     }
 }

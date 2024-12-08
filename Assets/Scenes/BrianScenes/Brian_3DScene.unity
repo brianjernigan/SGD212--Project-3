@@ -4662,6 +4662,7 @@ MonoBehaviour:
   _shellyImage: {fileID: 666295778}
   _shellyClosed: {fileID: -839677488, guid: 77ca6543fb1a781409ff4eda69973bb9, type: 3}
   _shellyOpen: {fileID: 642033439, guid: 77ca6543fb1a781409ff4eda69973bb9, type: 3}
+  _typingSpeed: 0.1
 --- !u!1 &667284662
 GameObject:
   m_ObjectHideFlags: 0
@@ -12463,6 +12464,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2026720658}
   - component: {fileID: 2026720657}
+  - component: {fileID: 2026720659}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -12501,6 +12503,8 @@ MonoBehaviour:
   - {fileID: 406488158}
   - {fileID: 581496777}
   - {fileID: 2069707749}
+  enableNormalDialogue: 0
+  _isTutorialMode: 1
 --- !u!4 &2026720658
 Transform:
   m_ObjectHideFlags: 0
@@ -12516,6 +12520,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2026720659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2026720656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fad82875656e7d64984cb047c643c3f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ClownfishCount: 2
+  AnemoneCount: 2
+  KrakenCount: 1
 --- !u!1001 &2059472514
 PrefabInstance:
   m_ObjectHideFlags: 0

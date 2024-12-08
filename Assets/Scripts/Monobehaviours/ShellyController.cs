@@ -86,6 +86,12 @@ public class ShellyController : MonoBehaviour
             _currentDialogCoroutine = null;
             Debug.Log("[ShellyController] Stopped dialogue coroutine upon deactivation.");
         }
+
+        // Notify TutorialManager that the dialogue line has ended
+        if (TutorialManager.Instance != null)
+        {
+            TutorialManager.Instance.EndDialogue();
+        }
     }
 
     /// <summary>
