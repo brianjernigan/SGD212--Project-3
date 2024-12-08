@@ -7,17 +7,22 @@ public class MenuController : MonoBehaviour
 {
     public void OnClickStartButton()
     {
-        SceneManager.LoadScene("L1");
+        SceneManager.LoadScene("GameScene");
+    }
+
+    public void OnClickBackButton()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 
     public void OnClickHelpButton()
     {
-        SceneManager.LoadScene("HelpMenu");
+        SceneManager.LoadScene("Help");
     }
 
     public void OnClickCreditsButton()
     {
-        SceneManager.LoadScene("CreditsMenu");
+        SceneManager.LoadScene("Credits");
     }
 
     public void OnClickQuitButton()
