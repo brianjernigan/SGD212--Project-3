@@ -3,7 +3,7 @@ using System.Linq;
 
 public class BullsharkEffect : ICardEffect
 {
-    public string EffectDescription => "Discards all Bullsharks including this one. Permanently increase your hand size by 1 this round.";
+    public string EffectDescription => "Discards all Bullsharks including this one. Permanently increase your hand size by 1 this level.";
     
     public void ActivateEffect()
     {

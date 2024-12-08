@@ -28,7 +28,7 @@ public class StageAreaController : MonoBehaviour
         if (NumCardsStaged == 0) return true;
         if (card.CardName == "Kraken") return true;
 
-        var cardsAreFull = CardsStaged.Count > 4;
+        var cardsAreFull = CardsStaged.Count >= 4;
         if (cardsAreFull) return false;
 
         var containsKraken = CardsStaged.Exists(stagedCard => stagedCard.Data.CardName == "Kraken");

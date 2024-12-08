@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 // Stores all possible cards for creating decks and starting the game
 public class GameManager : MonoBehaviour
@@ -11,6 +12,7 @@ public class GameManager : MonoBehaviour
     
     [SerializeField] private GameObject _cardPrefab;
     [SerializeField] private List<Transform> _stagePositions;
+    [SerializeField] private GameObject _shelly;
 
     [Header("Areas")]
     [SerializeField] private GameObject _stageArea;
@@ -35,6 +37,7 @@ public class GameManager : MonoBehaviour
     public Hand PlayerHand { get; private set; }
     
     public StageAreaController StageAreaController { get; private set; }
+    public ShellyController ShellyController { get; private set; }
 
     private Camera _mainCamera;
 
@@ -161,6 +164,7 @@ public class GameManager : MonoBehaviour
         _mainCamera = Camera.main;
 
         StageAreaController = _stageArea.GetComponent<StageAreaController>();
+        ShellyController = _shelly.GetComponent<ShellyController>();
         
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
@@ -168,6 +172,8 @@ public class GameManager : MonoBehaviour
         HandArea = _handAreas[_levelIndex - 1];
         
         StartCoroutine(DrawInitialHandCoroutine());
+        ShellyController.ActivateTextBox(
+            "Hi! I'm Shelly. I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
     }
 
     private IEnumerator DrawInitialHandCoroutine()
@@ -708,31 +714,61 @@ public class GameManager : MonoBehaviour
 
     public void RestartCurrentLevel()
     {
-        throw new NotImplementedException();
+        ClearHandAndStage();
+        ResetStats();
     }
     
     public void HandleLevelChanged()
     {
         InitializeNewLevel();
+        ResetStats();
 
-        // TODO - Implement Stat Resets
+        StartCoroutine(DrawInitialHandCoroutine());
     }
 
     private void InitializeNewLevel()
     {
-        _levels[_levelIndex - 1].SetActive(false);
-        _levelIndex++;
-        _levels[_levelIndex - 1].SetActive(true);
+        if (_levelIndex < 3)
+        {
+            _levels[_levelIndex - 1].SetActive(false);
+            _levelIndex++;
+            _levels[_levelIndex - 1].SetActive(true);
+        
+            ClearHandAndStage();
+
+            HandArea = null;
+            HandArea = _handAreas[_levelIndex - 1];
+        }
+        else
+        {
+            SceneManager.LoadScene("Credits");
+        }
+    }
+
+    private void ClearHandAndStage()
+    {
         PlayerHand.ClearHandArea();
         StageAreaController.ClearStageArea(true);
-
-        HandArea = null;
-        HandArea = _handAreas[_levelIndex - 1];
     }
 
     private void ResetStats()
     {
-        throw new NotImplementedException();
+        CurrentScore = 0;
+        TriggerScoreChanged();
+        CurrentMultiplier = 1;
+        TriggerMultiplierChanged();
+        PlaysRemaining = 5;
+        TriggerPlaysChanged();
+        DiscardsRemaining = 5;
+        TriggerDiscardsChanged();
+        DrawsRemaining = 5;
+        TriggerDrawsChanged();
+        AdditionalCardsDrawn = 0;
+        PermanentHandSizeModifier = 0;
+        TriggerHandSizeChanged();
+
+        GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+        TriggerCardsRemainingChanged();
     }
 
     #region Invocations

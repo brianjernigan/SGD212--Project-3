@@ -25,6 +25,7 @@ TagManager:
   - HandArea3
   - HandArea
   - CardEffectsButton
+  - Shelly
   layers:
   - Default
   - TransparentFX
