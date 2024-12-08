@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -78,12 +77,12 @@ public class GameManager : MonoBehaviour
         set => enableNormalDialogue = value;
     }
 
-    [Header("Game Settings")]
-    [SerializeField] private bool isTutorialMode = false; // Exposed to the Inspector
+    [Header("Game Mode Settings")]
+    [SerializeField] private bool _isTutorialMode = true; // Set to true for tutorial, false for normal gameplay
     public bool IsTutorialMode
     {
-        get => isTutorialMode;
-        set => isTutorialMode = value;
+        get => _isTutorialMode;
+        set => _isTutorialMode = value;
     }
 
     private const int BaseRequiredScore = 50;
@@ -126,38 +125,49 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log($"[GameManager] Start called. IsTutorialMode: {IsTutorialMode}, EnableNormalDialogue: {EnableNormalDialogue}");
-
+        Debug.Log($"[GameManager Start] IsTutorialMode: {_isTutorialMode}");
+        
         // Initialize references
         _mainCamera = Camera.main;
         StageAreaController = _stageArea.GetComponent<StageAreaController>();
         ShellyController = _shelly.GetComponent<ShellyController>();
         PlayerHand = new Hand();
-        GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
-        HandArea = _handAreas[_levelIndex - 1];
-
-        Debug.Log("[GameManager] Starting initial hand draw...");
-        StartCoroutine(DrawInitialHandCoroutine());
-
-        // Dialogue logic
-        if (IsTutorialMode)
+        
+        // Build the deck based on the game mode
+        if (_isTutorialMode)
         {
-            Debug.Log("[GameManager] Tutorial mode detected. Disabling normal dialogues.");
-            EnableNormalDialogue = false; // Ensure normal dialogues are disabled in tutorial mode
-            ShowTutorialDialogue(tutorialIntroLines);
+            Debug.Log("[GameManager Start] Building tutorial deck.");
+            GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
         }
         else
         {
-            if (EnableNormalDialogue)
-            {
-                Debug.Log("[GameManager] Normal mode detected. Showing normal dialogue.");
-                ShowNormalDialogue(normalDialogue);
-            }
-            else
-            {
-                Debug.Log("[GameManager] Normal dialogues are disabled via Inspector.");
-            }
+            Debug.Log("[GameManager Start] Building default deck.");
+            GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
         }
+        
+        HandArea = _handAreas[_levelIndex - 1];
+        
+        Debug.Log("[GameManager Start] Starting initial hand draw...");
+        StartCoroutine(DrawInitialHandCoroutine());
+        
+        // Activate Shelly's initial dialogue **only if not in tutorial mode**
+        if (!_isTutorialMode)
+        {
+            ShellyController.ActivateTextBox(
+                "Hi! I'm Shelly. I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
+        }
+        
+        // Initialize TutorialManager if in tutorial mode
+        if (_isTutorialMode && TutorialManager.Instance != null)
+        {
+            TutorialManager.Instance.InitializeTutorial();
+        }
+    }
+
+    private IEnumerator DrawInitialHandCoroutine()
+    {
+        yield return new WaitForSeconds(0.5f);
+        StartCoroutine(DrawFullHandCoroutine());
     }
 
     private void Update()
@@ -185,13 +195,13 @@ public class GameManager : MonoBehaviour
         Debug.Log("[GameManager] Attempting to show normal dialogue: " + message);
 
         // If tutorial mode is active or normal dialogues are disabled, do not show normal dialogue
-        if (IsTutorialMode)
+        if (_isTutorialMode)
         {
             Debug.Log("[GameManager] Skipping normal dialogue because IsTutorialMode is true.");
             return;
         }
 
-        if (!EnableNormalDialogue)
+        if (!enableNormalDialogue)
         {
             Debug.Log("[GameManager] Skipping normal dialogue because EnableNormalDialogue is false.");
             return;
@@ -280,7 +290,7 @@ public class GameManager : MonoBehaviour
     public void HandleTutorialOnScoreChanged(int newScore)
     {
         Debug.Log("[GameManager] Score changed to " + newScore + " in tutorial mode.");
-        if (!IsTutorialMode) return;
+        if (!_isTutorialMode) return;
 
         if (newScore >= 50 && !isShowingTutorialDialogue)
         {
@@ -296,7 +306,7 @@ public class GameManager : MonoBehaviour
     public void HandleTutorialOnMultiplierChanged(int newMultiplier)
     {
         Debug.Log("[GameManager] Multiplier changed to " + newMultiplier + " in tutorial mode.");
-        if (!IsTutorialMode) return;
+        if (!_isTutorialMode) return;
 
         if (newMultiplier > 1 && !isShowingTutorialDialogue)
         {
@@ -380,12 +390,6 @@ public class GameManager : MonoBehaviour
     #endregion
 
     #region Card Drawing
-
-    private IEnumerator DrawInitialHandCoroutine()
-    {
-        yield return new WaitForSeconds(0.5f);
-        StartCoroutine(DrawFullHandCoroutine());
-    }
 
     public void DrawFullHand(bool isFromPlay)
     {
@@ -571,7 +575,7 @@ public class GameManager : MonoBehaviour
     private void HandleMouseClick(bool isLeftClick)
     {
         var ray = _mainCamera?.ScreenPointToRay(Input.mousePosition);
-        if (ray is null || !Physics.Raycast(ray.Value, out var hit)) return;
+        if (ray == null || !Physics.Raycast(ray.Value, out var hit)) return;
 
         var clickedObject = hit.collider.gameObject;
 
@@ -828,15 +832,8 @@ public class GameManager : MonoBehaviour
         var groups = PlayerHand.CardsInHand.GroupBy(card => card.Data.CardName);
         foreach (var group in groups)
         {
-            if (group.Count() == 3)
-            {
-                return true;
-            }
-            
-            if (group.Count() == 2 && group.Key != "Kraken" && hasKraken)
-            {
-                return true;
-            }
+            if (group.Count() == 3) return true;
+            if (group.Count() == 2 && group.Key != "Kraken" && hasKraken) return true;
         }
         
         return false;
@@ -918,7 +915,18 @@ public class GameManager : MonoBehaviour
         PermanentHandSizeModifier = 0;
         TriggerHandSizeChanged();
 
-        GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+        // Rebuild the deck based on the current game mode
+        if (_isTutorialMode)
+        {
+            Debug.Log("[GameManager ResetStats] Rebuilding tutorial deck.");
+            GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
+        }
+        else
+        {
+            Debug.Log("[GameManager ResetStats] Rebuilding default deck.");
+            GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+        }
+        
         TriggerCardsRemainingChanged();
     }
 
@@ -928,31 +936,37 @@ public class GameManager : MonoBehaviour
 
     public void TriggerScoreChanged()
     {
+        Debug.Log($"[GameManager] Triggering OnScoreChanged with value: {CurrentScore}");
         OnScoreChanged?.Invoke(CurrentScore);
     }
 
     public void TriggerPlaysChanged()
     {
+        Debug.Log($"[GameManager] Triggering OnPlaysChanged with value: {PlaysRemaining}");
         OnPlaysChanged?.Invoke(PlaysRemaining.ToString());
     }
 
     public void TriggerDiscardsChanged()
     {
+        Debug.Log($"[GameManager] Triggering OnDiscardsChanged with value: {DiscardsRemaining}");
         OnDiscardsChanged?.Invoke(DiscardsRemaining);
     }
 
     public void TriggerDrawsChanged()
     {
+        Debug.Log($"[GameManager] Triggering OnDrawsChanged with value: {DrawsRemaining}");
         OnDrawsChanged?.Invoke(DrawsRemaining);
     }
 
     public void TriggerMultiplierChanged()
     {
+        Debug.Log($"[GameManager] Triggering OnMultiplierChanged with value: {CurrentMultiplier}");
         OnMultiplierChanged?.Invoke(CurrentMultiplier);
     }
 
     public void TriggerHandSizeChanged()
     {
+        Debug.Log($"[GameManager] Triggering OnHandSizeChanged with value: {HandSize}");
         OnHandSizeChanged?.Invoke(HandSize);
     }
 
@@ -960,6 +974,7 @@ public class GameManager : MonoBehaviour
     {
         if (GameDeck != null)
         {
+            Debug.Log($"[GameManager] Triggering OnCardsRemainingChanged with value: {GameDeck.CardDataInDeck.Count}");
             OnCardsRemainingChanged?.Invoke(GameDeck.CardDataInDeck.Count);
         }
     }

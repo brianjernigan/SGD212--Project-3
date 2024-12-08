@@ -1,8 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System;
 
 public class TutorialManager : MonoBehaviour
 {
@@ -28,6 +28,7 @@ public class TutorialManager : MonoBehaviour
     public int KrakenCount = 1;
 
     private float _dialogueWaitTime = 3f; // Time in seconds to wait between lines
+    private bool isShowingTutorialDialogue = false;
 
     private void Awake()
     {
@@ -77,27 +78,27 @@ public class TutorialManager : MonoBehaviour
         GameManager.Instance.GameDeck.CardDataInDeck.Clear();
         GameManager.Instance.PlayerHand.ClearHandArea();
 
-        var clownfishData = CardLibrary.Instance.GetCardDataByName("ClownFish");
-        var anemoneData = CardLibrary.Instance.GetCardDataByName("Anemone");
-        var krakenData = CardLibrary.Instance.GetCardDataByName("Kraken");
-
-        Debug.Log("[TutorialManager] Adding tutorial cards to deck...");
-        if (clownfishData != null)
-        {
-            GameManager.Instance.GameDeck.AddCard(clownfishData, ClownfishCount);
-        }
-        if (anemoneData != null)
-        {
-            GameManager.Instance.GameDeck.AddCard(anemoneData, AnemoneCount);
-        }
-        if (krakenData != null)
-        {
-            GameManager.Instance.GameDeck.AddCard(krakenData, KrakenCount);
-        }
+        AddTutorialCard("ClownFish", ClownfishCount);
+        AddTutorialCard("Anemone", AnemoneCount);
+        AddTutorialCard("Kraken", KrakenCount);
 
         GameManager.Instance.GameDeck.ShuffleDeck();
         Debug.Log("[TutorialManager] Deck shuffled. Drawing initial hand...");
         GameManager.Instance.StartCoroutine(GameManager.Instance.DrawFullHandCoroutine());
+    }
+
+    private void AddTutorialCard(string cardName, int count)
+    {
+        var cardData = CardLibrary.Instance.GetCardDataByName(cardName);
+        if (cardData != null)
+        {
+            GameManager.Instance.GameDeck.AddCard(cardData, count);
+            Debug.Log($"[TutorialManager] Added {count} {cardName} cards to the deck.");
+        }
+        else
+        {
+            Debug.LogWarning($"[TutorialManager] Card '{cardName}' not found in CardLibrary.");
+        }
     }
 
     private void SubscribeToGameEvents()
@@ -144,7 +145,9 @@ public class TutorialManager : MonoBehaviour
 
     private void HandleScoreChanged(int newScore)
     {
-        Debug.Log("[TutorialManager] Score changed to " + newScore + ". Current Step: " + _currentStep);
+        Debug.Log($"[TutorialManager] Score changed to {newScore}. Current Step: {_currentStep}");
+        if (!IsTutorialMode) return;
+
         if (_currentStep == TutorialStep.ExplainCards && newScore > 0)
         {
             Debug.Log("[TutorialManager] Player scored during ExplainCards step. Showing multiplier explanation.");
@@ -166,7 +169,9 @@ public class TutorialManager : MonoBehaviour
 
     private void HandleMultiplierChanged(int newMultiplier)
     {
-        Debug.Log("[TutorialManager] Multiplier changed to " + newMultiplier + ". Current Step: " + _currentStep);
+        Debug.Log($"[TutorialManager] Multiplier changed to {newMultiplier}. Current Step: {_currentStep}");
+        if (!IsTutorialMode) return;
+
         if (_currentStep == TutorialStep.ExplainMultiplier && newMultiplier > 1)
         {
             Debug.Log("[TutorialManager] Multiplier activated. Showing multiplier usage instructions.");
@@ -227,10 +232,10 @@ public class TutorialManager : MonoBehaviour
     private IEnumerator ShowDialogueLines(string[] lines, Action onComplete = null)
     {
         var shelly = GameManager.Instance.ShellyController;
-        Debug.Log("[TutorialManager] Showing " + lines.Length + " dialogue lines.");
+        Debug.Log($"[TutorialManager] Showing {lines.Length} dialogue lines.");
         foreach (var line in lines)
         {
-            Debug.Log("[TutorialManager] Showing line: " + line);
+            Debug.Log($"[TutorialManager] Showing line: {line}");
             shelly.ActivateTextBox(line);
             yield return new WaitForSeconds(_dialogueWaitTime);
         }

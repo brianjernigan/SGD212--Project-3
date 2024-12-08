@@ -1,20 +1,23 @@
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ShellyController : MonoBehaviour
 {
+    [Header("UI Components")]
     [SerializeField] private GameObject _shellyTextBox;
     [SerializeField] private TMP_Text _shellyDialog;
     [SerializeField] private Image _shellyImage;
     [SerializeField] private Sprite _shellyClosed;
     [SerializeField] private Sprite _shellyOpen;
 
-    private readonly float _typingSpeed = 0.1f;
+    [Header("Dialogue Settings")]
+    [SerializeField] private float _typingSpeed = 0.1f; // Speed of the typing effect
+
     private bool _isMouthOpen;
     private Coroutine _currentDialogCoroutine;
+    private bool _isDialogueActive = false;
 
     private void Awake()
     {
@@ -35,12 +38,20 @@ public class ShellyController : MonoBehaviour
 
     /// <summary>
     /// Activates the text box and starts displaying the provided message.
+    /// Prevents overlapping dialogues if one is already active.
     /// </summary>
     /// <param name="message">The message to display.</param>
     public void ActivateTextBox(string message)
     {
+        if (_isDialogueActive)
+        {
+            Debug.LogWarning("[ShellyController] Dialogue already active. Skipping new dialogue.");
+            return;
+        }
+
         Debug.Log($"[ShellyController] Activating text box with message: {message}");
         _shellyTextBox.SetActive(true);
+        _isDialogueActive = true;
 
         // If a dialogue coroutine is already running, stop it to prevent overlap
         if (_currentDialogCoroutine != null)
@@ -54,12 +65,19 @@ public class ShellyController : MonoBehaviour
     }
 
     /// <summary>
-    /// Deactivates the text box.
+    /// Deactivates the text box and stops any ongoing dialogue coroutine.
     /// </summary>
     public void DeactivateTextBox()
     {
+        if (!_isDialogueActive)
+        {
+            Debug.LogWarning("[ShellyController] Attempted to deactivate text box when no dialogue is active.");
+            return;
+        }
+
         Debug.Log("[ShellyController] Deactivating text box.");
         _shellyTextBox.SetActive(false);
+        _isDialogueActive = false;
 
         // If a dialogue coroutine is running, stop it
         if (_currentDialogCoroutine != null)
@@ -71,9 +89,8 @@ public class ShellyController : MonoBehaviour
     }
 
     /// <summary>
-    /// Starts the dialogue coroutine to display the message with typing effect.
+    /// Coroutine that types out the dialogue message character by character.
     /// </summary>
-    /// <param name="message">The message to display.</param>
     private IEnumerator ShellyDialogRoutine(string message)
     {
         _shellyDialog.text = "";
@@ -93,12 +110,9 @@ public class ShellyController : MonoBehaviour
         AudioManager.Instance.StopShellyAudio();
         Debug.Log("[ShellyController] Dialog routine complete.");
 
-        // Optionally, automatically deactivate the text box after a short delay
-        // Uncomment the following lines if desired:
-        /*
-        yield return new WaitForSeconds(1f); // Wait before hiding
+        // Automatically deactivate the text box after a short delay
+        yield return new WaitForSeconds(1f); // Adjust as needed
         DeactivateTextBox();
-        */
     }
 
     private void OnDisable()
