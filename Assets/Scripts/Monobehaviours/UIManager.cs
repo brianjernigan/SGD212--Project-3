@@ -212,8 +212,8 @@ public class UIManager : MonoBehaviour
 
     public void OnClickLossRestartButton()
     {
-        _lossPanel.SetActive(false);
         GameManager.Instance.RestartCurrentLevel();
+        _lossPanel.SetActive(false);
     }
 
     public void OnClickWinNextLevelButton()

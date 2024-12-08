@@ -9,7 +9,13 @@ public class FishEggsEffect : ICardEffect
         var playerHand = GameManager.Instance.PlayerHand;
         if (playerHand.CardsInHand.Count == 0) return;
 
-        var randomCardInHand = playerHand.CardsInHand[Random.Range(0, playerHand.NumCardsInHand)];
+        GameCard randomCardInHand;
+
+        do
+        {
+            randomCardInHand = playerHand.CardsInHand[Random.Range(0, playerHand.NumCardsInHand)];
+        } while (randomCardInHand.Data.CardName == "FishEggs");
+        
         var stagedCard = GameManager.Instance.StageAreaController.GetFirstStagedCard();
 
         var handCardData = randomCardInHand.Data;

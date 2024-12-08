@@ -14,6 +14,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioSource _scoreSetAudio;
     [SerializeField] private AudioSource _seagullAudio;
     [SerializeField] private AudioSource _stageCardAudio;
+    [SerializeField] private AudioSource _shellyAudio;
     
     private void Awake()
     {
@@ -63,5 +64,18 @@ public class AudioManager : MonoBehaviour
     public void PlayAmbientAudio()
     {
         _ambientAudio.Play();
+    }
+
+    public void PlayShellyAudio()
+    {
+        _shellyAudio.Play();
+    }
+
+    public void StopShellyAudio()
+    {
+        if (_shellyAudio.isPlaying)
+        {
+            _shellyAudio.Stop();
+        }
     }
 }
