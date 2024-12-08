@@ -67,16 +67,34 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnHandSizeChanged;
     public event Action<int> OnCardsRemainingChanged;
 
-    private const int BaseRequiredScore = 50;
-    public int CurrentRequiredScore => BaseRequiredScore * _levelIndex;
-
- [Header("Game Settings")]
+    [Header("Game Settings")]
     [SerializeField] private bool isTutorialMode = false; // Exposed to the Inspector
     public bool IsTutorialMode
     {
         get => isTutorialMode;
         set => isTutorialMode = value;
     }
+
+    private const int BaseRequiredScore = 50;
+    public int CurrentRequiredScore => BaseRequiredScore * _levelIndex;
+
+    #region Dialogue Variables
+
+    private bool isShowingNormalDialogue = false;
+    private bool isShowingTutorialDialogue = false;
+
+    // Tutorial dialogue lines
+    private string[] tutorialIntroLines = new string[]
+    {
+        "Hi, I'm Shelly! Welcome to the Fresh Catch tutorial!",
+        "Your goal is to earn 50 points using Clownfish cards.",
+        "Drag Clownfish cards to the stage area to form a set and press 'Play' to score."
+    };
+
+    // Normal dialogue
+    private string normalDialogue = "Hi! I'm Shelly. I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?";
+
+    #endregion
 
     #region Helpers
 
@@ -149,8 +167,8 @@ public class GameManager : MonoBehaviour
     }
 
     #endregion
-
     
+
     private void Awake()
     {
         if (Instance is null)
@@ -178,18 +196,95 @@ public class GameManager : MonoBehaviour
 
         HandArea = _handAreas[_levelIndex - 1];
 
+        StartCoroutine(DrawInitialHandCoroutine()); // Ensure cards are drawn correctly
+
         if (IsTutorialMode)
         {
-            TutorialManager.Instance.InitializeTutorial();
+            // Trigger tutorial dialogue
+            ShowTutorialDialogue(tutorialIntroLines);
+
+            // Subscribe to events to trigger additional tutorial dialogues
+            OnScoreChanged += HandleTutorialOnScoreChanged;
+            OnMultiplierChanged += HandleTutorialOnMultiplierChanged;
         }
         else
         {
-            StartCoroutine(DrawInitialHandCoroutine());
-            ShellyController.ActivateTextBox(
-                "Hi! I'm Shelly. I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
+            // Trigger normal dialogue
+            ShowNormalDialogue(normalDialogue);
         }
     }
 
+    private void HandleTutorialOnScoreChanged(int newScore)
+    {
+        if (!IsTutorialMode) return;
+
+        if (newScore >= 50 && !isShowingTutorialDialogue)
+        {
+            ShowTutorialDialogue(new string[]
+            {
+                "Great job! You've reached 50 points!",
+                "You now understand how to play cards and score points. Let's move on!"
+            }, () => SceneManager.LoadScene("MainMenu"));
+        }
+    }
+
+    private void HandleTutorialOnMultiplierChanged(int newMultiplier)
+    {
+        if (!IsTutorialMode) return;
+
+        // Example: Trigger additional tutorial dialogue when multiplier increases
+        if (newMultiplier > 1 && !isShowingTutorialDialogue)
+        {
+            ShowTutorialDialogue(new string[]
+            {
+                "Awesome! You've activated the multiplier.",
+                "Play another set to see how it boosts your score!"
+            });
+        }
+    }
+
+    // Show normal dialogue
+    private void ShowNormalDialogue(string message)
+    {
+        if (isShowingTutorialDialogue) return; // Prevent overlap with tutorial dialogue
+
+        isShowingNormalDialogue = true;
+        ShellyController.ActivateTextBox(message);
+        StartCoroutine(WaitForDialogueToFinish(() => isShowingNormalDialogue = false));
+    }
+
+    // Show tutorial dialogue
+    private void ShowTutorialDialogue(string[] lines, Action onComplete = null)
+    {
+        if (isShowingNormalDialogue) return; // Prevent overlap with normal dialogue
+        if (isShowingTutorialDialogue) return; // Prevent starting another tutorial sequence
+
+        isShowingTutorialDialogue = true;
+        StartCoroutine(ShowTutorialLinesCoroutine(lines, () =>
+        {
+            isShowingTutorialDialogue = false;
+            onComplete?.Invoke();
+        }));
+    }
+
+    // Coroutine to handle tutorial dialogue sequence
+    private IEnumerator ShowTutorialLinesCoroutine(string[] lines, Action onComplete)
+    {
+        foreach (var line in lines)
+        {
+            ShellyController.ActivateTextBox(line);
+            yield return new WaitForSeconds(3f); // Adjust duration as needed
+        }
+
+        onComplete?.Invoke();
+    }
+
+    // Coroutine to wait for dialogue to finish (if needed for UI)
+    private IEnumerator WaitForDialogueToFinish(Action onFinish)
+    {
+        yield return new WaitForSeconds(3f); // Adjust timing to match dialogue duration
+        onFinish?.Invoke();
+    }
 
     private IEnumerator DrawInitialHandCoroutine()
     {
