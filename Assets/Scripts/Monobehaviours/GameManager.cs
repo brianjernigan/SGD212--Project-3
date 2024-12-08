@@ -5,11 +5,10 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Stores all possible cards for creating decks and starting the game
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-    
+
     [SerializeField] private GameObject _cardPrefab;
     [SerializeField] private List<Transform> _stagePositions;
     [SerializeField] private GameObject _shelly;
@@ -18,15 +17,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _stageArea;
     [SerializeField] private GameObject _discardArea;
     [SerializeField] private GameObject _deck;
-    [SerializeField] private Transform _whirlpoolCenter; // Added for spiral animation
-    
+    [SerializeField] private Transform _whirlpoolCenter;
+
     [SerializeField] private List<GameObject> _levels;
     [SerializeField] private List<GameObject> _handAreas;
     public GameObject StageArea => _stageArea;
     public GameObject DiscardArea => _discardArea;
     public GameObject HandArea { get; private set; }
     private int _levelIndex = 1;
-    
+
     public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
     private const int MaxCardsOnScreen = 5;
     public int AdditionalCardsDrawn { get; set; }
@@ -35,7 +34,7 @@ public class GameManager : MonoBehaviour
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
-    
+
     public StageAreaController StageAreaController { get; private set; }
     public ShellyController ShellyController { get; private set; }
 
@@ -44,17 +43,17 @@ public class GameManager : MonoBehaviour
     public bool IsDrawingCards { get; set; }
     public bool IsDraggingCard { get; set; }
     public bool IsFlippingCard { get; set; }
-    
+
     public int CurrentScore { get; set; }
     public int CurrentMultiplier { get; set; } = 1;
 
     private const float DockWidth = 750f;
     private float _initialCardY;
-    
-    private readonly float _spiralDuration = 1.0f; // Duration of the spiral animation
-    private readonly float _spiralRadius = 5.0f;    // Starting radius of the spiral
-    private readonly float _spiralDepth = 2.0f;     // Depth the card moves downward
-    private readonly float _spiralRotationSpeed = 360f; // Degrees per second
+
+    private readonly float _spiralDuration = 1.0f;
+    private readonly float _spiralRadius = 5.0f;
+    private readonly float _spiralDepth = 2.0f;
+    private readonly float _spiralRotationSpeed = 360f;
 
     public int PlaysRemaining { get; set; } = 5;
     public int DiscardsRemaining { get; set; } = 5;
@@ -70,6 +69,14 @@ public class GameManager : MonoBehaviour
 
     private const int BaseRequiredScore = 50;
     public int CurrentRequiredScore => BaseRequiredScore * _levelIndex;
+
+ [Header("Game Settings")]
+    [SerializeField] private bool isTutorialMode = false; // Exposed to the Inspector
+    public bool IsTutorialMode
+    {
+        get => isTutorialMode;
+        set => isTutorialMode = value;
+    }
 
     #region Helpers
 
@@ -160,21 +167,29 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         AudioManager.Instance.PlayAmbientAudio();
-        
+
         _mainCamera = Camera.main;
 
         StageAreaController = _stageArea.GetComponent<StageAreaController>();
         ShellyController = _shelly.GetComponent<ShellyController>();
-        
+
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
 
         HandArea = _handAreas[_levelIndex - 1];
-        
-        StartCoroutine(DrawInitialHandCoroutine());
-        ShellyController.ActivateTextBox(
-            "Hi! I'm Shelly. I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
+
+        if (IsTutorialMode)
+        {
+            TutorialManager.Instance.InitializeTutorial();
+        }
+        else
+        {
+            StartCoroutine(DrawInitialHandCoroutine());
+            ShellyController.ActivateTextBox(
+                "Hi! I'm Shelly. I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
+        }
     }
+
 
     private IEnumerator DrawInitialHandCoroutine()
     {
@@ -270,7 +285,7 @@ public class GameManager : MonoBehaviour
         CheckForGameLoss();
     }
     
-    private IEnumerator DrawFullHandCoroutine()
+    public IEnumerator DrawFullHandCoroutine()
     {
         IsDrawingCards = true;
 

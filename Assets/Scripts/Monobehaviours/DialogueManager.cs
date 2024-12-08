@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -97,11 +98,12 @@ public class DialogueManager : MonoBehaviour
         });
     }
 
-    public void StartDialogue(string[] lines)
+    public void StartDialogue(string[] lines, Action onComplete = null)
     {
         if (lines == null || lines.Length == 0)
         {
             Debug.LogWarning("[DIALOGUE] No lines provided for dialogue.");
+            onComplete?.Invoke();
             return;
         }
 
@@ -113,15 +115,18 @@ public class DialogueManager : MonoBehaviour
 
         if (!isTyping)
         {
-            StartCoroutine(DisplayNextDialogue());
+            StartCoroutine(DisplayNextDialogue(onComplete));
         }
     }
 
-    private IEnumerator DisplayNextDialogue()
+    private IEnumerator DisplayNextDialogue(Action onComplete)
     {
         if (dialogueQueue.Count == 0)
         {
             Debug.Log("[DIALOGUE] No more dialogue in the queue.");
+
+            // Trigger the completion callback if provided
+            onComplete?.Invoke();
             yield break;
         }
 
@@ -140,14 +145,19 @@ public class DialogueManager : MonoBehaviour
 
         if (dialogueQueue.Count == 0)
         {
+            // No more dialogue; enable help button and disable skip button
             if (helpButton != null) helpButton.gameObject.SetActive(true);
             if (skipButton != null) skipButton.gameObject.SetActive(false);
+
+            // Trigger the completion callback at the end of dialogue
+            onComplete?.Invoke();
         }
         else if (skipButton != null)
         {
             skipButton.gameObject.SetActive(true);
         }
     }
+
 
     private IEnumerator TypeSentence(string sentence)
     {
@@ -193,7 +203,7 @@ public class DialogueManager : MonoBehaviour
 
         if (dialogueQueue.Count > 0)
         {
-            StartCoroutine(DisplayNextDialogue());
+            StartCoroutine(DisplayNextDialogue(null)); // Pass null if no completion logic is needed
         }
         else
         {
@@ -201,6 +211,7 @@ public class DialogueManager : MonoBehaviour
             StartCoroutine(FadeOutDialoguePanel());
         }
     }
+
 
     private void SkipDialogue()
     {
