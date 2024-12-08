@@ -1,9 +1,7 @@
-// TutorialManager.cs (New)
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Linq;
 using System;
 
 public class TutorialManager : MonoBehaviour
@@ -24,11 +22,12 @@ public class TutorialManager : MonoBehaviour
     private bool _tutorialComplete = false;
     public bool IsTutorialMode { get; set; } = false;
 
-
     [Header("Tutorial Deck Setup")]
     public int ClownfishCount = 2;
     public int AnemoneCount = 2;
     public int KrakenCount = 1;
+
+    private float _dialogueWaitTime = 3f; // Time in seconds to wait between lines
 
     private void Awake()
     {
@@ -36,20 +35,37 @@ public class TutorialManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("[TutorialManager Awake] Instance created.");
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.IsTutorialMode = true;
+                GameManager.Instance.EnableNormalDialogue = false; // Disable normal dialogues
+                IsTutorialMode = true;
+                Debug.Log("[TutorialManager Awake] Set GameManager.IsTutorialMode to true and disabled normal dialogues.");
+            }
+            else
+            {
+                Debug.LogError("[TutorialManager Awake] GameManager.Instance is null. Cannot set tutorial flags.");
+            }
         }
         else
         {
             Destroy(gameObject);
+            Debug.LogWarning("[TutorialManager Awake] Duplicate instance detected and destroyed.");
         }
     }
 
     public void InitializeTutorial()
     {
+        Debug.Log("[TutorialManager] Initializing tutorial...");
         if (!GameManager.Instance.IsTutorialMode)
         {
+            Debug.Log("[TutorialManager] Tutorial mode not active. Exiting initialization.");
             return;
         }
 
+        Debug.Log("[TutorialManager] Tutorial mode is active. Setting up deck...");
         SetupTutorialDeck();
         StartCoroutine(BeginTutorialSequence());
         SubscribeToGameEvents();
@@ -57,6 +73,7 @@ public class TutorialManager : MonoBehaviour
 
     private void SetupTutorialDeck()
     {
+        Debug.Log("[TutorialManager] Clearing existing deck and hand for tutorial setup.");
         GameManager.Instance.GameDeck.CardDataInDeck.Clear();
         GameManager.Instance.PlayerHand.ClearHandArea();
 
@@ -64,6 +81,7 @@ public class TutorialManager : MonoBehaviour
         var anemoneData = CardLibrary.Instance.GetCardDataByName("Anemone");
         var krakenData = CardLibrary.Instance.GetCardDataByName("Kraken");
 
+        Debug.Log("[TutorialManager] Adding tutorial cards to deck...");
         if (clownfishData != null)
         {
             GameManager.Instance.GameDeck.AddCard(clownfishData, ClownfishCount);
@@ -78,58 +96,69 @@ public class TutorialManager : MonoBehaviour
         }
 
         GameManager.Instance.GameDeck.ShuffleDeck();
-
+        Debug.Log("[TutorialManager] Deck shuffled. Drawing initial hand...");
         GameManager.Instance.StartCoroutine(GameManager.Instance.DrawFullHandCoroutine());
     }
 
     private void SubscribeToGameEvents()
     {
+        Debug.Log("[TutorialManager] Subscribing to GameManager events.");
         GameManager.Instance.OnScoreChanged += HandleScoreChanged;
         GameManager.Instance.OnMultiplierChanged += HandleMultiplierChanged;
     }
 
     private void UnsubscribeFromGameEvents()
     {
-        GameManager.Instance.OnScoreChanged -= HandleScoreChanged;
-        GameManager.Instance.OnMultiplierChanged -= HandleMultiplierChanged;
+        Debug.Log("[TutorialManager] Unsubscribing from GameManager events.");
+        if (GameManager.Instance != null) 
+        {
+            GameManager.Instance.OnScoreChanged -= HandleScoreChanged;
+            GameManager.Instance.OnMultiplierChanged -= HandleMultiplierChanged;
+        }
     }
 
     private IEnumerator BeginTutorialSequence()
     {
+        Debug.Log("[TutorialManager] Beginning tutorial sequence...");
         yield return new WaitForSeconds(1f);
         ShowIntroDialogue();
     }
 
     private void ShowIntroDialogue()
     {
-        DialogueManager.Instance.StartDialogue(new string[]
+        Debug.Log("[TutorialManager] Showing introduction dialogue.");
+        StartCoroutine(ShowDialogueLines(new string[]
         {
             "Hi, I'm Shelly! Welcome to the Fresh Catch tutorial!",
             "We'll start simple. Your goal: Earn 50 points.",
             "You have special cards: Clownfish and Anemone. Clownfish score points. Anemone boosts your multiplier!",
             "First, drag both Clownfish cards from your hand to the stage area to form a set, then press 'Play' to score."
-        }, OnIntroDialogueComplete);
+        }, OnIntroDialogueComplete));
     }
 
     private void OnIntroDialogueComplete()
     {
+        Debug.Log("[TutorialManager] Intro dialogue complete. Moving to ExplainCards step.");
         _currentStep = TutorialStep.ExplainCards;
     }
 
     private void HandleScoreChanged(int newScore)
     {
+        Debug.Log("[TutorialManager] Score changed to " + newScore + ". Current Step: " + _currentStep);
         if (_currentStep == TutorialStep.ExplainCards && newScore > 0)
         {
-            DialogueManager.Instance.StartDialogue(new string[]
+            Debug.Log("[TutorialManager] Player scored during ExplainCards step. Showing multiplier explanation.");
+            StartCoroutine(ShowDialogueLines(new string[]
             {
                 "Great job! You scored points from the Clownfish set.",
                 "Now let's talk about the multiplier. Anemones add extra multipliers to future sets!",
                 "Drag an Anemone from your hand to the stage area. Then play another Clownfish set to see the multiplier!",
                 "Try to reach 50 points!"
-            }, OnMultiplierExplanationComplete);
+            }, OnMultiplierExplanationComplete));
         }
         else if (_currentStep == TutorialStep.WaitForMultiplierPlay && newScore >= 50)
         {
+            Debug.Log("[TutorialManager] Score reached 50 during WaitForMultiplierPlay step. Showing conclusion.");
             _currentStep = TutorialStep.Conclusion;
             ShowConclusion();
         }
@@ -137,23 +166,27 @@ public class TutorialManager : MonoBehaviour
 
     private void HandleMultiplierChanged(int newMultiplier)
     {
+        Debug.Log("[TutorialManager] Multiplier changed to " + newMultiplier + ". Current Step: " + _currentStep);
         if (_currentStep == TutorialStep.ExplainMultiplier && newMultiplier > 1)
         {
-            DialogueManager.Instance.StartDialogue(new string[]
+            Debug.Log("[TutorialManager] Multiplier activated. Showing multiplier usage instructions.");
+            StartCoroutine(ShowDialogueLines(new string[]
             {
                 "Awesome! You've activated the multiplier.",
-                "Play another Clownfish set to see how it boosts your score!"
-            }, OnMultiplierUsageComplete);
+                "Play another set to see how it boosts your score!"
+            }, OnMultiplierUsageComplete));
         }
     }
 
     private void OnMultiplierExplanationComplete()
     {
+        Debug.Log("[TutorialManager] Multiplier explanation dialogue complete.");
         _currentStep = TutorialStep.ExplainMultiplier;
     }
 
     private void OnMultiplierUsageComplete()
     {
+        Debug.Log("[TutorialManager] Multiplier usage dialogue complete.");
         _currentStep = TutorialStep.WaitForMultiplierPlay;
     }
 
@@ -161,18 +194,20 @@ public class TutorialManager : MonoBehaviour
     {
         if (!_tutorialComplete)
         {
+            Debug.Log("[TutorialManager] Showing conclusion dialogue.");
             _tutorialComplete = true;
-            DialogueManager.Instance.StartDialogue(new string[]
+            StartCoroutine(ShowDialogueLines(new string[]
             {
                 "Fantastic! You reached 50 points!",
                 "You now understand how to play cards, form sets, and use the Anemone to boost multipliers!",
                 "Let's return to the main menu and start the real game."
-            }, OnConclusionComplete);
+            }, OnConclusionComplete));
         }
     }
 
     private void OnConclusionComplete()
     {
+        Debug.Log("[TutorialManager] Conclusion dialogue complete. Returning to main menu...");
         StartCoroutine(ReturnToMenuCoroutine());
     }
 
@@ -185,6 +220,21 @@ public class TutorialManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        Debug.Log("[TutorialManager] OnDestroy called. Unsubscribing from events.");
         UnsubscribeFromGameEvents();
+    }
+
+    private IEnumerator ShowDialogueLines(string[] lines, Action onComplete = null)
+    {
+        var shelly = GameManager.Instance.ShellyController;
+        Debug.Log("[TutorialManager] Showing " + lines.Length + " dialogue lines.");
+        foreach (var line in lines)
+        {
+            Debug.Log("[TutorialManager] Showing line: " + line);
+            shelly.ActivateTextBox(line);
+            yield return new WaitForSeconds(_dialogueWaitTime);
+        }
+        Debug.Log("[TutorialManager] All lines shown.");
+        onComplete?.Invoke();
     }
 }

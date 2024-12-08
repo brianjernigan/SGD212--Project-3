@@ -14,29 +14,73 @@ public class ShellyController : MonoBehaviour
 
     private readonly float _typingSpeed = 0.1f;
     private bool _isMouthOpen;
+    private Coroutine _currentDialogCoroutine;
 
+    private void Awake()
+    {
+        // Validate serialized fields
+        if (_shellyTextBox == null)
+        {
+            Debug.LogError("[ShellyController Awake] _shellyTextBox is not assigned.");
+        }
+        if (_shellyDialog == null)
+        {
+            Debug.LogError("[ShellyController Awake] _shellyDialog is not assigned.");
+        }
+        if (_shellyImage == null)
+        {
+            Debug.LogError("[ShellyController Awake] _shellyImage is not assigned.");
+        }
+    }
+
+    /// <summary>
+    /// Activates the text box and starts displaying the provided message.
+    /// </summary>
+    /// <param name="message">The message to display.</param>
     public void ActivateTextBox(string message)
     {
+        Debug.Log($"[ShellyController] Activating text box with message: {message}");
         _shellyTextBox.SetActive(true);
-        UpdateShellyDialog(message);
+
+        // If a dialogue coroutine is already running, stop it to prevent overlap
+        if (_currentDialogCoroutine != null)
+        {
+            StopCoroutine(_currentDialogCoroutine);
+            _currentDialogCoroutine = null;
+            Debug.Log("[ShellyController] Stopped existing dialogue coroutine.");
+        }
+
+        _currentDialogCoroutine = StartCoroutine(ShellyDialogRoutine(message));
     }
 
+    /// <summary>
+    /// Deactivates the text box.
+    /// </summary>
     public void DeactivateTextBox()
     {
+        Debug.Log("[ShellyController] Deactivating text box.");
         _shellyTextBox.SetActive(false);
+
+        // If a dialogue coroutine is running, stop it
+        if (_currentDialogCoroutine != null)
+        {
+            StopCoroutine(_currentDialogCoroutine);
+            _currentDialogCoroutine = null;
+            Debug.Log("[ShellyController] Stopped dialogue coroutine upon deactivation.");
+        }
     }
 
-    private void UpdateShellyDialog(string message)
-    {
-        StartCoroutine(ShellyDialogRoutine(message));
-    }
-
+    /// <summary>
+    /// Starts the dialogue coroutine to display the message with typing effect.
+    /// </summary>
+    /// <param name="message">The message to display.</param>
     private IEnumerator ShellyDialogRoutine(string message)
     {
         _shellyDialog.text = "";
 
+        Debug.Log("[ShellyController] Starting dialog routine.");
         AudioManager.Instance.PlayShellyAudio();
-        
+
         foreach (var character in message)
         {
             _shellyDialog.text += character;
@@ -47,5 +91,24 @@ public class ShellyController : MonoBehaviour
 
         _shellyImage.sprite = _shellyClosed;
         AudioManager.Instance.StopShellyAudio();
+        Debug.Log("[ShellyController] Dialog routine complete.");
+
+        // Optionally, automatically deactivate the text box after a short delay
+        // Uncomment the following lines if desired:
+        /*
+        yield return new WaitForSeconds(1f); // Wait before hiding
+        DeactivateTextBox();
+        */
+    }
+
+    private void OnDisable()
+    {
+        // Ensure that any running coroutine is stopped when the object is disabled
+        if (_currentDialogCoroutine != null)
+        {
+            StopCoroutine(_currentDialogCoroutine);
+            _currentDialogCoroutine = null;
+            Debug.Log("[ShellyController OnDisable] Stopped running dialogue coroutine.");
+        }
     }
 }

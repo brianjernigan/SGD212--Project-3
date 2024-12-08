@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -24,6 +25,7 @@ public class GameManager : MonoBehaviour
     public GameObject StageArea => _stageArea;
     public GameObject DiscardArea => _discardArea;
     public GameObject HandArea { get; private set; }
+
     private int _levelIndex = 1;
 
     public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
@@ -67,6 +69,15 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnHandSizeChanged;
     public event Action<int> OnCardsRemainingChanged;
 
+    [Header("Dialogue Settings")]
+    [Tooltip("Enable or disable normal dialogues.")]
+    [SerializeField] private bool enableNormalDialogue = true;
+    public bool EnableNormalDialogue
+    {
+        get => enableNormalDialogue;
+        set => enableNormalDialogue = value;
+    }
+
     [Header("Game Settings")]
     [SerializeField] private bool isTutorialMode = false; // Exposed to the Inspector
     public bool IsTutorialMode
@@ -96,172 +107,144 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region Helpers
-
-    private Vector3 CalculateCardPosition(int cardIndex, int totalCards, Vector3 dockCenter)
-    {
-        totalCards = Mathf.Max(totalCards, 1);
-
-        var cardSpacing = Mathf.Min(DockWidth / totalCards, 140f); // Dynamic spacing with a max cap
-        var startX = -((totalCards - 1) * cardSpacing) / 2f;
-        var xPosition = startX + (cardIndex * cardSpacing);
-
-        var handCollider = HandArea.GetComponent<BoxCollider>();
-        
-        return dockCenter + new Vector3(xPosition, handCollider.transform.TransformPoint(handCollider.center).y + cardIndex, 0f); // Straight line with fixed Y
-    }
-
-    public void PlaceCardInHand(GameCard gameCard)
-    {
-        var handCenter = HandArea.transform.position;
-
-        var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, handCenter);
-        
-        gameCard.UI.transform.position = targetPosition;
-        
-        AudioManager.Instance.PlayBackToHandAudio();
-     
-        gameCard.IsInHand = true;
-        gameCard.IsStaged = false;
-        
-        RearrangeHand();
-    }
-
-    private void PlaceCardInStage(GameCard gameCard)
-    {
-        gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
-        var vector3 = gameCard.UI.transform.position;
-        vector3.y = _initialCardY;
-        gameCard.UI.transform.position = vector3;
-        
-        AudioManager.Instance.PlayStageCardAudio();
-        
-        gameCard.IsStaged = true;
-        gameCard.IsInHand = false;
-        
-        RearrangeStage();
-    }
-    
-    public void RearrangeHand()
-    {
-        var dockCenter = HandArea.transform.position;
-        for (var i = 0; i < PlayerHand.NumCardsInHand; i++)
-        {
-            var card = PlayerHand.CardsInHand[i];
-            var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
-            card.UI.YPositionInHand = targetPosition.y;
-            StartCoroutine(AnimateCardToPosition(card.UI?.transform, targetPosition, Quaternion.Euler(90f, 180f, 0f)));
-        }
-        
-        TriggerCardsRemainingChanged();
-    }
-    
-    public void RearrangeStage()
-    {
-        for (var i = 0; i < StageAreaController.NumCardsStaged; i++)
-        {
-            StageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position;
-        }
-        
-        TriggerCardsRemainingChanged();
-    }
-
-    #endregion
-    
+    #region Unity Lifecycle
 
     private void Awake()
     {
-        if (Instance is null)
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-        } 
+            Debug.Log("[GameManager] Instance created.");
+        }
         else
         {
             Destroy(gameObject);
+            Debug.LogWarning("[GameManager] Duplicate GameManager instance destroyed.");
         }
     }
 
     private void Start()
     {
-        AudioManager.Instance.PlayAmbientAudio();
+        Debug.Log($"[GameManager] Start called. IsTutorialMode: {IsTutorialMode}, EnableNormalDialogue: {EnableNormalDialogue}");
 
+        // Initialize references
         _mainCamera = Camera.main;
-
         StageAreaController = _stageArea.GetComponent<StageAreaController>();
         ShellyController = _shelly.GetComponent<ShellyController>();
-
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
-
         HandArea = _handAreas[_levelIndex - 1];
 
-        StartCoroutine(DrawInitialHandCoroutine()); // Ensure cards are drawn correctly
+        Debug.Log("[GameManager] Starting initial hand draw...");
+        StartCoroutine(DrawInitialHandCoroutine());
 
+        // Dialogue logic
         if (IsTutorialMode)
         {
-            // Trigger tutorial dialogue
+            Debug.Log("[GameManager] Tutorial mode detected. Disabling normal dialogues.");
+            EnableNormalDialogue = false; // Ensure normal dialogues are disabled in tutorial mode
             ShowTutorialDialogue(tutorialIntroLines);
-
-            // Subscribe to events to trigger additional tutorial dialogues
-            OnScoreChanged += HandleTutorialOnScoreChanged;
-            OnMultiplierChanged += HandleTutorialOnMultiplierChanged;
         }
         else
         {
-            // Trigger normal dialogue
-            ShowNormalDialogue(normalDialogue);
-        }
-    }
-
-    private void HandleTutorialOnScoreChanged(int newScore)
-    {
-        if (!IsTutorialMode) return;
-
-        if (newScore >= 50 && !isShowingTutorialDialogue)
-        {
-            ShowTutorialDialogue(new string[]
+            if (EnableNormalDialogue)
             {
-                "Great job! You've reached 50 points!",
-                "You now understand how to play cards and score points. Let's move on!"
-            }, () => SceneManager.LoadScene("MainMenu"));
-        }
-    }
-
-    private void HandleTutorialOnMultiplierChanged(int newMultiplier)
-    {
-        if (!IsTutorialMode) return;
-
-        // Example: Trigger additional tutorial dialogue when multiplier increases
-        if (newMultiplier > 1 && !isShowingTutorialDialogue)
-        {
-            ShowTutorialDialogue(new string[]
+                Debug.Log("[GameManager] Normal mode detected. Showing normal dialogue.");
+                ShowNormalDialogue(normalDialogue);
+            }
+            else
             {
-                "Awesome! You've activated the multiplier.",
-                "Play another set to see how it boosts your score!"
-            });
+                Debug.Log("[GameManager] Normal dialogues are disabled via Inspector.");
+            }
         }
     }
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Debug.Log("[GameManager] Left mouse button clicked.");
+            HandleMouseClick(true);
+        }
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            Debug.Log("[GameManager] Right mouse button clicked.");
+            HandleMouseClick(false);
+        }
+    }
+
+    #endregion
+
+    #region Dialogue Methods
 
     // Show normal dialogue
-    private void ShowNormalDialogue(string message)
+    public void ShowNormalDialogue(string message)
     {
-        if (isShowingTutorialDialogue) return; // Prevent overlap with tutorial dialogue
+        Debug.Log("[GameManager] Attempting to show normal dialogue: " + message);
 
+        // If tutorial mode is active or normal dialogues are disabled, do not show normal dialogue
+        if (IsTutorialMode)
+        {
+            Debug.Log("[GameManager] Skipping normal dialogue because IsTutorialMode is true.");
+            return;
+        }
+
+        if (!EnableNormalDialogue)
+        {
+            Debug.Log("[GameManager] Skipping normal dialogue because EnableNormalDialogue is false.");
+            return;
+        }
+
+        // If tutorial dialogue is currently showing, skip normal
+        if (isShowingTutorialDialogue)
+        {
+            Debug.LogWarning("[GameManager] Skipping normal dialogue because tutorial dialogue is currently showing.");
+            return;
+        }
+
+        // If already showing normal dialogue, skip
+        if (isShowingNormalDialogue)
+        {
+            Debug.LogWarning("[GameManager] Normal dialogue already showing. Skipping.");
+            return;
+        }
+
+        Debug.Log("[GameManager] Showing normal dialogue now.");
         isShowingNormalDialogue = true;
         ShellyController.ActivateTextBox(message);
-        StartCoroutine(WaitForDialogueToFinish(() => isShowingNormalDialogue = false));
+        StartCoroutine(WaitForDialogueToFinish(() =>
+        {
+            Debug.Log("[GameManager] Normal dialogue finished.");
+            isShowingNormalDialogue = false;
+        }));
     }
 
     // Show tutorial dialogue
-    private void ShowTutorialDialogue(string[] lines, Action onComplete = null)
+    public void ShowTutorialDialogue(string[] lines, Action onComplete = null)
     {
-        if (isShowingNormalDialogue) return; // Prevent overlap with normal dialogue
-        if (isShowingTutorialDialogue) return; // Prevent starting another tutorial sequence
+        Debug.Log("[GameManager] Attempting to show tutorial dialogue with " + lines.Length + " lines.");
 
+        // If normal dialogue is showing, skip tutorial dialogue
+        if (isShowingNormalDialogue)
+        {
+            Debug.LogWarning("[GameManager] Cannot show tutorial dialogue because normal dialogue is showing.");
+            return;
+        }
+
+        // If tutorial dialogue already showing, skip
+        if (isShowingTutorialDialogue)
+        {
+            Debug.LogWarning("[GameManager] Tutorial dialogue already showing. Skipping.");
+            return;
+        }
+
+        Debug.Log("[GameManager] Showing tutorial dialogue now.");
         isShowingTutorialDialogue = true;
         StartCoroutine(ShowTutorialLinesCoroutine(lines, () =>
         {
+            Debug.Log("[GameManager] Tutorial dialogue completed.");
             isShowingTutorialDialogue = false;
             onComplete?.Invoke();
         }));
@@ -272,100 +255,142 @@ public class GameManager : MonoBehaviour
     {
         foreach (var line in lines)
         {
+            Debug.Log("[GameManager] Showing tutorial line: " + line);
             ShellyController.ActivateTextBox(line);
             yield return new WaitForSeconds(3f); // Adjust duration as needed
         }
 
+        Debug.Log("[GameManager] All tutorial lines shown.");
         onComplete?.Invoke();
     }
 
     // Coroutine to wait for dialogue to finish (if needed for UI)
     private IEnumerator WaitForDialogueToFinish(Action onFinish)
     {
+        Debug.Log("[GameManager] Waiting for dialogue to finish...");
         yield return new WaitForSeconds(3f); // Adjust timing to match dialogue duration
+        Debug.Log("[GameManager] Dialogue wait finished.");
         onFinish?.Invoke();
     }
+
+    #endregion
+
+    #region Tutorial Handlers
+
+    public void HandleTutorialOnScoreChanged(int newScore)
+    {
+        Debug.Log("[GameManager] Score changed to " + newScore + " in tutorial mode.");
+        if (!IsTutorialMode) return;
+
+        if (newScore >= 50 && !isShowingTutorialDialogue)
+        {
+            Debug.Log("[GameManager] Triggering tutorial end dialogue because score reached 50.");
+            ShowTutorialDialogue(new string[]
+            {
+                "Great job! You've reached 50 points!",
+                "You now understand how to play cards and score points. Let's move on!"
+            }, () => SceneManager.LoadScene("MainMenu"));
+        }
+    }
+
+    public void HandleTutorialOnMultiplierChanged(int newMultiplier)
+    {
+        Debug.Log("[GameManager] Multiplier changed to " + newMultiplier + " in tutorial mode.");
+        if (!IsTutorialMode) return;
+
+        if (newMultiplier > 1 && !isShowingTutorialDialogue)
+        {
+            Debug.Log("[GameManager] Showing multiplier tutorial dialogue.");
+            ShowTutorialDialogue(new string[]
+            {
+                "Awesome! You've activated the multiplier.",
+                "Play another set to see how it boosts your score!"
+            });
+        }
+    }
+
+    #endregion
+
+    #region Card Placement & Arrangement
+
+    private Vector3 CalculateCardPosition(int cardIndex, int totalCards, Vector3 dockCenter)
+    {
+        totalCards = Mathf.Max(totalCards, 1);
+        var cardSpacing = Mathf.Min(DockWidth / totalCards, 140f);
+        var startX = -((totalCards - 1) * cardSpacing) / 2f;
+        var xPosition = startX + (cardIndex * cardSpacing);
+
+        var handCollider = HandArea.GetComponent<BoxCollider>();
+        return dockCenter + new Vector3(xPosition, handCollider.transform.TransformPoint(handCollider.center).y + cardIndex, 0f);
+    }
+
+    public void PlaceCardInHand(GameCard gameCard)
+    {
+        var handCenter = HandArea.transform.position;
+        var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, handCenter);
+
+        gameCard.UI.transform.position = targetPosition;
+        AudioManager.Instance.PlayBackToHandAudio();
+
+        gameCard.IsInHand = true;
+        gameCard.IsStaged = false;
+
+        RearrangeHand();
+    }
+
+    private void PlaceCardInStage(GameCard gameCard)
+    {
+        gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
+        var pos = gameCard.UI.transform.position;
+        pos.y = _initialCardY;
+        gameCard.UI.transform.position = pos;
+
+        AudioManager.Instance.PlayStageCardAudio();
+
+        gameCard.IsStaged = true;
+        gameCard.IsInHand = false;
+
+        RearrangeStage();
+    }
+
+    public void RearrangeHand()
+    {
+        var dockCenter = HandArea.transform.position;
+        for (var i = 0; i < PlayerHand.NumCardsInHand; i++)
+        {
+            var card = PlayerHand.CardsInHand[i];
+            var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
+            card.UI.YPositionInHand = targetPosition.y;
+            StartCoroutine(AnimateCardToPosition(card.UI?.transform, targetPosition, Quaternion.Euler(90f, 180f, 0f)));
+        }
+
+        TriggerCardsRemainingChanged();
+    }
+
+    public void RearrangeStage()
+    {
+        for (var i = 0; i < StageAreaController.NumCardsStaged; i++)
+        {
+            StageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position;
+        }
+
+        TriggerCardsRemainingChanged();
+    }
+
+    #endregion
+
+    #region Card Drawing
 
     private IEnumerator DrawInitialHandCoroutine()
     {
         yield return new WaitForSeconds(0.5f);
-
-        /* For Testing */
-        // var testCards = new[] { "Whaleshark", "Whaleshark", "Kraken", "Kraken", "CookieCutter" };
-        // foreach (var card in testCards)
-        // {
-        //     var specificCard = CardLibrary.Instance.GetCardDataByName(card);
-        //     if (specificCard is not null)
-        //     {
-        //         var cardToDraw = GameDeck.DrawSpecificCard(specificCard);
-        //         PlayerHand.TryAddCardToHand(cardToDraw);
-        //         var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand,
-        //             _hand.transform.position);
-        //
-        //         StartCoroutine(DealCardCoroutine(cardToDraw, targetPosition));
-        //     }
-        // }
-        
         StartCoroutine(DrawFullHandCoroutine());
-    }
-
-    private void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            HandleMouseClick(true);
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            HandleMouseClick(false);
-        }
-    }
-
-    private void HandleMouseClick(bool isLeftClick)
-    {
-        var ray = _mainCamera?.ScreenPointToRay(Input.mousePosition);
-        if (ray is null || !Physics.Raycast(ray.Value, out var hit)) return;
-
-        var clickedObject = hit.collider.gameObject;
-
-        if (isLeftClick)
-        {
-            HandleLeftMouseClick(clickedObject);
-        }
-        else
-        {
-            HandleRightMouseClick(clickedObject);
-        }
-    }
-
-    private void HandleLeftMouseClick(GameObject clickedObject)
-    {
-        if (clickedObject.CompareTag("DrawButton") && !IsDrawingCards)
-        {
-            DrawFullHand(false);
-        }
-        
-        if (clickedObject.CompareTag("PlayButton") && !IsDrawingCards)
-        {
-            OnClickPlayButton();
-        }
-
-        if (clickedObject.CompareTag("PeekDeckButton") && !IsDrawingCards)
-        {
-            OnClickPeekDeckButton();
-        }
-
-        if (clickedObject.CompareTag("CardEffectsButton") && !IsDrawingCards)
-        {
-            OnClickCardEffectsButton();
-        }
     }
 
     public void DrawFullHand(bool isFromPlay)
     {
         if (DrawsRemaining == 0 || NumCardsOnScreen == HandSize) return;
-        
+
         if (!IsDrawingCards)
         {
             StartCoroutine(DrawFullHandCoroutine());
@@ -376,10 +401,10 @@ public class GameManager : MonoBehaviour
             DrawsRemaining--;
             TriggerDrawsChanged();
         }
-        
+
         CheckForGameLoss();
     }
-    
+
     public IEnumerator DrawFullHandCoroutine()
     {
         IsDrawingCards = true;
@@ -388,7 +413,7 @@ public class GameManager : MonoBehaviour
         {
             var gameCard = GameDeck.DrawCard();
             _initialCardY = HandArea.transform.position.y;
-            
+
             if (PlayerHand.TryAddCardToHand(gameCard))
             {
                 gameCard.IsInHand = true;
@@ -398,12 +423,10 @@ public class GameManager : MonoBehaviour
             var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, HandArea.transform.position);
 
             gameCard.UI.PlayBubbleEffect();
-
             yield return StartCoroutine(DealCardCoroutine(gameCard, targetPosition));
-
             gameCard.UI.StopBubbleEffect();
 
-            RearrangeHand(); // Smoothly adjust positions after each card is added
+            RearrangeHand();
         }
 
         if (AdditionalCardsDrawn > 0)
@@ -413,72 +436,65 @@ public class GameManager : MonoBehaviour
         }
 
         IsDrawingCards = false;
-        
+
         TriggerOnMouseOverForCurrentCard();
     }
-    
+
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
     {
         var cardUI = gameCard.UI;
         var cardTransform = cardUI.transform;
 
-        // Lock animation
         gameCard.IsAnimating = true;
-
         cardTransform.position = _deck.transform.position;
-
         AudioManager.Instance.PlayCardDrawAudio();
 
-        var duration = 0.75f; // Animation duration
-        var bounceDuration = 0.25f; // Bounce-back duration
+        var duration = 0.75f; 
+        var bounceDuration = 0.25f; 
         var elapsedTime = 0f;
 
         var startPosition = cardTransform.position;
-        var overshootPosition = targetPosition + Vector3.up * 1.5f; // Slight overshoot above final position
+        var overshootPosition = targetPosition + Vector3.up * 1.5f;
 
         // Move to overshoot position
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
-
-            // Smooth step easing
             var t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t);
+            t = t * t * (3f - 2f * t); // Smoothstep
 
             var arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
             cardTransform.position = arcPosition;
-
             yield return null;
         }
 
         // Bounce back to final position
-        elapsedTime = 0f; // Reset elapsed time for bounce
+        elapsedTime = 0f;
         var bounceStartPosition = cardTransform.position;
 
         while (elapsedTime < bounceDuration)
         {
             elapsedTime += Time.deltaTime;
-
-            // Smoothstep easing
             var t = elapsedTime / bounceDuration;
             t = t * t * (3f - 2f * t);
 
             var bouncePosition = Vector3.Lerp(bounceStartPosition, targetPosition, t);
             cardTransform.position = bouncePosition;
-
             yield return null;
         }
 
-        cardTransform.position = targetPosition; // Ensure final position
-
-        // Unlock animation
+        cardTransform.position = targetPosition;
         gameCard.IsAnimating = false;
     }
-    
+
+    #endregion
+
+    #region Button Handlers
+
     public void OnClickPlayButton()
     {
         if (StageAreaController.NumCardsStaged == 0) return;
-        
+
         switch (StageAreaController.NumCardsStaged)
         {
             case 1:
@@ -511,14 +527,13 @@ public class GameManager : MonoBehaviour
             default:
                 return;
         }
-        
+
         CheckForGameLoss();
     }
 
     private void TriggerCardEffect()
     {
         var firstStagedCard = StageAreaController.GetFirstStagedCard();
-
         firstStagedCard?.ActivateEffect();
     }
 
@@ -538,17 +553,61 @@ public class GameManager : MonoBehaviour
         TriggerPlaysChanged();
         CheckForGameWin();
     }
-    
+
     private void OnClickPeekDeckButton()
     {
         UIManager.Instance.ActivatePeekDeckPanel();
     }
-    
+
     private void OnClickCardEffectsButton()
     {
         UIManager.Instance.ActivateCardEffectsPanel();
     }
-    
+
+    #endregion
+
+    #region Mouse Input Handling
+
+    private void HandleMouseClick(bool isLeftClick)
+    {
+        var ray = _mainCamera?.ScreenPointToRay(Input.mousePosition);
+        if (ray is null || !Physics.Raycast(ray.Value, out var hit)) return;
+
+        var clickedObject = hit.collider.gameObject;
+
+        if (isLeftClick)
+        {
+            HandleLeftMouseClick(clickedObject);
+        }
+        else
+        {
+            HandleRightMouseClick(clickedObject);
+        }
+    }
+
+    private void HandleLeftMouseClick(GameObject clickedObject)
+    {
+        if (clickedObject.CompareTag("DrawButton") && !IsDrawingCards)
+        {
+            DrawFullHand(false);
+        }
+
+        if (clickedObject.CompareTag("PlayButton") && !IsDrawingCards)
+        {
+            OnClickPlayButton();
+        }
+
+        if (clickedObject.CompareTag("PeekDeckButton") && !IsDrawingCards)
+        {
+            OnClickPeekDeckButton();
+        }
+
+        if (clickedObject.CompareTag("CardEffectsButton") && !IsDrawingCards)
+        {
+            OnClickCardEffectsButton();
+        }
+    }
+
     private void HandleRightMouseClick(GameObject clickedObject)
     {
         if (clickedObject.CompareTag("Card"))
@@ -566,34 +625,28 @@ public class GameManager : MonoBehaviour
     private IEnumerator FlipCardCoroutine(GameObject card)
     {
         IsFlippingCard = true;
-        
-        // Play the flip audio
-        AudioManager.Instance.PlayCardFlipAudio();
 
+        AudioManager.Instance.PlayCardFlipAudio();
         card.GetComponent<CardUI>().PlayBubbleEffect();
 
         var startRotation = card.transform.rotation;
         var endRotation = card.transform.rotation * Quaternion.Euler(0f, 180f, 0f);
 
-        var duration = 0.5f; // Duration for smoother animation
+        var duration = 0.5f; 
         var elapsedTime = 0f;
 
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
-
-            float t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t); // Smoothstep interpolation
+            var t = elapsedTime / duration;
+            t = t * t * (3f - 2f * t); // Smoothstep
 
             card.transform.rotation = Quaternion.Slerp(startRotation, endRotation, t);
-
             yield return null;
         }
 
-        card.transform.rotation = endRotation; // Ensure it ends exactly at the target rotation
-
-        card.GetComponent<CardUI>().StopBubbleEffect(); // Stop bubbles after flipping
-
+        card.transform.rotation = endRotation;
+        card.GetComponent<CardUI>().StopBubbleEffect();
         IsFlippingCard = false;
 
         if (!card.GetComponent<CardUI>().IsMouseOver)
@@ -613,10 +666,13 @@ public class GameManager : MonoBehaviour
             hoveredCardUI?.OnMouseEnter();
         }
     }
-    
+
+    #endregion
+
+    #region Card Dropping & Discarding
+
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
     {
-        // Destage
         if (dropArea == HandArea.transform)
         {
             if (PlayerHand.TryAddCardToHand(gameCard) && StageAreaController.TryRemoveCardFromStage(gameCard))
@@ -625,7 +681,7 @@ public class GameManager : MonoBehaviour
                 return true;
             }
         }
-        // Stage Card
+
         if (dropArea == _stageArea.transform)
         {
             if (StageAreaController.TryAddCardToStage(gameCard) && PlayerHand.TryRemoveCardFromHand(gameCard))
@@ -634,18 +690,18 @@ public class GameManager : MonoBehaviour
                 return true;
             }
         }
-        // Discard
+
         if (dropArea == _discardArea.transform)
         {
             if (DiscardsRemaining == 0) return false;
-            
+
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 FullDiscard(gameCard, false);
                 return true;
             }
         }
-    
+
         return false;
     }
 
@@ -665,65 +721,45 @@ public class GameManager : MonoBehaviour
             DiscardsRemaining--;
             TriggerDiscardsChanged();
         }
-        
-        var cardTransform = gameCard.UI.transform;
 
-        // Reset rotation to upright
-        cardTransform.rotation = Quaternion.Euler(0f, 0f, 0f); // Adjusted to lay flat before animation
+        var cardTransform = gameCard.UI.transform;
+        cardTransform.rotation = Quaternion.Euler(0f, 0f, 0f);
 
         var endPosition = _whirlpoolCenter.position;
-
         var elapsedTime = 0f;
         var angle = 0f;
 
-        // Capture the initial scale of the card
         var initialScale = cardTransform.localScale;
-        var targetScale = Vector3.zero; // Scale down to zero
+        var targetScale = Vector3.zero; 
 
         while (elapsedTime < _spiralDuration)
         {
             elapsedTime += Time.deltaTime;
-
-            // Calculate progress
             var t = Mathf.Clamp01(elapsedTime / _spiralDuration);
+            var easedT = t * t * (3f - 2f * t);
 
-            // Apply easing (optional for smoother scaling)
-            var easedT = t * t * (3f - 2f * t); // Smoothstep interpolation
-
-            // Reduce radius over time
             var radius = Mathf.Lerp(_spiralRadius, 0, easedT);
-
-            // Move downward into the whirlpool
             var depth = Mathf.Lerp(0, -_spiralDepth, easedT);
 
-            // Rotate around the whirlpool center
-            angle += _spiralRotationSpeed * Time.deltaTime; // Degrees per second
+            angle += _spiralRotationSpeed * Time.deltaTime;
             var radian = angle * Mathf.Deg2Rad;
 
             var offset = new Vector3(Mathf.Cos(radian), depth, Mathf.Sin(radian)) * radius;
             var newPosition = endPosition + offset;
 
-            // Update card position
             cardTransform.position = newPosition;
-
-            // Rotate the card around its Y-axis for a spinning effect
-            cardTransform.Rotate(Vector3.up, 720 * Time.deltaTime); // 720 degrees per second
-
-            // Scale the card down over time
+            cardTransform.Rotate(Vector3.up, 720 * Time.deltaTime);
             cardTransform.localScale = Vector3.Lerp(initialScale, targetScale, easedT);
 
             yield return null;
         }
 
-        // Ensure the card ends at the center of the whirlpool with zero scale
         cardTransform.position = endPosition;
         cardTransform.localScale = targetScale;
-
-        // Optional: Add a slight delay before destruction to ensure the last frame is visible
         yield return new WaitForSeconds(0.5f);
 
         Destroy(gameCard.UI.gameObject);
-        
+
         CheckForGameLoss();
     }
 
@@ -734,21 +770,19 @@ public class GameManager : MonoBehaviour
         var startPosition = cardTransform.position;
         var startRotation = cardTransform.rotation;
 
-        var duration = 0.35f; // Animation duration
+        var duration = 0.35f; 
         var elapsedTime = 0f;
 
         while (elapsedTime < duration)
         {
             if (cardTransform == null) yield break;
-            
-            elapsedTime += Time.deltaTime;
 
+            elapsedTime += Time.deltaTime;
             var t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t); // Smooth step interpolation
+            t = t * t * (3f - 2f * t);
 
             cardTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
             cardTransform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
-
             yield return null;
         }
 
@@ -756,6 +790,10 @@ public class GameManager : MonoBehaviour
         cardTransform.position = targetPosition;
         cardTransform.rotation = targetRotation;
     }
+
+    #endregion
+
+    #region Game Over Conditions
 
     private void CheckForGameLoss()
     {
@@ -788,7 +826,6 @@ public class GameManager : MonoBehaviour
         if (hasWhaleShark) return true;
         
         var groups = PlayerHand.CardsInHand.GroupBy(card => card.Data.CardName);
-
         foreach (var group in groups)
         {
             if (group.Count() == 3)
@@ -810,10 +847,13 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.ActivateLossPanel();
     }
 
+    #endregion
+
+    #region Game Win Conditions
+
     private void CheckForGameWin()
     {
         if (CurrentScore < CurrentRequiredScore) return;
-        
         HandleWin();
     }
 
@@ -821,6 +861,10 @@ public class GameManager : MonoBehaviour
     {
         UIManager.Instance.ActivateWinPanel();
     }
+
+    #endregion
+
+    #region Level & Restart
 
     public void RestartCurrentLevel()
     {
@@ -832,7 +876,6 @@ public class GameManager : MonoBehaviour
     {
         InitializeNewLevel();
         ResetStats();
-
         StartCoroutine(DrawInitialHandCoroutine());
     }
 
@@ -845,8 +888,6 @@ public class GameManager : MonoBehaviour
             _levels[_levelIndex - 1].SetActive(true);
         
             ClearHandAndStage();
-
-            HandArea = null;
             HandArea = _handAreas[_levelIndex - 1];
         }
         else
@@ -881,7 +922,9 @@ public class GameManager : MonoBehaviour
         TriggerCardsRemainingChanged();
     }
 
-    #region Invocations
+    #endregion
+
+    #region Event Triggers
 
     public void TriggerScoreChanged()
     {
@@ -915,7 +958,7 @@ public class GameManager : MonoBehaviour
 
     public void TriggerCardsRemainingChanged()
     {
-        if (GameDeck is not null)
+        if (GameDeck != null)
         {
             OnCardsRemainingChanged?.Invoke(GameDeck.CardDataInDeck.Count);
         }
