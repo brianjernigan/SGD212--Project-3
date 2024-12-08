@@ -78,7 +78,7 @@ public class GameManager : MonoBehaviour
     }
 
     [Header("Game Mode Settings")]
-    [SerializeField] private bool _isTutorialMode = true; // Set to true for tutorial, false for normal gameplay
+    [SerializeField] private bool _isTutorialMode = true; 
     public bool IsTutorialMode
     {
         get => _isTutorialMode;
@@ -88,26 +88,10 @@ public class GameManager : MonoBehaviour
     private const int BaseRequiredScore = 50;
     public int CurrentRequiredScore => BaseRequiredScore * _levelIndex;
 
-    #region Dialogue Variables
-
     private bool isShowingNormalDialogue = false;
     private bool isShowingTutorialDialogue = false;
 
-    // Tutorial dialogue lines
-    private string[] tutorialIntroLines = new string[]
-    {
-        "Hi, I'm Shelly! Welcome to the Fresh Catch tutorial!",
-        "We'll start simple. Your goal: Earn 50 points.",
-        "You have special cards: Clownfish and Anemone. Clownfish score points. Anemone boosts your multiplier!",
-        "First, drag both Clownfish cards from your hand to the stage area to form a set, then press 'Play' to score."
-    };
-
-    // Normal dialogue
     private string normalDialogue = "Hi! I'm Shelly. I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?";
-
-    #endregion
-
-    #region Unity Lifecycle
 
     private void Awake()
     {
@@ -128,13 +112,11 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log($"[GameManager Start] IsTutorialMode: {_isTutorialMode}");
 
-        // Initialize references
         _mainCamera = Camera.main;
         StageAreaController = _stageArea.GetComponent<StageAreaController>();
         ShellyController = _shelly.GetComponent<ShellyController>();
         PlayerHand = new Hand();
 
-        // Build the deck based on the game mode
         if (_isTutorialMode)
         {
             Debug.Log("[GameManager Start] Building tutorial deck.");
@@ -151,13 +133,11 @@ public class GameManager : MonoBehaviour
         Debug.Log("[GameManager Start] Starting initial hand draw...");
         StartCoroutine(DrawInitialHandCoroutine());
 
-        // Activate Shelly's initial dialogue **only if not in tutorial mode**
         if (!_isTutorialMode)
         {
             ShowNormalDialogue(normalDialogue);
         }
 
-        // Initialize TutorialManager if in tutorial mode
         if (_isTutorialMode && TutorialManager.Instance != null)
         {
             TutorialManager.Instance.InitializeTutorial();
@@ -185,39 +165,38 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    #endregion
+    private Transform GetKnownAreaTransform(Transform droppedTransform)
+    {
+        Transform current = droppedTransform;
+        while (current != null)
+        {
+            if (current == HandArea.transform)
+            {
+                return HandArea.transform;
+            }
+            if (current == StageArea.transform)
+            {
+                return StageArea.transform;
+            }
+            if (current == DiscardArea.transform)
+            {
+                return DiscardArea.transform;
+            }
+            current = current.parent;
+        }
+
+        return null;
+    }
 
     #region Dialogue Methods
 
-    // Show normal dialogue
     public void ShowNormalDialogue(string message)
     {
         Debug.Log("[GameManager] Attempting to show normal dialogue: " + message);
 
-        // If tutorial mode is active or normal dialogues are disabled, do not show normal dialogue
-        if (_isTutorialMode)
+        if (_isTutorialMode || !enableNormalDialogue || isShowingTutorialDialogue || isShowingNormalDialogue)
         {
-            Debug.Log("[GameManager] Skipping normal dialogue because IsTutorialMode is true.");
-            return;
-        }
-
-        if (!enableNormalDialogue)
-        {
-            Debug.Log("[GameManager] Skipping normal dialogue because EnableNormalDialogue is false.");
-            return;
-        }
-
-        // If tutorial dialogue is currently showing, skip normal
-        if (isShowingTutorialDialogue)
-        {
-            Debug.LogWarning("[GameManager] Skipping normal dialogue because tutorial dialogue is currently showing.");
-            return;
-        }
-
-        // If already showing normal dialogue, skip
-        if (isShowingNormalDialogue)
-        {
-            Debug.LogWarning("[GameManager] Normal dialogue already showing. Skipping.");
+            Debug.Log("[GameManager] Conditions not met for showing normal dialogue.");
             return;
         }
 
@@ -231,93 +210,12 @@ public class GameManager : MonoBehaviour
         }));
     }
 
-    // Show tutorial dialogue
-    public void ShowTutorialDialogue(string[] lines, Action onComplete = null)
-    {
-        Debug.Log("[GameManager] Attempting to show tutorial dialogue with " + lines.Length + " lines.");
-
-        // If normal dialogue is showing, skip tutorial dialogue
-        if (isShowingNormalDialogue)
-        {
-            Debug.LogWarning("[GameManager] Cannot show tutorial dialogue because normal dialogue is showing.");
-            return;
-        }
-
-        // If tutorial dialogue already showing, skip
-        if (isShowingTutorialDialogue)
-        {
-            Debug.LogWarning("[GameManager] Tutorial dialogue already showing. Skipping.");
-            return;
-        }
-
-        Debug.Log("[GameManager] Showing tutorial dialogue now.");
-        isShowingTutorialDialogue = true;
-        StartCoroutine(ShowTutorialLinesCoroutine(lines, () =>
-        {
-            Debug.Log("[GameManager] Tutorial dialogue completed.");
-            isShowingTutorialDialogue = false;
-            onComplete?.Invoke();
-        }));
-    }
-
-    // Coroutine to handle tutorial dialogue sequence
-    private IEnumerator ShowTutorialLinesCoroutine(string[] lines, Action onComplete)
-    {
-        foreach (var line in lines)
-        {
-            Debug.Log("[GameManager] Showing tutorial line: " + line);
-            ShellyController.ActivateTextBox(line);
-            yield return new WaitForSeconds(3f); // Adjust duration as needed
-        }
-
-        Debug.Log("[GameManager] All tutorial lines shown.");
-        onComplete?.Invoke();
-    }
-
-    // Coroutine to wait for dialogue to finish (if needed for UI)
     private IEnumerator WaitForDialogueToFinish(Action onFinish)
     {
         Debug.Log("[GameManager] Waiting for dialogue to finish...");
-        yield return new WaitForSeconds(3f); // Adjust timing to match dialogue duration
+        yield return new WaitForSeconds(3f); 
         Debug.Log("[GameManager] Dialogue wait finished.");
         onFinish?.Invoke();
-    }
-
-    #endregion
-
-    #region Tutorial Handlers
-
-    public void HandleTutorialOnScoreChanged(int newScore)
-    {
-        Debug.Log("[GameManager] Score changed to " + newScore + " in tutorial mode.");
-        if (!_isTutorialMode) return;
-
-        if (newScore >= 50 && !isShowingTutorialDialogue)
-        {
-            Debug.Log("[GameManager] Triggering tutorial end dialogue because score reached 50.");
-            ShowTutorialDialogue(new string[]
-            {
-                "Fantastic! You reached 50 points!",
-                "You now understand how to play cards, form sets, and use the Anemone to boost multipliers!",
-                "Let's return to the main menu and start the real game."
-            }, () => SceneManager.LoadScene("MainMenu"));
-        }
-    }
-
-    public void HandleTutorialOnMultiplierChanged(int newMultiplier)
-    {
-        Debug.Log("[GameManager] Multiplier changed to " + newMultiplier + " in tutorial mode.");
-        if (!_isTutorialMode) return;
-
-        if (newMultiplier > 1 && !isShowingTutorialDialogue)
-        {
-            Debug.Log("[GameManager] Showing multiplier tutorial dialogue.");
-            ShowTutorialDialogue(new string[]
-            {
-                "Awesome! You've activated the multiplier.",
-                "Play another set to see how it boosts your score!"
-            });
-        }
     }
 
     #endregion
@@ -461,19 +359,17 @@ public class GameManager : MonoBehaviour
         var startPosition = cardTransform.position;
         var overshootPosition = targetPosition + Vector3.up * 1.5f;
 
-        // Move to overshoot position
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
             var t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t); // Smoothstep
+            t = t * t * (3f - 2f * t);
 
             var arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
             cardTransform.position = arcPosition;
             yield return null;
         }
 
-        // Bounce back to final position
         elapsedTime = 0f;
         var bounceStartPosition = cardTransform.position;
 
@@ -539,7 +435,8 @@ public class GameManager : MonoBehaviour
                 break;
             case 2:
                 var firstCard = StageAreaController.GetFirstStagedCard();
-                var secondCard = StageAreaController.GetSecondStagedCard();
+                var secondCard = StageAreaController.CardsStaged.Count > 1 ? StageAreaController.CardsStaged[1] : null;
+                if (secondCard == null) return;
                 Debug.Log($"[GameManager] Two staged cards: {firstCard.Data.CardName}, {secondCard.Data.CardName}");
 
                 if (firstCard.Data.CardName == "Whaleshark")
@@ -569,7 +466,6 @@ public class GameManager : MonoBehaviour
 
         CheckForGameLoss();
     }
-
 
     private void TriggerCardEffect()
     {
@@ -693,7 +589,7 @@ public class GameManager : MonoBehaviour
         {
             elapsedTime += Time.deltaTime;
             var t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t); // Smoothstep
+            t = t * t * (3f - 2f * t);
 
             card.transform.rotation = Quaternion.Slerp(startRotation, endRotation, t);
             yield return null;
@@ -727,34 +623,29 @@ public class GameManager : MonoBehaviour
 
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
     {
-        if (dropArea == HandArea.transform)
+        Debug.Log("[GameManager] Attempting to drop card " + gameCard.Data.CardName + " into " + dropArea.name + ".");
+
+        Transform recognizedArea = GetKnownAreaTransform(dropArea);
+
+        if (recognizedArea == HandArea.transform)
         {
-            Debug.Log($"[GameManager] Attempting to drop card {gameCard.Data.CardName} into HandArea.");
             if (PlayerHand.TryAddCardToHand(gameCard) && StageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 PlaceCardInHand(gameCard);
                 return true;
             }
         }
-
-        if (dropArea == _stageArea.transform)
+        else if (recognizedArea == StageArea.transform)
         {
-            Debug.Log($"[GameManager] Attempting to drop card {gameCard.Data.CardName} into StageArea.");
             if (StageAreaController.TryAddCardToStage(gameCard) && PlayerHand.TryRemoveCardFromHand(gameCard))
             {
                 PlaceCardInStage(gameCard);
                 return true;
             }
         }
-
-        if (dropArea == _discardArea.transform)
+        else if (recognizedArea == DiscardArea.transform)
         {
-            Debug.Log($"[GameManager] Attempting to drop card {gameCard.Data.CardName} into DiscardArea.");
-            if (DiscardsRemaining == 0)
-            {
-                Debug.Log("[GameManager] No discards remaining. Cannot discard.");
-                return false;
-            }
+            if (DiscardsRemaining == 0) return false;
 
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
@@ -762,8 +653,11 @@ public class GameManager : MonoBehaviour
                 return true;
             }
         }
+        else
+        {
+            Debug.LogWarning("[GameManager] Attempted to drop card " + gameCard.Data.CardName + " into an unknown area.");
+        }
 
-        Debug.LogWarning($"[GameManager] Attempted to drop card {gameCard.Data.CardName} into an unknown area.");
         return false;
     }
 
@@ -853,7 +747,7 @@ public class GameManager : MonoBehaviour
 
             elapsedTime += Time.deltaTime;
             var t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t); // Smoothstep
+            t = t * t * (3f - 2f * t);
 
             cardTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
             cardTransform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
@@ -1028,7 +922,6 @@ public class GameManager : MonoBehaviour
         PermanentHandSizeModifier = 0;
         TriggerHandSizeChanged();
 
-        // Rebuild the deck based on the current game mode
         if (_isTutorialMode)
         {
             Debug.Log("[GameManager ResetStats] Rebuilding tutorial deck.");
