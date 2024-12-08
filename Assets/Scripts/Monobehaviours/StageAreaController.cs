@@ -1,10 +1,7 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
+using TMPro;
+using System.Linq;
 
 public class StageAreaController : MonoBehaviour
 {
@@ -93,6 +90,14 @@ public class StageAreaController : MonoBehaviour
     public GameCard GetFirstStagedCard()
     {
         return NumCardsStaged > 0 ? CardsStaged[0] : null;
+    }
+
+    /// <summary>
+    /// Retrieves the second staged card if it exists.
+    /// </summary>
+    public GameCard GetSecondStagedCard()
+    {
+        return NumCardsStaged >= 2 ? CardsStaged[1] : null;
     }
 
     public void ClearStageArea(bool isFromPlay)

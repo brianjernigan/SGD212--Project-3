@@ -97,8 +97,9 @@ public class GameManager : MonoBehaviour
     private string[] tutorialIntroLines = new string[]
     {
         "Hi, I'm Shelly! Welcome to the Fresh Catch tutorial!",
-        "Your goal is to earn 50 points using Clownfish cards.",
-        "Drag Clownfish cards to the stage area to form a set and press 'Play' to score."
+        "We'll start simple. Your goal: Earn 50 points.",
+        "You have special cards: Clownfish and Anemone. Clownfish score points. Anemone boosts your multiplier!",
+        "First, drag both Clownfish cards from your hand to the stage area to form a set, then press 'Play' to score."
     };
 
     // Normal dialogue
@@ -126,13 +127,13 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         Debug.Log($"[GameManager Start] IsTutorialMode: {_isTutorialMode}");
-        
+
         // Initialize references
         _mainCamera = Camera.main;
         StageAreaController = _stageArea.GetComponent<StageAreaController>();
         ShellyController = _shelly.GetComponent<ShellyController>();
         PlayerHand = new Hand();
-        
+
         // Build the deck based on the game mode
         if (_isTutorialMode)
         {
@@ -144,19 +145,18 @@ public class GameManager : MonoBehaviour
             Debug.Log("[GameManager Start] Building default deck.");
             GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
         }
-        
+
         HandArea = _handAreas[_levelIndex - 1];
-        
+
         Debug.Log("[GameManager Start] Starting initial hand draw...");
         StartCoroutine(DrawInitialHandCoroutine());
-        
+
         // Activate Shelly's initial dialogue **only if not in tutorial mode**
         if (!_isTutorialMode)
         {
-            ShellyController.ActivateTextBox(
-                "Hi! I'm Shelly. I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
+            ShowNormalDialogue(normalDialogue);
         }
-        
+
         // Initialize TutorialManager if in tutorial mode
         if (_isTutorialMode && TutorialManager.Instance != null)
         {
@@ -297,8 +297,9 @@ public class GameManager : MonoBehaviour
             Debug.Log("[GameManager] Triggering tutorial end dialogue because score reached 50.");
             ShowTutorialDialogue(new string[]
             {
-                "Great job! You've reached 50 points!",
-                "You now understand how to play cards and score points. Let's move on!"
+                "Fantastic! You reached 50 points!",
+                "You now understand how to play cards, form sets, and use the Anemone to boost multipliers!",
+                "Let's return to the main menu and start the real game."
             }, () => SceneManager.LoadScene("MainMenu"));
         }
     }
@@ -350,7 +351,7 @@ public class GameManager : MonoBehaviour
 
     private void PlaceCardInStage(GameCard gameCard)
     {
-        gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
+        gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].position;
         var pos = gameCard.UI.transform.position;
         pos.y = _initialCardY;
         gameCard.UI.transform.position = pos;
@@ -497,53 +498,92 @@ public class GameManager : MonoBehaviour
 
     public void OnClickPlayButton()
     {
-        if (StageAreaController.NumCardsStaged == 0) return;
+        Debug.Log("[GameManager] OnClickPlayButton called.");
+
+        if (StageAreaController.NumCardsStaged == 0)
+        {
+            Debug.Log("[GameManager] No cards staged. Exiting Play button handler.");
+            return;
+        }
+
+        Debug.Log($"[GameManager] Number of cards staged: {StageAreaController.NumCardsStaged}");
 
         switch (StageAreaController.NumCardsStaged)
         {
             case 1:
-                if (StageAreaController.GetFirstStagedCard().Data.CardName == "Whaleshark")
+                var singleCard = StageAreaController.GetFirstStagedCard();
+                Debug.Log($"[GameManager] Single staged card: {singleCard.Data.CardName}");
+
+                if (singleCard.Data.CardName == "Whaleshark")
                 {
+                    Debug.Log("[GameManager] Single Whaleshark staged. Scoring set.");
                     ScoreSet();
                 }
-                else if (StageAreaController.GetFirstStagedCard().Data.CardName == "Kraken")
+                else if (singleCard.Data.CardName == "Kraken")
                 {
+                    Debug.Log("[GameManager] Single Kraken staged. No action taken.");
                     return;
                 }
                 else
                 {
-                    if (PlaysRemaining == 0) return;
+                    if (PlaysRemaining == 0)
+                    {
+                        Debug.Log("[GameManager] No plays remaining. Cannot trigger card effect.");
+                        return;
+                    }
                     TriggerCardEffect();
                     PlaysRemaining--;
                     TriggerPlaysChanged();
+                    Debug.Log($"[GameManager] Plays remaining after decrement: {PlaysRemaining}");
                 }
                 break;
             case 2:
-                if (StageAreaController.GetFirstStagedCard().Data.CardName == "Whaleshark")
+                var firstCard = StageAreaController.GetFirstStagedCard();
+                var secondCard = StageAreaController.GetSecondStagedCard();
+                Debug.Log($"[GameManager] Two staged cards: {firstCard.Data.CardName}, {secondCard.Data.CardName}");
+
+                if (firstCard.Data.CardName == "Whaleshark")
                 {
+                    Debug.Log("[GameManager] First staged card is Whaleshark. Scoring set.");
                     ScoreSet();
+                }
+                else if (firstCard.Data.CardName == "ClownFish" && secondCard.Data.CardName == "ClownFish")
+                {
+                    Debug.Log("[GameManager] Two ClownFish staged. Scoring set.");
+                    ScoreSet();
+                }
+                else
+                {
+                    Debug.Log("[GameManager] Invalid set for two cards. No action taken.");
                 }
                 break;
             case 3:
             case 4:
+                Debug.Log($"[GameManager] {StageAreaController.NumCardsStaged} cards staged. Scoring set.");
                 ScoreSet();
                 break;
             default:
+                Debug.Log("[GameManager] Number of staged cards does not match any case. No action taken.");
                 return;
         }
 
         CheckForGameLoss();
     }
 
+
     private void TriggerCardEffect()
     {
         var firstStagedCard = StageAreaController.GetFirstStagedCard();
+        Debug.Log($"[GameManager] Triggering effect for card: {firstStagedCard.Data.CardName}");
         firstStagedCard?.ActivateEffect();
     }
 
     private void ScoreSet()
     {
-        CurrentScore += StageAreaController.CalculateScore();
+        Debug.Log("[GameManager] Scoring set.");
+        int scoreToAdd = StageAreaController.CalculateScore();
+        CurrentScore += scoreToAdd;
+        Debug.Log($"[GameManager] Added {scoreToAdd} points. Total score: {CurrentScore}");
         TriggerScoreChanged();
         StageAreaController.ClearStageArea(true);
 
@@ -551,20 +591,24 @@ public class GameManager : MonoBehaviour
         {
             CurrentMultiplier = 1;
             TriggerMultiplierChanged();
+            Debug.Log("[GameManager] Multiplier reset to 1 after scoring.");
         }
 
         AudioManager.Instance.PlayScoreSetAudio();
         TriggerPlaysChanged();
+        Debug.Log("[GameManager] Plays updated after scoring.");
         CheckForGameWin();
     }
 
     private void OnClickPeekDeckButton()
     {
+        Debug.Log("[GameManager] OnClickPeekDeckButton called.");
         UIManager.Instance.ActivatePeekDeckPanel();
     }
 
     private void OnClickCardEffectsButton()
     {
+        Debug.Log("[GameManager] OnClickCardEffectsButton called.");
         UIManager.Instance.ActivateCardEffectsPanel();
     }
 
@@ -593,21 +637,25 @@ public class GameManager : MonoBehaviour
     {
         if (clickedObject.CompareTag("DrawButton") && !IsDrawingCards)
         {
+            Debug.Log("[GameManager] DrawButton clicked.");
             DrawFullHand(false);
         }
 
         if (clickedObject.CompareTag("PlayButton") && !IsDrawingCards)
         {
+            Debug.Log("[GameManager] PlayButton clicked.");
             OnClickPlayButton();
         }
 
         if (clickedObject.CompareTag("PeekDeckButton") && !IsDrawingCards)
         {
+            Debug.Log("[GameManager] PeekDeckButton clicked.");
             OnClickPeekDeckButton();
         }
 
         if (clickedObject.CompareTag("CardEffectsButton") && !IsDrawingCards)
         {
+            Debug.Log("[GameManager] CardEffectsButton clicked.");
             OnClickCardEffectsButton();
         }
     }
@@ -616,6 +664,7 @@ public class GameManager : MonoBehaviour
     {
         if (clickedObject.CompareTag("Card"))
         {
+            Debug.Log("[GameManager] Card right-clicked.");
             FlipCard(clickedObject);
         }
     }
@@ -628,6 +677,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator FlipCardCoroutine(GameObject card)
     {
+        Debug.Log($"[GameManager] Starting flip coroutine for card: {card.name}");
         IsFlippingCard = true;
 
         AudioManager.Instance.PlayCardFlipAudio();
@@ -679,6 +729,7 @@ public class GameManager : MonoBehaviour
     {
         if (dropArea == HandArea.transform)
         {
+            Debug.Log($"[GameManager] Attempting to drop card {gameCard.Data.CardName} into HandArea.");
             if (PlayerHand.TryAddCardToHand(gameCard) && StageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 PlaceCardInHand(gameCard);
@@ -688,6 +739,7 @@ public class GameManager : MonoBehaviour
 
         if (dropArea == _stageArea.transform)
         {
+            Debug.Log($"[GameManager] Attempting to drop card {gameCard.Data.CardName} into StageArea.");
             if (StageAreaController.TryAddCardToStage(gameCard) && PlayerHand.TryRemoveCardFromHand(gameCard))
             {
                 PlaceCardInStage(gameCard);
@@ -697,7 +749,12 @@ public class GameManager : MonoBehaviour
 
         if (dropArea == _discardArea.transform)
         {
-            if (DiscardsRemaining == 0) return false;
+            Debug.Log($"[GameManager] Attempting to drop card {gameCard.Data.CardName} into DiscardArea.");
+            if (DiscardsRemaining == 0)
+            {
+                Debug.Log("[GameManager] No discards remaining. Cannot discard.");
+                return false;
+            }
 
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
@@ -706,16 +763,19 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        Debug.LogWarning($"[GameManager] Attempted to drop card {gameCard.Data.CardName} into an unknown area.");
         return false;
     }
 
     public void FullDiscard(GameCard gameCard, bool isFromPlay)
     {
+        Debug.Log($"[GameManager] Performing full discard for card: {gameCard.Data.CardName}, isFromPlay: {isFromPlay}");
         StartCoroutine(SpiralDiscardAnimation(gameCard, isFromPlay));
     }
 
     private IEnumerator SpiralDiscardAnimation(GameCard gameCard, bool isFromPlay)
     {
+        Debug.Log($"[GameManager] Starting spiral discard animation for card: {gameCard.Data.CardName}");
         AudioManager.Instance.PlayDiscardAudio();
         gameCard.IsStaged = false;
         gameCard.IsInHand = false;
@@ -724,6 +784,7 @@ public class GameManager : MonoBehaviour
         {
             DiscardsRemaining--;
             TriggerDiscardsChanged();
+            Debug.Log($"[GameManager] Discards remaining after decrement: {DiscardsRemaining}");
         }
 
         var cardTransform = gameCard.UI.transform;
@@ -762,6 +823,7 @@ public class GameManager : MonoBehaviour
         cardTransform.localScale = targetScale;
         yield return new WaitForSeconds(0.5f);
 
+        Debug.Log($"[GameManager] Discarded card {gameCard.Data.CardName} successfully.");
         Destroy(gameCard.UI.gameObject);
 
         CheckForGameLoss();
@@ -769,7 +831,11 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator AnimateCardToPosition(Transform cardTransform, Vector3 targetPosition, Quaternion targetRotation)
     {
-        if (cardTransform == null) yield break;
+        if (cardTransform == null) 
+        {
+            Debug.LogWarning("[GameManager] Attempted to animate a null card transform.");
+            yield break;
+        }
 
         var startPosition = cardTransform.position;
         var startRotation = cardTransform.rotation;
@@ -779,18 +845,27 @@ public class GameManager : MonoBehaviour
 
         while (elapsedTime < duration)
         {
-            if (cardTransform == null) yield break;
+            if (cardTransform == null) 
+            {
+                Debug.LogWarning("[GameManager] Card transform became null during animation.");
+                yield break;
+            }
 
             elapsedTime += Time.deltaTime;
             var t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t);
+            t = t * t * (3f - 2f * t); // Smoothstep
 
             cardTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
             cardTransform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
             yield return null;
         }
 
-        if (cardTransform == null) yield break;
+        if (cardTransform == null) 
+        {
+            Debug.LogWarning("[GameManager] Card transform became null at the end of animation.");
+            yield break;
+        }
+
         cardTransform.position = targetPosition;
         cardTransform.rotation = targetRotation;
     }
@@ -801,13 +876,21 @@ public class GameManager : MonoBehaviour
 
     private void CheckForGameLoss()
     {
-        if (HasScoreableSet()) return;
+        Debug.Log("[GameManager] Checking for game loss conditions.");
+        if (HasScoreableSet()) 
+        {
+            Debug.Log("[GameManager] Scoreable set exists. No game loss.");
+            return;
+        }
 
         var canDiscard = DiscardsRemaining > 0;
         var canPlay = PlaysRemaining > 0;
 
+        Debug.Log($"[GameManager] CanDiscard: {canDiscard}, CanPlay: {canPlay}, CanDrawCards: {CanDrawCards()}");
+
         if (!CanDrawCards() && !canDiscard && !canPlay)
         {
+            Debug.Log("[GameManager] No possible moves left. Game lost.");
             HandleLoss();
         }
     }
@@ -816,31 +899,48 @@ public class GameManager : MonoBehaviour
     {
         if (DrawsRemaining == 0 || GameDeck.IsEmpty)
         {
+            Debug.Log("[GameManager] Cannot draw cards: Either no draws remaining or deck is empty.");
             return false;
         }
 
-        return NumCardsOnScreen < HandSize;
+        var canDraw = NumCardsOnScreen < HandSize;
+        Debug.Log($"[GameManager] CanDrawCards: {canDraw}");
+        return canDraw;
     }
-    
+
     private bool HasScoreableSet()
     {
         var hasWhaleShark = PlayerHand.CardsInHand.Exists(card => card.Data.CardName == "Whaleshark");
         var hasKraken = PlayerHand.CardsInHand.Exists(card => card.Data.CardName == "Kraken");
 
-        if (hasWhaleShark) return true;
-        
+        if (hasWhaleShark) 
+        {
+            Debug.Log("[GameManager] Player has a Whaleshark in hand. Scoreable set exists.");
+            return true;
+        }
+
         var groups = PlayerHand.CardsInHand.GroupBy(card => card.Data.CardName);
         foreach (var group in groups)
         {
-            if (group.Count() == 3) return true;
-            if (group.Count() == 2 && group.Key != "Kraken" && hasKraken) return true;
+            if (group.Count() == 3)
+            {
+                Debug.Log($"[GameManager] Player has three of {group.Key}. Scoreable set exists.");
+                return true;
+            }
+            if (group.Count() == 2 && group.Key != "Kraken" && hasKraken)
+            {
+                Debug.Log($"[GameManager] Player has two of {group.Key} and a Kraken. Scoreable set exists.");
+                return true;
+            }
         }
-        
+
+        Debug.Log("[GameManager] No scoreable sets found in player's hand.");
         return false;
     }
 
     private void HandleLoss()
     {
+        Debug.Log("[GameManager] Activating Loss Panel.");
         UIManager.Instance.ActivateLossPanel();
     }
 
@@ -850,12 +950,18 @@ public class GameManager : MonoBehaviour
 
     private void CheckForGameWin()
     {
-        if (CurrentScore < CurrentRequiredScore) return;
+        Debug.Log("[GameManager] Checking for game win conditions.");
+        if (CurrentScore < CurrentRequiredScore) 
+        {
+            Debug.Log("[GameManager] Current score is below required score. Game not won yet.");
+            return;
+        }
         HandleWin();
     }
 
     private void HandleWin()
     {
+        Debug.Log("[GameManager] Activating Win Panel.");
         UIManager.Instance.ActivateWinPanel();
     }
 
@@ -865,12 +971,14 @@ public class GameManager : MonoBehaviour
 
     public void RestartCurrentLevel()
     {
+        Debug.Log("[GameManager] Restarting current level.");
         ClearHandAndStage();
         ResetStats();
     }
     
     public void HandleLevelChanged()
     {
+        Debug.Log("[GameManager] Handling level change.");
         InitializeNewLevel();
         ResetStats();
         StartCoroutine(DrawInitialHandCoroutine());
@@ -880,8 +988,10 @@ public class GameManager : MonoBehaviour
     {
         if (_levelIndex < 3)
         {
+            Debug.Log($"[GameManager] Deactivating level {_levelIndex}.");
             _levels[_levelIndex - 1].SetActive(false);
             _levelIndex++;
+            Debug.Log($"[GameManager] Activating level {_levelIndex}.");
             _levels[_levelIndex - 1].SetActive(true);
         
             ClearHandAndStage();
@@ -889,18 +999,21 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            Debug.Log("[GameManager] All levels completed. Loading Credits scene.");
             SceneManager.LoadScene("Credits");
         }
     }
 
     private void ClearHandAndStage()
     {
+        Debug.Log("[GameManager] Clearing player's hand and stage area.");
         PlayerHand.ClearHandArea();
         StageAreaController.ClearStageArea(true);
     }
 
     private void ResetStats()
     {
+        Debug.Log("[GameManager] Resetting game statistics.");
         CurrentScore = 0;
         TriggerScoreChanged();
         CurrentMultiplier = 1;
@@ -926,7 +1039,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("[GameManager ResetStats] Rebuilding default deck.");
             GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
         }
-        
+
         TriggerCardsRemainingChanged();
     }
 
