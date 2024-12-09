@@ -15,6 +15,8 @@ public class ShellyController : MonoBehaviour
     private readonly float _typingSpeed = 0.1f;
     private bool _isMouthOpen;
 
+    private Coroutine _currentDialogCoroutine;
+
     public void ActivateTextBox(string message = "")
     {
         _shellyTextBox.SetActive(true);
@@ -28,7 +30,12 @@ public class ShellyController : MonoBehaviour
 
     private void UpdateShellyDialog(string message)
     {
-        StartCoroutine(ShellyDialogRoutine(message));
+        if (_currentDialogCoroutine != null)
+        {
+            StopCoroutine(_currentDialogCoroutine);
+        }
+
+        _currentDialogCoroutine = StartCoroutine(ShellyDialogRoutine(message));
     }
 
     private IEnumerator ShellyDialogRoutine(string message)
@@ -47,5 +54,6 @@ public class ShellyController : MonoBehaviour
 
         _shellyImage.sprite = _shellyClosed;
         AudioManager.Instance.StopShellyAudio();
+        _currentDialogCoroutine = null;
     }
 }

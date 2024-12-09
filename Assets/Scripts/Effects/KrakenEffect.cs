@@ -4,6 +4,7 @@ public class KrakenEffect : ICardEffect
 
     public void ActivateEffect()
     {
-        return;
+        var shellyController = GameManager.Instance.ShellyController;
+        shellyController.ActivateTextBox("Krakens have no effects by themselves!");
     }
 }

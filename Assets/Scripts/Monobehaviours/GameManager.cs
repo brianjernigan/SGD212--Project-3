@@ -86,15 +86,18 @@ public class GameManager : MonoBehaviour
         return dockCenter + new Vector3(xPosition, handCollider.transform.TransformPoint(handCollider.center).y + cardIndex, 0f); // Straight line with fixed Y
     }
 
-    public void PlaceCardInHand(GameCard gameCard)
+    public void PlaceCardInHand(GameCard gameCard, bool isFromCard)
     {
         var handCenter = HandArea.transform.position;
 
         var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand, handCenter);
         
         gameCard.UI.transform.position = targetPosition;
-        
-        AudioManager.Instance.PlayBackToHandAudio();
+
+        if (!isFromCard)
+        {
+            AudioManager.Instance.PlayBackToHandAudio();
+        }
      
         gameCard.IsInHand = true;
         gameCard.IsStaged = false;
@@ -173,7 +176,7 @@ public class GameManager : MonoBehaviour
         
         StartCoroutine(DrawInitialHandCoroutine());
         ShellyController.ActivateTextBox(
-            "Hi! I'm Shelly. I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
+            "Hi, I'm Shelly! I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
     }
 
     private IEnumerator DrawInitialHandCoroutine()
@@ -360,20 +363,21 @@ public class GameManager : MonoBehaviour
                 {
                     ScoreSet();
                 }
-                else if (StageAreaController.GetFirstStagedCard().Data.CardName == "Kraken")
-                {
-                    return;
-                }
                 else
                 {
                     if (PlaysRemaining == 0) return;
+                    if (StageAreaController.GetFirstStagedCard().Data.CardName == "Kraken")
+                    {
+                        TriggerCardEffect();
+                        return;
+                    }
                     TriggerCardEffect();
                     PlaysRemaining--;
                     TriggerPlaysChanged();
                 }
                 break;
             case 2:
-                if (StageAreaController.GetFirstStagedCard().Data.CardName == "Whaleshark")
+                if (CanPlayTwoCards())
                 {
                     ScoreSet();
                 }
@@ -387,6 +391,14 @@ public class GameManager : MonoBehaviour
         }
         
         CheckForGameLoss();
+    }
+
+    private bool CanPlayTwoCards()
+    {
+        var stagedCards = StageAreaController.CardsStaged;
+        var whalesharkFirst = stagedCards[0].Data.CardName == "Whaleshark" && stagedCards[1].Data.CardName == "Kraken";
+        var whalesharkSecond = stagedCards[0].Data.CardName == "Kraken" && stagedCards[1].Data.CardName == "Whaleshark";
+        return whalesharkFirst || whalesharkSecond;
     }
 
     private void TriggerCardEffect()
@@ -495,7 +507,7 @@ public class GameManager : MonoBehaviour
         {
             if (PlayerHand.TryAddCardToHand(gameCard) && StageAreaController.TryRemoveCardFromStage(gameCard))
             {
-                PlaceCardInHand(gameCard);
+                PlaceCardInHand(gameCard, false);
                 return true;
             }
         }
@@ -681,6 +693,7 @@ public class GameManager : MonoBehaviour
 
     private void HandleLoss()
     {
+        AudioManager.Instance.PlayLoseAudio();
         UIManager.Instance.ActivateLossPanel();
     }
 
