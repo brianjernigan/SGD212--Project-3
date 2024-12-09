@@ -415,7 +415,7 @@ public class GameManager : MonoBehaviour
 
         if (!CheckForGameWin())
         {
-            var message = ShellyController.GetRandomShellyScoreDialog();
+            var message = ShellyController.GetRandomScoreDialog();
             ShellyController.ActivateTextBox(message);
         }
     }
