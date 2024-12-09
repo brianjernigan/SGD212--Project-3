@@ -27,7 +27,7 @@ public class GameManager : MonoBehaviour
 
     private int _levelIndex = 1;
 
-    public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
+    public int NumCardsOnScreen => PlayerHand != null && StageAreaController != null ? PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged : 0;
     private const int MaxCardsOnScreen = 5;
     public int AdditionalCardsDrawn { get; set; }
     public int PermanentHandSizeModifier { get; set; }
@@ -115,16 +115,11 @@ public class GameManager : MonoBehaviour
 
         _mainCamera = Camera.main;
 
-        // Scene-specific setup
-        if (currentScene == "GameScene")
-        {
-            InitializeForGameScene();
-        }
-        else if (currentScene == "TutorialScene")
-        {
-            InitializeForTutorialScene();
-        }
-        else if (currentScene == "MainMenu")
+        // IMPORTANT CHANGE:
+        // No longer calling InitializeForGameScene() or InitializeForTutorialScene() here.
+        // We'll rely on OnSceneLoaded to handle scene-specific initialization.
+        // For MainMenu, we typically do not need scene-specific linking. Just do nothing here.
+        if (currentScene == "MainMenu")
         {
             Debug.Log("[GameManager] In MainMenu, no scene-specific linking needed.");
         }
@@ -195,11 +190,10 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Links scene-specific objects for the current scene.
     /// </summary>
-    private void LinkSceneSpecificObjects()
+     private void LinkSceneSpecificObjects()
     {
         Debug.Log("[GameManager] Linking scene-specific objects...");
 
-        // Update to match actual GameObject names
         _stageArea = GameObject.Find("Stage");
         if (_stageArea != null)
         {
@@ -240,6 +234,56 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.LogWarning("[GameManager] Shelly not found.");
+        }
+
+        // Now refind _whirlpoolCenter, _levels, and _handAreas
+        // Make sure these objects exist in your scene. Adjust names if different.
+
+        // Example: If your whirlpool center is named "WhirlpoolCenter" in the scene:
+        var whirlpoolObj = GameObject.Find("WhirlpoolCenter");
+        if (whirlpoolObj != null)
+        {
+            _whirlpoolCenter = whirlpoolObj.transform;
+            Debug.Log("[GameManager] WhirlpoolCenter successfully linked.");
+        }
+        else
+        {
+            _whirlpoolCenter = null;
+            Debug.LogWarning("[GameManager] WhirlpoolCenter not found in this scene.");
+        }
+
+        // For _levels, assume they are children of a GameObject named "LevelsParent"
+        var levelsParent = GameObject.Find("LevelsParent");
+        if (levelsParent != null)
+        {
+            _levels = new List<GameObject>();
+            foreach (Transform child in levelsParent.transform)
+            {
+                _levels.Add(child.gameObject);
+            }
+            Debug.Log("[GameManager] Levels re-linked from LevelsParent.");
+        }
+        else
+        {
+            _levels = new List<GameObject>();
+            Debug.LogWarning("[GameManager] LevelsParent not found, cannot link levels.");
+        }
+
+        // For _handAreas, assume they are children of a GameObject named "HandAreasParent"
+        var handAreasParent = GameObject.Find("HandAreasParent");
+        if (handAreasParent != null)
+        {
+            _handAreas = new List<GameObject>();
+            foreach (Transform child in handAreasParent.transform)
+            {
+                _handAreas.Add(child.gameObject);
+            }
+            Debug.Log("[GameManager] HandAreas re-linked from HandAreasParent.");
+        }
+        else
+        {
+            _handAreas = new List<GameObject>();
+            Debug.LogWarning("[GameManager] HandAreasParent not found, cannot link hand areas.");
         }
     }
 
@@ -1143,27 +1187,20 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Only re-link references if we are in the game scene
-        // The main menu scene does not have these objects, so skip linking there
+        Debug.Log($"[GameManager] OnSceneLoaded called for scene: {scene.name}");
         if (scene.name == "GameScene")
         {
-            Debug.Log("[GameManager] Reinitializing scene-specific references for GameScene.");
-
-            _stageArea = GameObject.Find("StageArea");
-            _discardArea = GameObject.Find("DiscardArea");
-            _deck = GameObject.Find("Deck");
-            _shelly = GameObject.Find("Shelly");
-
-            if (_stageArea != null) StageAreaController = _stageArea.GetComponent<StageAreaController>();
-            if (_shelly != null) ShellyController = _shelly.GetComponent<ShellyController>();
-
-            // Recalculate HandArea if needed (if depends on _levelIndex)
-            HandArea = _handAreas[_levelIndex - 1];
+            LinkSceneSpecificObjects();
+            InitializeForGameScene();
+        }
+        else if (scene.name == "TutorialScene")
+        {
+            LinkSceneSpecificObjects();
+            InitializeForTutorialScene();
         }
         else
         {
-            Debug.Log("[GameManager] OnSceneLoaded called for scene: " + scene.name + " - no re-linking needed here.");
-            // Do not re-link anything in the main menu or tutorial scenes if they don't have these objects.
+            Debug.Log($"[GameManager] No re-linking needed for scene: {scene.name}.");
         }
     }
 
@@ -1176,5 +1213,6 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
+
 
 }
