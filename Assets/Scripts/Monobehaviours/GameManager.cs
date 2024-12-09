@@ -101,25 +101,25 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[GameManager] Instance created.");
+        
         }
         else
         {
             Destroy(gameObject);
-            Debug.LogWarning("[GameManager] Duplicate GameManager instance destroyed.");
+            
         }
     }
 
     private void Start()
     {
         string currentScene = SceneManager.GetActiveScene().name;
-        Debug.Log($"[GameManager Start] Scene: {currentScene}, IsTutorialMode: {IsTutorialMode}");
+        
 
         _mainCamera = Camera.main;
 
         if (currentScene == "MainMenu")
         {
-            Debug.Log("[GameManager] In MainMenu, no scene-specific linking needed.");
+           
         }
     }
 
@@ -132,7 +132,7 @@ public class GameManager : MonoBehaviour
         IsTutorialMode = false;
         EnableNormalDialogue = true;
 
-        Debug.Log("[GameManager] Initializing for GameScene.");
+       
 
         // Link scene-specific objects
         LinkSceneSpecificObjects();
@@ -142,19 +142,19 @@ public class GameManager : MonoBehaviour
         if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
         {
             HandArea = _handAreas[_levelIndex - 1];
-            Debug.Log($"[GameManager] HandArea set to {_handAreas[_levelIndex - 1].name}.");
+            
         }
         else
         {
-            Debug.LogWarning("[GameManager] HandAreas not set or not enough hand areas for this level.");
+            
         }
 
         // Build a deck for normal mode based on level
         int deckSize = GetDeckSizeForLevel(_levelIndex);
-        Debug.Log($"[GameManager] Building normal deck of size {deckSize} for level {_levelIndex}.");
+    
         GameDeck = DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, deckSize);
 
-        Debug.Log("[GameManager] Starting initial hand draw...");
+ 
         StartCoroutine(DrawInitialHandCoroutine());
 
         // Show initial dialogue for the normal game
@@ -170,7 +170,7 @@ public class GameManager : MonoBehaviour
         IsTutorialMode = true;
         EnableNormalDialogue = false;
 
-        Debug.Log("[GameManager] Initializing for TutorialScene.");
+        
 
         // Link scene-specific objects
         LinkSceneSpecificObjects();
@@ -180,28 +180,28 @@ public class GameManager : MonoBehaviour
         if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
         {
             HandArea = _handAreas[_levelIndex - 1];
-            Debug.Log($"[GameManager] HandArea set to {_handAreas[_levelIndex - 1].name}.");
+           
         }
         else
         {
-            Debug.LogWarning("[GameManager] HandAreas not set or not enough hand areas for tutorial.");
+           
         }
 
-        Debug.Log("[GameManager] Building tutorial deck.");
+        
         GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
 
-        Debug.Log("[GameManager] Starting initial hand draw...");
+       
         StartCoroutine(DrawInitialHandCoroutine());
 
         // Initialize the tutorial
         if (TutorialManager.Instance != null)
         {
-            Debug.Log("[GameManager] Initializing tutorial via TutorialManager.");
+           
             TutorialManager.Instance.InitializeTutorial();
         }
         else
         {
-            Debug.LogWarning("[GameManager] TutorialManager instance not found.");
+          
         }
     }
 
@@ -210,48 +210,48 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void LinkSceneSpecificObjects()
     {
-        Debug.Log("[GameManager] Linking scene-specific objects...");
+       
 
         _stageArea = GameObject.Find("Stage");
         if (_stageArea != null)
         {
             StageAreaController = _stageArea.GetComponent<StageAreaController>();
-            Debug.Log("[GameManager] Stage successfully linked.");
+          
         }
         else
         {
-            Debug.LogWarning("[GameManager] Stage not found.");
+        
         }
 
         _discardArea = GameObject.Find("Discard");
         if (_discardArea != null)
         {
-            Debug.Log("[GameManager] Discard successfully linked.");
+           
         }
         else
         {
-            Debug.LogWarning("[GameManager] Discard not found.");
+          
         }
 
         _deck = GameObject.Find("Deck");
         if (_deck != null)
         {
-            Debug.Log("[GameManager] Deck successfully linked.");
+          
         }
         else
         {
-            Debug.LogWarning("[GameManager] Deck not found.");
+           
         }
 
         _shelly = GameObject.Find("Shelly");
         if (_shelly != null)
         {
             ShellyController = _shelly.GetComponent<ShellyController>();
-            Debug.Log("[GameManager] Shelly successfully linked.");
+         
         }
         else
         {
-            Debug.LogWarning("[GameManager] Shelly not found.");
+           
         }
 
         // Linking WhirlpoolCenter
@@ -259,12 +259,12 @@ public class GameManager : MonoBehaviour
         if (whirlpoolObj != null)
         {
             _whirlpoolCenter = whirlpoolObj.transform;
-            Debug.Log("[GameManager] WhirlpoolCenter successfully linked.");
+           
         }
         else
         {
             _whirlpoolCenter = null;
-            Debug.LogWarning("[GameManager] WhirlpoolCenter not found in this scene.");
+          
         }
 
         // Linking Levels
@@ -276,12 +276,12 @@ public class GameManager : MonoBehaviour
             {
                 _levels.Add(child.gameObject);
             }
-            Debug.Log("[GameManager] Levels re-linked from LevelsParent.");
+          
         }
         else
         {
             _levels = new List<GameObject>();
-            Debug.LogWarning("[GameManager] LevelsParent not found, cannot link levels.");
+        
         }
 
         // Linking HandAreas
@@ -293,12 +293,12 @@ public class GameManager : MonoBehaviour
             {
                 _handAreas.Add(child.gameObject);
             }
-            Debug.Log("[GameManager] HandAreas re-linked from HandAreasParent.");
+           
         }
         else
         {
             _handAreas = new List<GameObject>();
-            Debug.LogWarning("[GameManager] HandAreasParent not found, cannot link hand areas.");
+            
         }
 
         // Finally, link stage positions
@@ -329,13 +329,13 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            Debug.Log("[GameManager] Left mouse button clicked.");
+           
             HandleMouseClick(true);
         }
 
         if (Input.GetMouseButtonDown(1))
         {
-            Debug.Log("[GameManager] Right mouse button clicked.");
+           
             HandleMouseClick(false);
         }
     }
@@ -367,11 +367,11 @@ public class GameManager : MonoBehaviour
 
     public void ShowNormalDialogue(string message)
     {
-        Debug.Log("[GameManager] Attempting to show normal dialogue: " + message);
+        
 
         if (_isTutorialMode || !enableNormalDialogue || isShowingTutorialDialogue || isShowingNormalDialogue)
         {
-            Debug.Log("[GameManager] Conditions not met for showing normal dialogue.");
+   
             return;
         }
 
