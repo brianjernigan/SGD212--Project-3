@@ -496,10 +496,21 @@ public class GameManager : MonoBehaviour
 
         if (!CheckForGameWin())
         {
-            var message = ShellyController.GetRandomScoreDialog();
+            string message = string.Empty;
+
+            if (IsTutorialMode)
+            {
+                message = ShellyController.GetRandomScoreDialog();
+            }
+            else
+            {
+                message = "Great job! Keep it up!"; // Or any other non-tutorial-specific message
+            }
+
             ShellyController.ActivateTextBox(message);
         }
     }
+
 
     private void OnClickPeekDeckButton()
     {
@@ -765,8 +776,24 @@ public class GameManager : MonoBehaviour
 
     private void HandleWin()
     {
-        UIManager.Instance.ActivateWinPanel();
+        if (IsTutorialMode)
+        {
+            Debug.Log("[GameManager HandleWin] Tutorial mode active. Informing TutorialManager of win.");
+            if (TutorialManager.Instance != null)
+            {
+                TutorialManager.Instance.HandleTutorialCompletion();
+            }
+            else
+            {
+                Debug.LogError("[GameManager HandleWin] TutorialManager.Instance is null. Cannot handle tutorial win.");
+            }
+        }
+        else
+        {
+            UIManager.Instance.ActivateWinPanel();
+        }
     }
+
 
     #endregion
 
