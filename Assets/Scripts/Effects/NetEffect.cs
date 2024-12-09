@@ -29,8 +29,6 @@ public class NetEffect : ICardEffect
                     playerHand.TryAddCardToHand(card);
                 }
             }
-
-            GameManager.Instance.AdditionalCardsDrawn += 2;
         }
         else
         {

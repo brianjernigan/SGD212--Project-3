@@ -19,8 +19,13 @@ public class StageAreaController : MonoBehaviour
         _playButtonText.text = canBeScored ? "Score" : "Play";
         if (canBeScored)
         {
-            UIManager.Instance.UpdatePlaysText("!");
+            ChangePlaysTextToExclamation();
         }
+    }
+
+    private void ChangePlaysTextToExclamation()
+    {
+        UIManager.Instance.UpdatePlaysText("!");
     }
     
     private bool CanStageCard(CardData card)

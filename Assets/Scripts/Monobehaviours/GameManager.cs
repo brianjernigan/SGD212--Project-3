@@ -28,10 +28,10 @@ public class GameManager : MonoBehaviour
     private int _levelIndex = 1;
     
     public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
-    private const int MaxCardsOnScreen = 5;
+    private const int DefaultHandSize = 5;
     public int AdditionalCardsDrawn { get; set; }
     public int PermanentHandSizeModifier { get; set; }
-    public int HandSize => MaxCardsOnScreen + AdditionalCardsDrawn + PermanentHandSizeModifier;
+    public int HandSize => DefaultHandSize + AdditionalCardsDrawn + PermanentHandSizeModifier;
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
@@ -437,7 +437,7 @@ public class GameManager : MonoBehaviour
     
     private void HandleRightMouseClick(GameObject clickedObject)
     {
-        if (clickedObject.CompareTag("Card"))
+        if (clickedObject.CompareTag("Card") && !IsFlippingCard)
         {
             FlipCard(clickedObject);
         }
