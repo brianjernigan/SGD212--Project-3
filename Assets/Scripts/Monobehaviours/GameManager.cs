@@ -376,7 +376,7 @@ public class GameManager : MonoBehaviour
                 }
                 break;
             case 2:
-                if (CanPlayTwoCards())
+                if (StageAreaController.StageContainsWhaleShark())
                 {
                     ScoreSet();
                 }
@@ -390,16 +390,6 @@ public class GameManager : MonoBehaviour
         }
         
         CheckForGameLoss();
-    }
-
-    private bool CanPlayTwoCards()
-    {
-        var stagedCards = StageAreaController.CardsStaged;
-        var whalesharkFirst = stagedCards[0].Data.CardName == "Whaleshark" && stagedCards[1].Data.CardName == "Kraken";
-        var whalesharkSecond = stagedCards[0].Data.CardName == "Kraken" && stagedCards[1].Data.CardName == "Whaleshark";
-        var bothWhaleshark =
-            stagedCards[0].Data.CardName == "Whaleshark" && stagedCards[1].Data.CardName == "Whaleshark";
-        return whalesharkFirst || whalesharkSecond || bothWhaleshark;
     }
 
     private void TriggerCardEffect()

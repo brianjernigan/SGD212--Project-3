@@ -118,7 +118,7 @@ public class StageAreaController : MonoBehaviour
         return score * GameManager.Instance.CurrentMultiplier;
     }
 
-    private bool StageContainsWhaleShark()
+    public bool StageContainsWhaleShark()
     {
         return CardsStaged.Exists(stagedCard => stagedCard.Data.CardName == "Whaleshark");
     }
