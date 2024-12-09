@@ -4667,6 +4667,15 @@ MonoBehaviour:
   _shellyImage: {fileID: 666295778}
   _shellyClosed: {fileID: -839677488, guid: 77ca6543fb1a781409ff4eda69973bb9, type: 3}
   _shellyOpen: {fileID: 642033439, guid: 77ca6543fb1a781409ff4eda69973bb9, type: 3}
+  _typingSpeed: 0.1
+  thinkingDialogs:
+  - Hmm, let me think about that...
+  - Interesting choice...
+  - What could be the best move here?
+  scoreDialogs:
+  - Great job! Keep it up!
+  - You're on fire!
+  - What a fantastic move!
 --- !u!1 &667284662
 GameObject:
   m_ObjectHideFlags: 0
@@ -12836,6 +12845,10 @@ MonoBehaviour:
   - {fileID: 406488158}
   - {fileID: 581496777}
   - {fileID: 2069707749}
+  enableNormalDialogue: 1
+  _isTutorialMode: 0
+  isShowingTutorialDialogue: 0
+  isShowingNormalDialogue: 0
 --- !u!4 &2026720658
 Transform:
   m_ObjectHideFlags: 0

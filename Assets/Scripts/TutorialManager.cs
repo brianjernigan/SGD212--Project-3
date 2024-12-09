@@ -81,19 +81,12 @@ public class TutorialManager : MonoBehaviour
     /// <param name="mode">The mode in which the scene was loaded.</param>
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log($"[TutorialManager OnSceneLoaded] Scene '{scene.name}' loaded.");
-
-        if (!scene.name.Equals("TutorialScene", StringComparison.OrdinalIgnoreCase))
+        if (scene.name == "GameScene" && Instance == null)
         {
-            Debug.Log("[TutorialManager OnSceneLoaded] Not TutorialScene. Destroying TutorialManager.");
-            DisableTutorialManager();
-        }
-        else
-        {
-            Debug.Log("[TutorialManager OnSceneLoaded] TutorialScene loaded. Ensuring TutorialManager is active.");
-            EnableTutorialManager();
+            Instantiate(Resources.Load("GameManager"));
         }
     }
+
 
     /// <summary>
     /// Initializes the tutorial by setting up the deck and starting the sequence.
@@ -200,7 +193,7 @@ public class TutorialManager : MonoBehaviour
     /// <summary>
     /// Unsubscribes from game events to prevent memory leaks.
     /// </summary>
-    private void UnsubscribeFromGameEvents()
+    public void UnsubscribeFromGameEvents()
     {
         Debug.Log("[TutorialManager UnsubscribeFromGameEvents] Unsubscribing from GameManager events.");
 

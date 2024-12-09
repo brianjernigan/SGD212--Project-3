@@ -929,9 +929,6 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Do not draw the initial hand here; TutorialManager will handle it
-        // StartCoroutine(DrawInitialHandCoroutine());
-
         if (TutorialManager.Instance != null)
         {
             TutorialManager.Instance.InitializeTutorial();
@@ -942,14 +939,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
     private void InitializeForGameScene()
     {
+        Debug.Log("[GameManager InitializeForGameScene] Setting up GameScene.");
+
         IsTutorialMode = false;
         EnableNormalDialogue = true;
 
         LinkSceneSpecificObjects();
 
         PlayerHand = new Hand();
+
         if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
         {
             HandArea = _handAreas[_levelIndex - 1];
@@ -961,6 +962,7 @@ public class GameManager : MonoBehaviour
 
         int deckSize = GetDeckSizeForLevel(_levelIndex);
         GameDeck = DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, deckSize);
+
         if (GameDeck == null)
         {
             Debug.LogError("[GameManager InitializeForGameScene] GameDeck is null after BuildNormalLevelDeck.");
@@ -968,51 +970,10 @@ public class GameManager : MonoBehaviour
         }
 
         StartCoroutine(DrawInitialHandCoroutine());
-
         ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
     }
 
-    private void SetupTutorialDeck()
-    {
-        Debug.Log("[GameManager SetupTutorialDeck] Clearing existing deck and hand.");
 
-        if (GameDeck == null)
-        {
-            Debug.LogError("[GameManager SetupTutorialDeck] GameDeck is null. Cannot clear deck and hand.");
-            return;
-        }
-
-        GameDeck.CardDataInDeck.Clear();
-        PlayerHand.ClearHandArea();
-
-        AddTutorialCard("ClownFish", 4);
-        AddTutorialCard("Anemone", 2);
-        AddTutorialCard("Kraken", 1);
-
-        GameDeck.ShuffleDeck();
-        Debug.Log("[GameManager SetupTutorialDeck] Deck shuffled. Drawing initial hand.");
-        StartCoroutine(DrawFullHandCoroutine(false)); // Start drawing without a play
-    }
-
-    private void AddTutorialCard(string cardName, int count)
-    {
-        if (CardLibrary.Instance == null)
-        {
-            Debug.LogError("[GameManager AddTutorialCard] CardLibrary.Instance is null. Cannot retrieve card data.");
-            return;
-        }
-
-        var cardData = CardLibrary.Instance.GetCardDataByName(cardName);
-        if (cardData != null)
-        {
-            GameDeck.AddCard(cardData, count);
-            Debug.Log($"[GameManager AddTutorialCard] Added {count}x {cardName}.");
-        }
-        else
-        {
-            Debug.LogWarning($"[GameManager AddTutorialCard] Card '{cardName}' not found in CardLibrary.");
-        }
-    }
 
     /// <summary>
     /// Public method to start the DrawFullHandCoroutine with the required parameter.
@@ -1031,21 +992,50 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log($"[GameManager OnSceneLoaded] Scene '{scene.name}' loaded.");
-        if (scene.name == "L1")
+
+        if (scene.name == "GameScene")
         {
-            LinkSceneSpecificObjects();
+            Debug.Log("[GameManager OnSceneLoaded] Initializing GameScene.");
             InitializeForGameScene();
         }
         else if (scene.name == "TutorialScene")
         {
-            LinkSceneSpecificObjects();
+            Debug.Log("[GameManager OnSceneLoaded] Initializing TutorialScene.");
             InitializeForTutorialScene();
         }
         else
         {
-            Debug.Log($"[GameManager OnSceneLoaded] No specific init for scene: {scene.name}.");
+            Debug.Log($"[GameManager OnSceneLoaded] No specific initialization for scene: {scene.name}");
         }
     }
+
+
+    public void DisableTutorialManager()
+    {
+        Debug.Log("[GameManager DisableTutorialManager] Disabling TutorialManager.");
+
+        // Unsubscribe from events
+        if (TutorialManager.Instance != null)
+        {
+            TutorialManager.Instance.UnsubscribeFromGameEvents();
+        }
+
+        // Reset tutorial-related states in GameManager
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.IsTutorialMode = false;
+            GameManager.Instance.EnableNormalDialogue = true; // Re-enable normal dialogues
+        }
+
+        // Safely destroy TutorialManager instance
+        if (TutorialManager.Instance != null)
+        {
+            Destroy(TutorialManager.Instance.gameObject);
+            Debug.Log("[GameManager DisableTutorialManager] TutorialManager destroyed.");
+        }
+    }
+
+
 
     #endregion
 
@@ -1186,6 +1176,20 @@ public class GameManager : MonoBehaviour
             _ => 55,
         };
     }
+
+    private void TransitionToScene(string sceneName)
+    {
+        Debug.Log($"[GameManager TransitionToScene] Transitioning to {sceneName}.");
+
+        // Reset tutorial states if needed
+        if (sceneName != "TutorialScene" && IsTutorialMode)
+        {
+            DisableTutorialManager();
+        }
+
+        SceneManager.LoadScene(sceneName);
+    }
+
 
     #endregion
 }
