@@ -15,9 +15,15 @@ EditorBuildSettings:
     path: Assets/Scenes/MainScenes/CreditsMenu.unity
     guid: 736cfb5d13cdfe84499f3e4c577c1137
   - enabled: 1
-    path: Assets/Scenes/L1.unity
+    path: Assets/Scenes/L1OLD.unity
     guid: 9fa01bb2df1b09047a4de090ade713e0
   - enabled: 1
     path: Assets/Scenes/Credits.unity
     guid: a916774e89aa1324580690ffaae86902
+  - enabled: 1
+    path: Assets/Scenes/BrianScenes/GameScene.unity
+    guid: 1522b3eb262dd4b4480f4ff9b9a9eeec
+  - enabled: 1
+    path: Assets/Scenes/BrianScenes/TutorialScene.unity
+    guid: aa34b559f0679e44b802abb2da7b9403
   m_configObjects: {}

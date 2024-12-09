@@ -16,7 +16,7 @@ public class MenuController : MonoBehaviour
         }
 
         // Load Level 1 scene
-        SceneManager.LoadScene("L1");
+        SceneManager.LoadScene("GameScene");
     }
 
     public void OnClickHelpButton()

@@ -12503,8 +12503,8 @@ MonoBehaviour:
   - {fileID: 406488158}
   - {fileID: 581496777}
   - {fileID: 2069707749}
-  enableNormalDialogue: 0
-  _isTutorialMode: 1
+  enableNormalDialogue: 1
+  _isTutorialMode: 0
 --- !u!4 &2026720658
 Transform:
   m_ObjectHideFlags: 0
@@ -12535,6 +12535,7 @@ MonoBehaviour:
   ClownfishCount: 2
   AnemoneCount: 2
   KrakenCount: 1
+  DialogueWaitTime: 3
 --- !u!1001 &2059472514
 PrefabInstance:
   m_ObjectHideFlags: 0

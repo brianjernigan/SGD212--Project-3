@@ -108,44 +108,78 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log($"[GameManager Start] IsTutorialMode: {_isTutorialMode}");
+        Debug.Log($"[GameManager Start] IsTutorialMode: {IsTutorialMode}");
 
-        // Initialize core components
+        // Determine which scene is loaded
+        var currentScene = SceneManager.GetActiveScene().name;
+        Debug.Log($"[GameManager] Current Scene: {currentScene}");
+
+        // Initialize mandatory references
         _mainCamera = Camera.main;
-        StageAreaController = _stageArea.GetComponent<StageAreaController>();
-        ShellyController = _shelly.GetComponent<ShellyController>();
-        PlayerHand = new Hand();
 
-        // Build the appropriate deck based on the mode
-        if (_isTutorialMode)
+        // Scene-specific linking
+        if (currentScene == "GameScene") // Replace "GameScene" with your actual game scene name
         {
-            Debug.Log("[GameManager Start] Building tutorial deck.");
-            GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
+            Debug.Log("[GameManager] Linking scene-specific references for GameScene.");
 
-            // Initialize the tutorial if the TutorialManager is available
-            if (TutorialManager.Instance != null)
+            // Find and link scene objects
+            _stageArea = GameObject.Find("StageArea");
+            _discardArea = GameObject.Find("DiscardArea");
+            _deck = GameObject.Find("Deck");
+            _shelly = GameObject.Find("Shelly");
+
+            if (_stageArea != null)
+                StageAreaController = _stageArea.GetComponent<StageAreaController>();
+            else
+                Debug.LogWarning("[GameManager] StageArea not found.");
+
+            if (_shelly != null)
+                ShellyController = _shelly.GetComponent<ShellyController>();
+            else
+                Debug.LogWarning("[GameManager] Shelly not found.");
+
+            PlayerHand = new Hand();
+
+            // Set the hand area for the current level
+            HandArea = _handAreas[_levelIndex - 1];
+
+            // Build the appropriate deck
+            if (IsTutorialMode)
             {
-                Debug.Log("[GameManager Start] Initializing tutorial.");
-                TutorialManager.Instance.InitializeTutorial();
+                Debug.Log("[GameManager Start] Building tutorial deck.");
+                GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
+
+                // Initialize the tutorial if the TutorialManager is available
+                if (TutorialManager.Instance != null)
+                {
+                    Debug.Log("[GameManager Start] Initializing tutorial.");
+                    TutorialManager.Instance.InitializeTutorial();
+                }
             }
+            else
+            {
+                Debug.Log("[GameManager Start] Building default deck.");
+                GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+
+                // Show normal dialogue for non-tutorial mode
+                ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
+            }
+
+            // Start drawing the initial hand
+            Debug.Log("[GameManager Start] Starting initial hand draw...");
+            StartCoroutine(DrawInitialHandCoroutine());
+        }
+        else if (currentScene == "MainMenu")
+        {
+            // In MainMenu, no scene-specific game objects are needed.
+            Debug.Log("[GameManager] In MainMenu, not linking game scene objects.");
+            // No dialogue needed here since main menu likely handles its own UI/UX
         }
         else
         {
-            Debug.Log("[GameManager Start] Building default deck.");
-            GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
-
-            // Show normal dialogue for non-tutorial mode
-            ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
+            Debug.LogWarning("[GameManager] Current scene is not recognized for linking. No scene objects found.");
         }
-
-        // Set the hand area for the current level
-        HandArea = _handAreas[_levelIndex - 1];
-
-        // Start drawing the initial hand
-        Debug.Log("[GameManager Start] Starting initial hand draw...");
-        StartCoroutine(DrawInitialHandCoroutine());
     }
-
 
     private IEnumerator DrawInitialHandCoroutine()
     {
@@ -1031,18 +1065,27 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "GameScene") // Replace with your actual game scene name
+        // Only re-link references if we are in the game scene
+        // The main menu scene does not have these objects, so skip linking there
+        if (scene.name == "GameScene")
         {
-            Debug.Log("[GameManager] Reinitializing scene-specific references.");
+            Debug.Log("[GameManager] Reinitializing scene-specific references for GameScene.");
 
-            // Re-link scene-specific objects
             _stageArea = GameObject.Find("StageArea");
             _discardArea = GameObject.Find("DiscardArea");
             _deck = GameObject.Find("Deck");
             _shelly = GameObject.Find("Shelly");
 
-            StageAreaController = _stageArea.GetComponent<StageAreaController>();
-            ShellyController = _shelly.GetComponent<ShellyController>();
+            if (_stageArea != null) StageAreaController = _stageArea.GetComponent<StageAreaController>();
+            if (_shelly != null) ShellyController = _shelly.GetComponent<ShellyController>();
+
+            // Recalculate HandArea if needed (if depends on _levelIndex)
+            HandArea = _handAreas[_levelIndex - 1];
+        }
+        else
+        {
+            Debug.Log("[GameManager] OnSceneLoaded called for scene: " + scene.name + " - no re-linking needed here.");
+            // Do not re-link anything in the main menu or tutorial scenes if they don't have these objects.
         }
     }
 
@@ -1055,7 +1098,5 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
-
-
 
 }
