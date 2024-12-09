@@ -1,13 +1,18 @@
 public class AnemoneEffect : ICardEffect
 {
-    public string EffectDescription => "Adds 2 clownfish to your deck. Discards this card.";
+    public string EffectDescription => "Adds 2 clownfish to your hand. Discards this card.";
     
     public void ActivateEffect()
     {
         var clownFishData = CardLibrary.Instance.GetCardDataByName("ClownFish");
         if (clownFishData is null) return;
 
-        GameManager.Instance.GameDeck?.AddCard(clownFishData, 2);
+        for (var i = 0; i < 2; i++)
+        {
+            var clownFishCard = GameManager.Instance.GameDeck.CreateGameCard(clownFishData);
+            GameManager.Instance.PlayerHand.TryAddCardToHand(clownFishCard);
+        }
+        
         GameManager.Instance.StageAreaController.ClearStageArea(true);
     }
 }

@@ -83,6 +83,10 @@ public class AudioManager : MonoBehaviour
 
     public void PlayLoseAudio()
     {
+        if (_loseAudio.isPlaying)
+        {
+            _loseAudio.Stop();
+        }
         _loseAudio.Play();
     }
 

@@ -13,16 +13,40 @@ public class StageAreaController : MonoBehaviour
 
     [SerializeField] private TMP_Text _playButtonText;
 
+    private bool _shellyIsUpdated;
+
     private void Update()
     {
         var canBeScored = StageContainsWhaleShark() || NumCardsStaged >= 3;
         _playButtonText.text = canBeScored ? "Score" : "Play";
-        if (canBeScored)
+        UIManager.Instance.UpdatePlaysText(canBeScored ? "!" : GameManager.Instance.PlaysRemaining.ToString());
+
+        if (canBeScored && !_shellyIsUpdated)
         {
-            UIManager.Instance.UpdatePlaysText("!");
+            UpdateShellyWithScore();
+        }
+        else if (!canBeScored && _shellyIsUpdated && NumCardsStaged != 0)
+        {
+            UpdateShellyThinking();
+            _shellyIsUpdated = false;
         }
     }
-    
+
+    private void UpdateShellyThinking()
+    {
+        var shellyController = GameManager.Instance.ShellyController;
+        shellyController.ActivateTextBox("What to do, what to do...");
+    }
+
+    private void UpdateShellyWithScore()
+    {
+        var shellyController = GameManager.Instance.ShellyController;
+        var scoreMessage = $"That set will score {CalculateScore()} points!";
+
+        shellyController.ActivateTextBox(scoreMessage);
+        _shellyIsUpdated = true;
+    }
+
     private bool CanStageCard(CardData card)
     {
         if (NumCardsStaged == 0) return true;
@@ -121,7 +145,7 @@ public class StageAreaController : MonoBehaviour
         return score * GameManager.Instance.CurrentMultiplier;
     }
 
-    private bool StageContainsWhaleShark()
+    public bool StageContainsWhaleShark()
     {
         return CardsStaged.Exists(stagedCard => stagedCard.Data.CardName == "Whaleshark");
     }

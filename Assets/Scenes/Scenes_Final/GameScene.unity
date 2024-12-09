@@ -12974,7 +12974,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: ac55a819a6b7faa47994ce3582e61ef7, type: 3}
+  m_audioClip: {fileID: 8300000, guid: ba2c49abc9df6084bbe1b6d620a8a30e, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -13311,15 +13311,15 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: f596a93d2bd23304fb3447f7c259b32e, type: 2}
     - target: {fileID: 1177344905625713130, guid: 7e77bb192aec57349b6c9829283b11fd, type: 3}
       propertyPath: m_fontColor.b
-      value: 0.7607844
+      value: 0.7058824
       objectReference: {fileID: 0}
     - target: {fileID: 1177344905625713130, guid: 7e77bb192aec57349b6c9829283b11fd, type: 3}
       propertyPath: m_fontColor.g
-      value: 0.882353
+      value: 0.8941177
       objectReference: {fileID: 0}
     - target: {fileID: 1177344905625713130, guid: 7e77bb192aec57349b6c9829283b11fd, type: 3}
       propertyPath: m_fontColor.r
-      value: 0.64705884
+      value: 0.6431373
       objectReference: {fileID: 0}
     - target: {fileID: 1177344905625713130, guid: 7e77bb192aec57349b6c9829283b11fd, type: 3}
       propertyPath: m_fontSizeBase
@@ -13331,7 +13331,7 @@ PrefabInstance:
       objectReference: {fileID: -5486036829916205359, guid: f596a93d2bd23304fb3447f7c259b32e, type: 2}
     - target: {fileID: 1177344905625713130, guid: 7e77bb192aec57349b6c9829283b11fd, type: 3}
       propertyPath: m_fontColor32.rgba
-      value: 4290961829
+      value: 4290045092
       objectReference: {fileID: 0}
     - target: {fileID: 1177344905625713130, guid: 7e77bb192aec57349b6c9829283b11fd, type: 3}
       propertyPath: m_hasFontAssetChanged

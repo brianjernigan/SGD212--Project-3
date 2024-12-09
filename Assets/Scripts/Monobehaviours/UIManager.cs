@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -48,7 +45,6 @@ public class UIManager : MonoBehaviour
     private void OnEnable()
     {
         GameManager.Instance.OnScoreChanged += UpdateScoreText;
-        GameManager.Instance.OnPlaysChanged += UpdatePlaysText;
         GameManager.Instance.OnDiscardsChanged += UpdateDiscardsText;
         GameManager.Instance.OnDrawsChanged += UpdateDrawsText;
         GameManager.Instance.OnMultiplierChanged += UpdateMultiplierText;
@@ -60,7 +56,6 @@ public class UIManager : MonoBehaviour
     private void OnDisable()
     {
         GameManager.Instance.OnScoreChanged -= UpdateScoreText;
-        GameManager.Instance.OnPlaysChanged -= UpdatePlaysText;
         GameManager.Instance.OnDiscardsChanged -= UpdateDiscardsText;
         GameManager.Instance.OnDrawsChanged -= UpdateDrawsText;
         GameManager.Instance.OnMultiplierChanged -= UpdateMultiplierText;
@@ -194,6 +189,9 @@ public class UIManager : MonoBehaviour
 
     public void ActivateLossPanel()
     {
+        if (_lossPanel.activeSelf) return;
+        
+        AudioManager.Instance.PlayLoseAudio();
         _lossPanel.SetActive(true);
         _peekDeckPanel.SetActive(false);
         _winPanel.SetActive(false);

@@ -28,10 +28,10 @@ public class GameManager : MonoBehaviour
     private int _levelIndex = 1;
     
     public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
-    private const int MaxCardsOnScreen = 5;
+    public int DefaultHandSize => 5;
     public int AdditionalCardsDrawn { get; set; }
     public int PermanentHandSizeModifier { get; set; }
-    public int HandSize => MaxCardsOnScreen + AdditionalCardsDrawn + PermanentHandSizeModifier;
+    public int HandSize => DefaultHandSize + AdditionalCardsDrawn + PermanentHandSizeModifier;
 
     public Deck GameDeck { get; set; }
     public Hand PlayerHand { get; private set; }
@@ -61,7 +61,6 @@ public class GameManager : MonoBehaviour
     public int DrawsRemaining { get; set; } = 5;
 
     public event Action<int> OnScoreChanged;
-    public event Action<string> OnPlaysChanged;
     public event Action<int> OnDiscardsChanged;
     public event Action<int> OnDrawsChanged;
     public event Action<int> OnMultiplierChanged;
@@ -292,6 +291,7 @@ public class GameManager : MonoBehaviour
         IsDrawingCards = false;
         
         TriggerOnMouseOverForCurrentCard();
+        CheckForGameLoss();
     }
     
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
@@ -373,11 +373,10 @@ public class GameManager : MonoBehaviour
                     }
                     TriggerCardEffect();
                     PlaysRemaining--;
-                    TriggerPlaysChanged();
                 }
                 break;
             case 2:
-                if (CanPlayTwoCards())
+                if (StageAreaController.StageContainsWhaleShark())
                 {
                     ScoreSet();
                 }
@@ -391,14 +390,6 @@ public class GameManager : MonoBehaviour
         }
         
         CheckForGameLoss();
-    }
-
-    private bool CanPlayTwoCards()
-    {
-        var stagedCards = StageAreaController.CardsStaged;
-        var whalesharkFirst = stagedCards[0].Data.CardName == "Whaleshark" && stagedCards[1].Data.CardName == "Kraken";
-        var whalesharkSecond = stagedCards[0].Data.CardName == "Kraken" && stagedCards[1].Data.CardName == "Whaleshark";
-        return whalesharkFirst || whalesharkSecond;
     }
 
     private void TriggerCardEffect()
@@ -421,8 +412,12 @@ public class GameManager : MonoBehaviour
         }
 
         AudioManager.Instance.PlayScoreSetAudio();
-        TriggerPlaysChanged();
-        CheckForGameWin();
+
+        if (!CheckForGameWin())
+        {
+            var message = ShellyController.GetRandomShellyScoreDialog();
+            ShellyController.ActivateTextBox(message);
+        }
     }
     
     private void OnClickPeekDeckButton()
@@ -437,7 +432,7 @@ public class GameManager : MonoBehaviour
     
     private void HandleRightMouseClick(GameObject clickedObject)
     {
-        if (clickedObject.CompareTag("Card"))
+        if (clickedObject.CompareTag("Card") && !IsFlippingCard)
         {
             FlipCard(clickedObject);
         }
@@ -693,15 +688,15 @@ public class GameManager : MonoBehaviour
 
     private void HandleLoss()
     {
-        AudioManager.Instance.PlayLoseAudio();
         UIManager.Instance.ActivateLossPanel();
     }
 
-    private void CheckForGameWin()
+    private bool CheckForGameWin()
     {
-        if (CurrentScore < CurrentRequiredScore) return;
+        if (CurrentScore < CurrentRequiredScore) return false;
         
         HandleWin();
+        return true;
     }
 
     private void HandleWin()
@@ -755,7 +750,6 @@ public class GameManager : MonoBehaviour
         CurrentMultiplier = 1;
         TriggerMultiplierChanged();
         PlaysRemaining = 5;
-        TriggerPlaysChanged();
         DiscardsRemaining = 5;
         TriggerDiscardsChanged();
         DrawsRemaining = 5;
@@ -773,11 +767,6 @@ public class GameManager : MonoBehaviour
     public void TriggerScoreChanged()
     {
         OnScoreChanged?.Invoke(CurrentScore);
-    }
-
-    public void TriggerPlaysChanged()
-    {
-        OnPlaysChanged?.Invoke(PlaysRemaining.ToString());
     }
 
     public void TriggerDiscardsChanged()
