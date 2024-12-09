@@ -61,7 +61,6 @@ public class GameManager : MonoBehaviour
     public int DrawsRemaining { get; set; } = 5;
 
     public event Action<int> OnScoreChanged;
-    public event Action<string> OnPlaysChanged;
     public event Action<int> OnDiscardsChanged;
     public event Action<int> OnDrawsChanged;
     public event Action<int> OnMultiplierChanged;
@@ -292,6 +291,7 @@ public class GameManager : MonoBehaviour
         IsDrawingCards = false;
         
         TriggerOnMouseOverForCurrentCard();
+        CheckForGameLoss();
     }
     
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
@@ -373,7 +373,6 @@ public class GameManager : MonoBehaviour
                     }
                     TriggerCardEffect();
                     PlaysRemaining--;
-                    TriggerPlaysChanged();
                 }
                 break;
             case 2:
@@ -421,7 +420,6 @@ public class GameManager : MonoBehaviour
         }
 
         AudioManager.Instance.PlayScoreSetAudio();
-        TriggerPlaysChanged();
         CheckForGameWin();
     }
     
@@ -693,7 +691,6 @@ public class GameManager : MonoBehaviour
 
     private void HandleLoss()
     {
-        AudioManager.Instance.PlayLoseAudio();
         UIManager.Instance.ActivateLossPanel();
     }
 
@@ -755,7 +752,6 @@ public class GameManager : MonoBehaviour
         CurrentMultiplier = 1;
         TriggerMultiplierChanged();
         PlaysRemaining = 5;
-        TriggerPlaysChanged();
         DiscardsRemaining = 5;
         TriggerDiscardsChanged();
         DrawsRemaining = 5;
@@ -773,11 +769,6 @@ public class GameManager : MonoBehaviour
     public void TriggerScoreChanged()
     {
         OnScoreChanged?.Invoke(CurrentScore);
-    }
-
-    public void TriggerPlaysChanged()
-    {
-        OnPlaysChanged?.Invoke(PlaysRemaining.ToString());
     }
 
     public void TriggerDiscardsChanged()

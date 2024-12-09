@@ -17,15 +17,7 @@ public class StageAreaController : MonoBehaviour
     {
         var canBeScored = StageContainsWhaleShark() || NumCardsStaged >= 3;
         _playButtonText.text = canBeScored ? "Score" : "Play";
-        if (canBeScored)
-        {
-            ChangePlaysTextToExclamation();
-        }
-    }
-
-    private void ChangePlaysTextToExclamation()
-    {
-        UIManager.Instance.UpdatePlaysText("!");
+        UIManager.Instance.UpdatePlaysText(canBeScored ? "!" : GameManager.Instance.PlaysRemaining.ToString());
     }
     
     private bool CanStageCard(CardData card)
