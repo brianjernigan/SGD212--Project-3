@@ -7,7 +7,7 @@ public class DeckBuilder : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance is null)
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
@@ -19,7 +19,8 @@ public class DeckBuilder : MonoBehaviour
     }
 
     /// <summary>
-    /// Builds the default deck with all possible cards.
+    /// Builds the default deck with a broad variety of cards.
+    /// Used as a base or fallback.
     /// </summary>
     public Deck BuildDefaultDeck(GameObject cardPrefab)
     {
@@ -42,64 +43,75 @@ public class DeckBuilder : MonoBehaviour
             { "Whaleshark", 3 }
         };
 
-        var deckComposition = new Dictionary<CardData, int>();
-        foreach (var entry in defaultComposition)
-        {
-            var cardData = CardLibrary.Instance.GetCardDataByName(entry.Key);
-            if (cardData is not null)
-            {
-                deckComposition[cardData] = entry.Value;
-            }
-        }
-
-        return new Deck(deckComposition, cardPrefab);
+        return BuildDeckFromComposition(cardPrefab, defaultComposition);
     }
 
     /// <summary>
-    /// Builds a tutorial-specific deck containing only selected cards.
+    /// Builds a tutorial-specific deck with a simpler composition,
+    /// ensuring the player can learn with straightforward cards.
     /// </summary>
     public Deck BuildTutorialDeck(GameObject cardPrefab)
     {
         var tutorialComposition = new Dictionary<string, int>
         {
-            { "ClownFish", 2 },
+            { "ClownFish", 4 },
             { "Anemone", 2 },
-            { "Whaleshark", 1 },
-            { "Kraken", 1 },
-            { "Plankton", 2 },
-            { "Seahorse", 1 }
-            // Add other tutorial-specific cards as needed
+            { "Kraken", 1 }
+            // Add or remove cards as needed for tutorial
         };
 
+        return BuildDeckFromComposition(cardPrefab, tutorialComposition);
+    }
+
+    /// <summary>
+    /// Builds a normal game deck for a given level. You can adjust this logic
+    /// based on the level index or difficulty.
+    /// For simplicity, here's a composition that changes based on level size.
+    /// </summary>
+    public Deck BuildNormalLevelDeck(GameObject cardPrefab, int deckSize)
+    {
+        // Example: For normal levels, distribute cards somewhat evenly.
+        // Adjust card types and counts as desired.
+        // The total should sum up approximately to deckSize.
+        
+        var normalComposition = new Dictionary<string, int>
+        {
+            { "Plankton", 10 },
+            { "FishEggs", 8 },
+            { "Seahorse", 6 },
+            { "ClownFish", 6 },
+            { "CookieCutter", 4 },
+            { "Anemone", 3 },
+            { "Kraken", 3 },
+            { "Whaleshark", 2 }
+        };
+
+        // If deckSize differs from sum, you can tune or trim randomly.
+        // For now, assume deckSize is matched or just trust this composition.
+        return BuildDeckFromComposition(cardPrefab, normalComposition);
+    }
+
+    /// <summary>
+    /// Converts a dictionary of string->count card entries into
+    /// CardData->int composition for creating a Deck.
+    /// </summary>
+    private Deck BuildDeckFromComposition(GameObject cardPrefab, Dictionary<string, int> composition)
+    {
         var deckComposition = new Dictionary<CardData, int>();
-        foreach (var entry in tutorialComposition)
+
+        foreach (var entry in composition)
         {
             var cardData = CardLibrary.Instance.GetCardDataByName(entry.Key);
-            if (cardData is not null)
+            if (cardData != null)
             {
                 deckComposition[cardData] = entry.Value;
             }
             else
             {
-                Debug.LogWarning($"[DeckBuilder] Tutorial card '{entry.Key}' not found in CardLibrary.");
+                Debug.LogWarning($"[DeckBuilder] Card '{entry.Key}' not found in CardLibrary.");
             }
         }
 
-        // Optional: Shuffle the tutorial deck for randomness
-        // If you prefer a fixed order for the tutorial, you can skip shuffling
         return new Deck(deckComposition, cardPrefab);
-    }
-
-    public Deck BuildNormalLevelDeck(GameObject cardPrefab, int deckSize)
-    {
-        // Implement logic to create a deck of 'deckSize' cards for the normal game.
-        // This could pick from a predefined list of cardData or random sets.
-        // For now, just return a default composition of 'deckSize' Plankton cards, for example:
-        var cardData = CardLibrary.Instance.GetCardDataByName("Plankton");
-        Dictionary<CardData, int> composition = new Dictionary<CardData, int>
-        {
-            { cardData, deckSize } // Just as an example, fill deck with 'deckSize' Plankton cards
-        };
-        return new Deck(composition, cardPrefab);
     }
 }
