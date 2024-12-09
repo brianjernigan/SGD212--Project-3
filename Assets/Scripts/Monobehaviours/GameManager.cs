@@ -10,7 +10,8 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private GameObject _cardPrefab;
-    [SerializeField] private List<Transform> _stagePositions;
+    // Removed the [SerializeField] attribute from _stagePositions
+    private List<Transform> _stagePositions = new List<Transform>();
     [SerializeField] private GameObject _shelly;
 
     [Header("Areas")]
@@ -19,8 +20,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _deck;
     [SerializeField] private Transform _whirlpoolCenter;
 
-    [SerializeField] private List<GameObject> _levels;
-    [SerializeField] private List<GameObject> _handAreas;
+    // Removed the [SerializeField] attribute from _levels and _handAreas
+    private List<GameObject> _levels = new List<GameObject>();
+    private List<GameObject> _handAreas = new List<GameObject>();
     public GameObject StageArea => _stageArea;
     public GameObject DiscardArea => _discardArea;
     public GameObject HandArea { get; private set; }
@@ -115,10 +117,6 @@ public class GameManager : MonoBehaviour
 
         _mainCamera = Camera.main;
 
-        // IMPORTANT CHANGE:
-        // No longer calling InitializeForGameScene() or InitializeForTutorialScene() here.
-        // We'll rely on OnSceneLoaded to handle scene-specific initialization.
-        // For MainMenu, we typically do not need scene-specific linking. Just do nothing here.
         if (currentScene == "MainMenu")
         {
             Debug.Log("[GameManager] In MainMenu, no scene-specific linking needed.");
@@ -141,7 +139,15 @@ public class GameManager : MonoBehaviour
 
         // Setup player hand and deck
         PlayerHand = new Hand();
-        HandArea = _handAreas[_levelIndex - 1];
+        if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
+        {
+            HandArea = _handAreas[_levelIndex - 1];
+            Debug.Log($"[GameManager] HandArea set to {_handAreas[_levelIndex - 1].name}.");
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] HandAreas not set or not enough hand areas for this level.");
+        }
 
         // Build a deck for normal mode based on level
         int deckSize = GetDeckSizeForLevel(_levelIndex);
@@ -171,7 +177,15 @@ public class GameManager : MonoBehaviour
 
         // Setup player hand and deck
         PlayerHand = new Hand();
-        HandArea = _handAreas[_levelIndex - 1];
+        if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
+        {
+            HandArea = _handAreas[_levelIndex - 1];
+            Debug.Log($"[GameManager] HandArea set to {_handAreas[_levelIndex - 1].name}.");
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] HandAreas not set or not enough hand areas for tutorial.");
+        }
 
         Debug.Log("[GameManager] Building tutorial deck.");
         GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
@@ -185,12 +199,16 @@ public class GameManager : MonoBehaviour
             Debug.Log("[GameManager] Initializing tutorial via TutorialManager.");
             TutorialManager.Instance.InitializeTutorial();
         }
+        else
+        {
+            Debug.LogWarning("[GameManager] TutorialManager instance not found.");
+        }
     }
 
     /// <summary>
     /// Links scene-specific objects for the current scene.
     /// </summary>
-     private void LinkSceneSpecificObjects()
+    private void LinkSceneSpecificObjects()
     {
         Debug.Log("[GameManager] Linking scene-specific objects...");
 
@@ -236,10 +254,7 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("[GameManager] Shelly not found.");
         }
 
-        // Now refind _whirlpoolCenter, _levels, and _handAreas
-        // Make sure these objects exist in your scene. Adjust names if different.
-
-        // Example: If your whirlpool center is named "WhirlpoolCenter" in the scene:
+        // Linking WhirlpoolCenter
         var whirlpoolObj = GameObject.Find("WhirlpoolCenter");
         if (whirlpoolObj != null)
         {
@@ -252,7 +267,7 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("[GameManager] WhirlpoolCenter not found in this scene.");
         }
 
-        // For _levels, assume they are children of a GameObject named "LevelsParent"
+        // Linking Levels
         var levelsParent = GameObject.Find("LevelsParent");
         if (levelsParent != null)
         {
@@ -269,7 +284,7 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("[GameManager] LevelsParent not found, cannot link levels.");
         }
 
-        // For _handAreas, assume they are children of a GameObject named "HandAreasParent"
+        // Linking HandAreas
         var handAreasParent = GameObject.Find("HandAreasParent");
         if (handAreasParent != null)
         {
@@ -285,9 +300,10 @@ public class GameManager : MonoBehaviour
             _handAreas = new List<GameObject>();
             Debug.LogWarning("[GameManager] HandAreasParent not found, cannot link hand areas.");
         }
+
+        // Finally, link stage positions
+        LinkStagePositions();
     }
-
-
 
     /// <summary>
     /// Determine the deck size based on the current level for normal mode.
@@ -408,9 +424,21 @@ public class GameManager : MonoBehaviour
 
     private void PlaceCardInStage(GameCard gameCard)
     {
+        if (_stagePositions == null || _stagePositions.Count == 0)
+        {
+            Debug.LogWarning("[GameManager] StagePositions list is empty. Cannot place card in stage.");
+            return;
+        }
+
+        if (StageAreaController.NumCardsStaged - 1 >= _stagePositions.Count)
+        {
+            Debug.LogWarning("[GameManager] Not enough stage positions to place the card.");
+            return;
+        }
+
         gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].position;
         var pos = gameCard.UI.transform.position;
-        pos.y = _initialCardY;
+        pos.y = _initialCardY; // Ensure _initialCardY is set appropriately
         gameCard.UI.transform.position = pos;
 
         AudioManager.Instance.PlayStageCardAudio();
@@ -437,8 +465,20 @@ public class GameManager : MonoBehaviour
 
     public void RearrangeStage()
     {
+        if (_stagePositions == null || _stagePositions.Count == 0)
+        {
+            Debug.LogWarning("[GameManager] StagePositions list is empty. Cannot rearrange stage.");
+            return;
+        }
+
         for (var i = 0; i < StageAreaController.NumCardsStaged; i++)
         {
+            if (i >= _stagePositions.Count)
+            {
+                Debug.LogWarning("[GameManager] Not enough stage positions to rearrange all staged cards.");
+                break;
+            }
+
             StageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position;
         }
 
@@ -595,7 +635,11 @@ public class GameManager : MonoBehaviour
             case 2:
                 var firstCard = StageAreaController.GetFirstStagedCard();
                 var secondCard = StageAreaController.CardsStaged.Count > 1 ? StageAreaController.CardsStaged[1] : null;
-                if (secondCard == null) return;
+                if (secondCard == null)
+                {
+                    Debug.LogWarning("[GameManager] Second staged card is null.");
+                    return;
+                }
                 Debug.Log($"[GameManager] Two staged cards: {firstCard.Data.CardName}, {secondCard.Data.CardName}");
 
                 if (firstCard.Data.CardName == "Whaleshark")
@@ -1008,13 +1052,19 @@ public class GameManager : MonoBehaviour
         if (IsTutorialMode)
         {
             Debug.Log("[GameManager] Tutorial complete. Shelly will conclude the tutorial.");
-            TutorialManager.Instance.HandleTutorialCompletion();
+            if (TutorialManager.Instance != null)
+            {
+                TutorialManager.Instance.HandleTutorialCompletion();
+            }
+            else
+            {
+                Debug.LogWarning("[GameManager] TutorialManager instance not found.");
+            }
             return;
         }
 
         HandleWin();
     }
-
 
     private void HandleWin()
     {
@@ -1046,13 +1096,36 @@ public class GameManager : MonoBehaviour
         if (_levelIndex < 3)
         {
             Debug.Log($"[GameManager] Deactivating level {_levelIndex}.");
-            _levels[_levelIndex - 1].SetActive(false);
+            if (_levels != null && _levelIndex - 1 < _levels.Count)
+            {
+                _levels[_levelIndex - 1].SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning("[GameManager] Invalid level index for deactivating level.");
+            }
+
             _levelIndex++;
             Debug.Log($"[GameManager] Activating level {_levelIndex}.");
-            _levels[_levelIndex - 1].SetActive(true);
+            if (_levels != null && _levelIndex - 1 < _levels.Count)
+            {
+                _levels[_levelIndex - 1].SetActive(true);
+            }
+            else
+            {
+                Debug.LogWarning("[GameManager] Invalid level index for activating level.");
+            }
         
             ClearHandAndStage();
-            HandArea = _handAreas[_levelIndex - 1];
+            if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
+            {
+                HandArea = _handAreas[_levelIndex - 1];
+                Debug.Log($"[GameManager] HandArea set to {_handAreas[_levelIndex - 1].name}.");
+            }
+            else
+            {
+                Debug.LogWarning("[GameManager] HandAreas not set or not enough hand areas for the new level.");
+            }
         }
         else
         {
@@ -1065,7 +1138,14 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("[GameManager] Clearing player's hand and stage area.");
         PlayerHand.ClearHandArea();
-        StageAreaController.ClearStageArea(true);
+        if (StageAreaController != null)
+        {
+            StageAreaController.ClearStageArea(true);
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] StageAreaController is not assigned.");
+        }
     }
 
     private void ResetStats()
@@ -1175,7 +1255,14 @@ public class GameManager : MonoBehaviour
 
         // Clear hand and stage
         PlayerHand.ClearHandArea();
-        StageAreaController.ClearStageArea(true);
+        if (StageAreaController != null)
+        {
+            StageAreaController.ClearStageArea(true);
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] StageAreaController is not assigned.");
+        }
 
         // Rebuild the deck
         GameDeck = IsTutorialMode 
@@ -1214,5 +1301,45 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+    /// <summary>
+    /// Dynamically links the stage positions by finding child transforms under StageLocations.
+    /// </summary>
+    private void LinkStagePositions()
+    {
+        if (_stageArea == null)
+        {
+            Debug.LogWarning("[GameManager] StageArea is not assigned. Cannot link stage positions.");
+            _stagePositions = new List<Transform>();
+            return;
+        }
+
+        // Find the StageLocations child under StageArea
+        Transform stageLocationsTransform = _stageArea.transform.Find("StageLocations");
+        if (stageLocationsTransform == null)
+        {
+            Debug.LogWarning("[GameManager] StageLocations object not found under StageArea.");
+            _stagePositions = new List<Transform>();
+            return;
+        }
+
+        // Retrieve all child transforms under StageLocations
+        var positions = stageLocationsTransform.GetComponentsInChildren<Transform>()
+                            .Where(t => t != stageLocationsTransform) // Exclude the StageLocations itself
+                            .ToList();
+
+        if (positions.Count == 0)
+        {
+            Debug.LogWarning("[GameManager] No stage positions found under StageLocations.");
+        }
+        else
+        {
+            _stagePositions = positions;
+            foreach (var pos in _stagePositions)
+            {
+                Debug.Log($"[GameManager] Found Stage Position: {pos.name}");
+            }
+            Debug.Log($"[GameManager] Linked {_stagePositions.Count} stage positions.");
+        }
+    }
 
 }
