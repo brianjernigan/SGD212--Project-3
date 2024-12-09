@@ -28,7 +28,7 @@ public class GameManager : MonoBehaviour
     private int _levelIndex = 1;
     
     public int NumCardsOnScreen => PlayerHand.NumCardsInHand + StageAreaController.NumCardsStaged;
-    private const int DefaultHandSize = 5;
+    public int DefaultHandSize => 5;
     public int AdditionalCardsDrawn { get; set; }
     public int PermanentHandSizeModifier { get; set; }
     public int HandSize => DefaultHandSize + AdditionalCardsDrawn + PermanentHandSizeModifier;
@@ -397,7 +397,9 @@ public class GameManager : MonoBehaviour
         var stagedCards = StageAreaController.CardsStaged;
         var whalesharkFirst = stagedCards[0].Data.CardName == "Whaleshark" && stagedCards[1].Data.CardName == "Kraken";
         var whalesharkSecond = stagedCards[0].Data.CardName == "Kraken" && stagedCards[1].Data.CardName == "Whaleshark";
-        return whalesharkFirst || whalesharkSecond;
+        var bothWhaleshark =
+            stagedCards[0].Data.CardName == "Whaleshark" && stagedCards[1].Data.CardName == "Whaleshark";
+        return whalesharkFirst || whalesharkSecond || bothWhaleshark;
     }
 
     private void TriggerCardEffect()
