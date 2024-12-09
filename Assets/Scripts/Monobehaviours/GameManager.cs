@@ -99,12 +99,10 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[GameManager] Instance created.");
         }
         else
         {
             Destroy(gameObject);
-            Debug.LogWarning("[GameManager] Duplicate GameManager instance destroyed.");
         }
     }
 
@@ -1007,5 +1005,57 @@ public class GameManager : MonoBehaviour
         // Show the normal introduction dialogue
         ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
     }
+
+    public void ResetGame()
+    {
+        Debug.Log("[GameManager] Resetting game state.");
+        
+        // Reset game variables
+        CurrentScore = 0;
+        CurrentMultiplier = 1;
+        PlaysRemaining = 5;
+        DiscardsRemaining = 5;
+        DrawsRemaining = 5;
+
+        // Clear hand and stage
+        PlayerHand.ClearHandArea();
+        StageAreaController.ClearStageArea(true);
+
+        // Rebuild the deck
+        GameDeck = IsTutorialMode 
+            ? DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab)
+            : DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+
+        TriggerCardsRemainingChanged();
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "GameScene") // Replace with your actual game scene name
+        {
+            Debug.Log("[GameManager] Reinitializing scene-specific references.");
+
+            // Re-link scene-specific objects
+            _stageArea = GameObject.Find("StageArea");
+            _discardArea = GameObject.Find("DiscardArea");
+            _deck = GameObject.Find("Deck");
+            _shelly = GameObject.Find("Shelly");
+
+            StageAreaController = _stageArea.GetComponent<StageAreaController>();
+            ShellyController = _shelly.GetComponent<ShellyController>();
+        }
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+
 
 }
