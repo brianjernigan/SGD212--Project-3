@@ -61,9 +61,16 @@ public class ShellyController : MonoBehaviour
         _currentDialogCoroutine = null;
     }
 
-    public string GetRandomShellyScoreDialog()
+    public string GetRandomScoreDialog()
     {
         var scoreDialog = new[] {"Bingo!", "Nice!", "Great move!"};
         return scoreDialog[Random.Range(0, scoreDialog.Length)];
+    }
+
+    public string GetRandomThinkingDialog()
+    {
+        var thinkingDialog = new[]
+            { "What to do, what to do...", "Hmmm...", "I wonder if you...no that wouldn't work" };
+        return thinkingDialog[Random.Range(0, thinkingDialog.Length)];
     }
 }

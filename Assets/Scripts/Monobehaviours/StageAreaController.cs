@@ -35,7 +35,8 @@ public class StageAreaController : MonoBehaviour
     private void UpdateShellyThinking()
     {
         var shellyController = GameManager.Instance.ShellyController;
-        shellyController.ActivateTextBox("What to do, what to do...");
+        var thinkingMessage = shellyController.GetRandomThinkingDialog();
+        shellyController.ActivateTextBox(thinkingMessage);
     }
 
     private void UpdateShellyWithScore()
