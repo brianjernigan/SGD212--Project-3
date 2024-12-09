@@ -112,37 +112,42 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log($"[GameManager Start] IsTutorialMode: {_isTutorialMode}");
 
+        // Initialize core components
         _mainCamera = Camera.main;
         StageAreaController = _stageArea.GetComponent<StageAreaController>();
         ShellyController = _shelly.GetComponent<ShellyController>();
         PlayerHand = new Hand();
 
+        // Build the appropriate deck based on the mode
         if (_isTutorialMode)
         {
             Debug.Log("[GameManager Start] Building tutorial deck.");
             GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
+
+            // Initialize the tutorial if the TutorialManager is available
+            if (TutorialManager.Instance != null)
+            {
+                Debug.Log("[GameManager Start] Initializing tutorial.");
+                TutorialManager.Instance.InitializeTutorial();
+            }
         }
         else
         {
             Debug.Log("[GameManager Start] Building default deck.");
             GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+
+            // Show normal dialogue for non-tutorial mode
+            ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
         }
 
+        // Set the hand area for the current level
         HandArea = _handAreas[_levelIndex - 1];
 
+        // Start drawing the initial hand
         Debug.Log("[GameManager Start] Starting initial hand draw...");
         StartCoroutine(DrawInitialHandCoroutine());
-
-        if (!_isTutorialMode)
-        {
-            ShowNormalDialogue(normalDialogue);
-        }
-
-        if (_isTutorialMode && TutorialManager.Instance != null)
-        {
-            TutorialManager.Instance.InitializeTutorial();
-        }
     }
+
 
     private IEnumerator DrawInitialHandCoroutine()
     {
@@ -990,4 +995,17 @@ public class GameManager : MonoBehaviour
     }
 
     #endregion
+
+    public void StartNormalGame()
+    {
+        Debug.Log("[GameManager] Starting normal game mode.");
+        IsTutorialMode = false; // Disable tutorial mode
+        EnableNormalDialogue = true; // Enable normal dialogues
+        ResetStats(); // Reset stats and prepare the game
+        StartCoroutine(DrawInitialHandCoroutine());
+
+        // Show the normal introduction dialogue
+        ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
+    }
+
 }
