@@ -28,8 +28,7 @@ public class TutorialManager : MonoBehaviour
     public int KrakenCount = 1;
 
     private float _dialogueWaitTime = 3f; // Time in seconds to wait between lines
-    private bool isShowingTutorialDialogue = false;
-    private bool isDialogueInProgress = false;
+    private bool _isDialogueInProgress = false;
 
     private void Awake()
     {
@@ -112,7 +111,7 @@ public class TutorialManager : MonoBehaviour
     private void UnsubscribeFromGameEvents()
     {
         Debug.Log("[TutorialManager] Unsubscribing from GameManager events.");
-        if (GameManager.Instance != null) 
+        if (GameManager.Instance != null)
         {
             GameManager.Instance.OnScoreChanged -= HandleScoreChanged;
             GameManager.Instance.OnMultiplierChanged -= HandleMultiplierChanged;
@@ -206,14 +205,14 @@ public class TutorialManager : MonoBehaviour
             {
                 "Fantastic! You reached 50 points!",
                 "You now understand how to play cards, form sets, and use the Anemone to boost multipliers!",
-                "Let's return to the main menu and start the real game."
-            }, OnConclusionComplete));
+                "Great job! Let's move to the main menu!"
+            }, OnTutorialEnd));
         }
     }
 
-    private void OnConclusionComplete()
+    private void OnTutorialEnd()
     {
-        Debug.Log("[TutorialManager] Conclusion dialogue complete. Returning to main menu...");
+        Debug.Log("[TutorialManager] Tutorial end dialogue complete. Returning to main menu...");
         StartCoroutine(ReturnToMenuCoroutine());
     }
 
@@ -224,39 +223,48 @@ public class TutorialManager : MonoBehaviour
         SceneManager.LoadScene("MainMenu");
     }
 
-    private void OnDestroy()
-    {
-        Debug.Log("[TutorialManager] OnDestroy called. Unsubscribing from events.");
-        UnsubscribeFromGameEvents();
-    }
-
     private IEnumerator ShowDialogueLines(string[] lines, Action onComplete = null)
     {
         var shelly = GameManager.Instance.ShellyController;
         foreach (var line in lines)
         {
-            // Wait if a dialogue is currently in progress
-            while (isDialogueInProgress)
+            while (_isDialogueInProgress)
             {
                 yield return null;
             }
 
-            isDialogueInProgress = true;
+            _isDialogueInProgress = true;
             shelly.ActivateTextBox(line);
 
-            // Wait until Shelly finishes (ShellyController will end the dialogue after finishing)
-            yield return new WaitUntil(() => !isDialogueInProgress);
+            yield return new WaitUntil(() => !_isDialogueInProgress);
         }
 
         onComplete?.Invoke();
     }
 
-    /// <summary>
-    /// Called by ShellyController when dialogue ends.
-    /// Sets isDialogueInProgress to false, allowing the next line to show.
-    /// </summary>
     public void EndDialogue()
     {
-        isDialogueInProgress = false;
+        _isDialogueInProgress = false;
     }
+    
+    public void HandleTutorialCompletion()
+    {
+        if (_tutorialComplete) return; // Avoid triggering multiple times
+
+        Debug.Log("[TutorialManager] Handling tutorial completion.");
+        _tutorialComplete = true;
+
+        // Display the final dialogue for tutorial completion
+        StartCoroutine(ShowDialogueLines(new string[]
+        {
+            "Congratulations! You've completed the tutorial!",
+            "Now you know how to play Fresh Catch!",
+            "Let's return to the main menu and start the real game."
+        }, () =>
+        {
+            Debug.Log("[TutorialManager] Tutorial completion dialogue finished. Returning to main menu.");
+            StartCoroutine(ReturnToMenuCoroutine());
+        }));
+    }
+
 }

@@ -844,14 +844,18 @@ public class GameManager : MonoBehaviour
 
     private void CheckForGameWin()
     {
-        Debug.Log("[GameManager] Checking for game win conditions.");
-        if (CurrentScore < CurrentRequiredScore) 
+        if (CurrentScore < CurrentRequiredScore) return;
+
+        if (IsTutorialMode)
         {
-            Debug.Log("[GameManager] Current score is below required score. Game not won yet.");
+            Debug.Log("[GameManager] Tutorial complete. Shelly will conclude the tutorial.");
+            TutorialManager.Instance.HandleTutorialCompletion();
             return;
         }
+
         HandleWin();
     }
+
 
     private void HandleWin()
     {

@@ -116,9 +116,13 @@ public class ShellyController : MonoBehaviour
         AudioManager.Instance.StopShellyAudio();
         Debug.Log("[ShellyController] Dialog routine complete.");
 
-        // Automatically deactivate the text box after a short delay
-        yield return new WaitForSeconds(1f); // Adjust as needed
-        DeactivateTextBox();
+        // Notify TutorialManager that dialogue is complete
+        if (TutorialManager.Instance != null)
+        {
+            TutorialManager.Instance.EndDialogue();
+        }
+
+        _isDialogueActive = false;
     }
 
     private void OnDisable()
