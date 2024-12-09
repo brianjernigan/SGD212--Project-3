@@ -179,22 +179,6 @@ public class GameManager : MonoBehaviour
     private IEnumerator DrawInitialHandCoroutine()
     {
         yield return new WaitForSeconds(0.5f);
-
-        /* For Testing */
-        // var testCards = new[] { "Whaleshark", "Whaleshark", "Kraken", "Kraken", "CookieCutter" };
-        // foreach (var card in testCards)
-        // {
-        //     var specificCard = CardLibrary.Instance.GetCardDataByName(card);
-        //     if (specificCard is not null)
-        //     {
-        //         var cardToDraw = GameDeck.DrawSpecificCard(specificCard);
-        //         PlayerHand.TryAddCardToHand(cardToDraw);
-        //         var targetPosition = CalculateCardPosition(PlayerHand.NumCardsInHand - 1, PlayerHand.NumCardsInHand,
-        //             _hand.transform.position);
-        //
-        //         StartCoroutine(DealCardCoroutine(cardToDraw, targetPosition));
-        //     }
-        // }
         
         StartCoroutine(DrawFullHandCoroutine());
     }

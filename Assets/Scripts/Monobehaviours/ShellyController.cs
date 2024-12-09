@@ -15,7 +15,7 @@ public class ShellyController : MonoBehaviour
     private readonly float _typingSpeed = 0.1f;
     private bool _isMouthOpen;
 
-    public void ActivateTextBox(string message)
+    public void ActivateTextBox(string message = "")
     {
         _shellyTextBox.SetActive(true);
         UpdateShellyDialog(message);
