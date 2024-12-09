@@ -116,6 +116,9 @@ public class TutorialManager : MonoBehaviour
     /// <summary>
     /// Sets up the tutorial deck with specific cards.
     /// </summary>
+    /// <summary>
+/// Sets up the tutorial deck with specific cards.
+/// </summary>
     private void SetupTutorialDeck()
     {
         Debug.Log("[TutorialManager SetupTutorialDeck] Clearing existing deck and hand for tutorial setup.");
@@ -152,7 +155,9 @@ public class TutorialManager : MonoBehaviour
         GameManager.Instance.GameDeck.ShuffleDeck();
         Debug.Log("[TutorialManager SetupTutorialDeck] Deck shuffled. Drawing initial hand.");
         GameManager.Instance.StartCoroutine(GameManager.Instance.DrawFullHandCoroutine());
+
     }
+
 
     /// <summary>
     /// Adds a specific number of cards to the deck.
