@@ -99,30 +99,29 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("[GameManager] Instance created.");
         }
         else
         {
             Destroy(gameObject);
+            Debug.LogWarning("[GameManager] Duplicate GameManager instance destroyed.");
         }
     }
 
     private void Start()
     {
-        Debug.Log($"[GameManager Start] IsTutorialMode: {IsTutorialMode}");
-
-        // Determine which scene is loaded
         var currentScene = SceneManager.GetActiveScene().name;
-        Debug.Log($"[GameManager] Current Scene: {currentScene}");
+        Debug.Log($"[GameManager Start] Scene: {currentScene}, IsTutorialMode: {IsTutorialMode}");
 
-        // Initialize mandatory references
         _mainCamera = Camera.main;
 
-        // Scene-specific linking
-        if (currentScene == "GameScene") // Replace "GameScene" with your actual game scene name
+        if (currentScene == "GameScene") // The normal game scene
         {
-            Debug.Log("[GameManager] Linking scene-specific references for GameScene.");
+            // Turn off tutorial mode if this is the normal game
+            IsTutorialMode = false;
+            EnableNormalDialogue = true;
 
-            // Find and link scene objects
+            // Find scene-specific objects
             _stageArea = GameObject.Find("StageArea");
             _discardArea = GameObject.Find("DiscardArea");
             _deck = GameObject.Find("Deck");
@@ -131,55 +130,92 @@ public class GameManager : MonoBehaviour
             if (_stageArea != null)
                 StageAreaController = _stageArea.GetComponent<StageAreaController>();
             else
-                Debug.LogWarning("[GameManager] StageArea not found.");
+                Debug.LogWarning("[GameManager] StageArea not found in GameScene.");
 
             if (_shelly != null)
                 ShellyController = _shelly.GetComponent<ShellyController>();
             else
-                Debug.LogWarning("[GameManager] Shelly not found.");
+                Debug.LogWarning("[GameManager] Shelly not found in GameScene.");
 
             PlayerHand = new Hand();
 
             // Set the hand area for the current level
             HandArea = _handAreas[_levelIndex - 1];
 
-            // Build the appropriate deck
-            if (IsTutorialMode)
-            {
-                Debug.Log("[GameManager Start] Building tutorial deck.");
-                GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
+            // Build a deck for normal mode with a size appropriate for the level
+            // For example, let's assume:
+            // Level 1: 55 cards
+            // Level 2: 60 cards
+            // Level 3: 70 cards
+            int deckSize = GetDeckSizeForLevel(_levelIndex);
+            Debug.Log($"[GameManager Start] Building normal deck of size {deckSize} for level {_levelIndex}.");
+            GameDeck = DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, deckSize);
 
-                // Initialize the tutorial if the TutorialManager is available
-                if (TutorialManager.Instance != null)
-                {
-                    Debug.Log("[GameManager Start] Initializing tutorial.");
-                    TutorialManager.Instance.InitializeTutorial();
-                }
-            }
-            else
-            {
-                Debug.Log("[GameManager Start] Building default deck.");
-                GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
-
-                // Show normal dialogue for non-tutorial mode
-                ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
-            }
-
-            // Start drawing the initial hand
             Debug.Log("[GameManager Start] Starting initial hand draw...");
             StartCoroutine(DrawInitialHandCoroutine());
+
+            // Show normal dialogue since we're in normal mode now
+            ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
+        }
+        else if (currentScene == "TutorialScene") // If you have a separate tutorial scene
+        {
+            // If the tutorial scene is loaded, enable tutorial mode
+            IsTutorialMode = true;
+            EnableNormalDialogue = false;
+
+            // Link objects if needed for tutorial scene
+            _stageArea = GameObject.Find("StageArea");
+            _discardArea = GameObject.Find("DiscardArea");
+            _deck = GameObject.Find("Deck");
+            _shelly = GameObject.Find("Shelly");
+
+            if (_stageArea != null)
+                StageAreaController = _stageArea.GetComponent<StageAreaController>();
+            if (_shelly != null)
+                ShellyController = _shelly.GetComponent<ShellyController>();
+
+            PlayerHand = new Hand();
+            HandArea = _handAreas[_levelIndex - 1];
+
+            Debug.Log("[GameManager Start] Building tutorial deck.");
+            GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
+
+            Debug.Log("[GameManager Start] Starting initial hand draw...");
+            StartCoroutine(DrawInitialHandCoroutine());
+
+            // Initialize the tutorial if the TutorialManager is available
+            if (TutorialManager.Instance != null)
+            {
+                Debug.Log("[GameManager Start] Initializing tutorial.");
+                TutorialManager.Instance.InitializeTutorial();
+            }
         }
         else if (currentScene == "MainMenu")
         {
-            // In MainMenu, no scene-specific game objects are needed.
-            Debug.Log("[GameManager] In MainMenu, not linking game scene objects.");
-            // No dialogue needed here since main menu likely handles its own UI/UX
-        }
-        else
-        {
-            Debug.LogWarning("[GameManager] Current scene is not recognized for linking. No scene objects found.");
+            // In MainMenu, no game objects or decks need to be linked
+            // Just leave GameManager persistent and do nothing specific here
+            Debug.Log("[GameManager] In MainMenu, no scene-specific linking needed.");
         }
     }
+
+    /// <summary>
+    /// Determine the deck size based on the current level for normal mode.
+    /// </summary>
+    private int GetDeckSizeForLevel(int level)
+    {
+        switch (level)
+        {
+            case 1:
+                return 55; // Level 1 deck size
+            case 2:
+                return 60; // Level 2 deck size
+            case 3:
+                return 70; // Level 3 deck size
+            default:
+                return 55; // Default to 55 if unknown level
+        }
+    }
+
 
     private IEnumerator DrawInitialHandCoroutine()
     {

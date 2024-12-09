@@ -89,4 +89,17 @@ public class DeckBuilder : MonoBehaviour
         // If you prefer a fixed order for the tutorial, you can skip shuffling
         return new Deck(deckComposition, cardPrefab);
     }
+
+    public Deck BuildNormalLevelDeck(GameObject cardPrefab, int deckSize)
+    {
+        // Implement logic to create a deck of 'deckSize' cards for the normal game.
+        // This could pick from a predefined list of cardData or random sets.
+        // For now, just return a default composition of 'deckSize' Plankton cards, for example:
+        var cardData = CardLibrary.Instance.GetCardDataByName("Plankton");
+        Dictionary<CardData, int> composition = new Dictionary<CardData, int>
+        {
+            { cardData, deckSize } // Just as an example, fill deck with 'deckSize' Plankton cards
+        };
+        return new Deck(composition, cardPrefab);
+    }
 }
