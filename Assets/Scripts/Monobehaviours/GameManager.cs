@@ -308,7 +308,7 @@ public class GameManager : MonoBehaviour
         CheckForGameLoss();
     }
     
-    private IEnumerator DrawFullHandCoroutine()
+    public IEnumerator DrawFullHandCoroutine()
     {
         IsDrawingCards = true;
 
