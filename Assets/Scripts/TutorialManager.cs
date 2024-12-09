@@ -5,10 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class TutorialManager : MonoBehaviour
 {
-    // Singleton instance
     public static TutorialManager Instance { get; private set; }
 
-    // Define the tutorial steps
     private enum TutorialStep
     {
         Intro,
@@ -24,80 +22,75 @@ public class TutorialManager : MonoBehaviour
     public bool IsTutorialMode { get; private set; } = false;
 
     [Header("Tutorial Deck Setup")]
-    [SerializeField] private int ClownfishCount = 4; // Sufficient for reaching 50 points with multipliers
+    [SerializeField] private int ClownfishCount = 4;
     [SerializeField] private int AnemoneCount = 2;
     [SerializeField] private int KrakenCount = 1;
 
     [Header("Dialogue Settings")]
-    [SerializeField] private float DialogueWaitTime = 3f; // Time in seconds to wait between lines
+    [SerializeField] private float DialogueWaitTime = 3f;
     private bool _isDialogueInProgress = false;
 
     private void Awake()
     {
-        // Implement Singleton pattern
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[TutorialManager Awake] Instance created and marked as DontDestroyOnLoad.");
+            Debug.Log("[TutorialManager Awake] Instance created.");
 
-            // Initialize tutorial mode if GameManager exists
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.IsTutorialMode = true;
-                GameManager.Instance.EnableNormalDialogue = false; // Disable normal dialogues
+                GameManager.Instance.EnableNormalDialogue = false;
                 IsTutorialMode = true;
-                Debug.Log("[TutorialManager Awake] Set GameManager.IsTutorialMode to true and disabled normal dialogues.");
+                Debug.Log("[TutorialManager Awake] Tutorial mode enabled.");
             }
             else
             {
-                Debug.LogError("[TutorialManager Awake] GameManager.Instance is null. Cannot set tutorial flags.");
+                Debug.LogError("[TutorialManager Awake] GameManager.Instance is null.");
             }
         }
         else
         {
             Destroy(gameObject);
-            Debug.LogWarning("[TutorialManager Awake] Duplicate instance detected and destroyed.");
+            Debug.LogWarning("[TutorialManager Awake] Duplicate TutorialManager destroyed.");
         }
     }
 
     private void OnEnable()
     {
-        // Subscribe to scene loaded event
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
-        // Unsubscribe from scene loaded event to prevent memory leaks
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    /// <summary>
-    /// Called when a new scene is loaded.
-    /// Handles enabling/disabling or destroying TutorialManager based on the scene.
-    /// </summary>
-    /// <param name="scene">The scene that was loaded.</param>
-    /// <param name="mode">The mode in which the scene was loaded.</param>
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "GameScene" && Instance == null)
+        Debug.Log($"[TutorialManager OnSceneLoaded] Scene '{scene.name}' loaded.");
+
+        if (!scene.name.Equals("TutorialScene", StringComparison.OrdinalIgnoreCase))
         {
-            Instantiate(Resources.Load("GameManager"));
+            Debug.Log("[TutorialManager] Not in TutorialScene, destroying TutorialManager.");
+            DisableAndDestroy();
+        }
+        else
+        {
+            Debug.Log("[TutorialManager] In TutorialScene, enabling TutorialManager.");
+            this.enabled = true;
+            InitializeTutorial();
         }
     }
 
-
-    /// <summary>
-    /// Initializes the tutorial by setting up the deck and starting the sequence.
-    /// </summary>
     public void InitializeTutorial()
     {
-        Debug.Log("[TutorialManager InitializeTutorial] Initializing tutorial.");
+        Debug.Log("[TutorialManager InitializeTutorial]");
 
-        if (!GameManager.Instance.IsTutorialMode)
+        if (GameManager.Instance == null || !GameManager.Instance.IsTutorialMode)
         {
-            Debug.Log("[TutorialManager InitializeTutorial] Tutorial mode not active. Exiting initialization.");
+            Debug.Log("[TutorialManager] Tutorial mode not active or GameManager null. Exiting.");
             return;
         }
 
@@ -106,58 +99,33 @@ public class TutorialManager : MonoBehaviour
         SubscribeToGameEvents();
     }
 
-    /// <summary>
-    /// Sets up the tutorial deck with specific cards.
-    /// </summary>
     private void SetupTutorialDeck()
     {
-        Debug.Log("[TutorialManager SetupTutorialDeck] Clearing existing deck and hand for tutorial setup.");
+        Debug.Log("[TutorialManager SetupTutorialDeck]");
 
-        // Ensure GameManager and its components are not null
-        if (GameManager.Instance == null)
+        if (GameManager.Instance == null || GameManager.Instance.GameDeck == null || GameManager.Instance.PlayerHand == null)
         {
-            Debug.LogError("[TutorialManager SetupTutorialDeck] GameManager.Instance is null. Cannot setup tutorial deck.");
+            Debug.LogError("[TutorialManager SetupTutorialDeck] Missing GameManager or its components.");
             return;
         }
 
-        if (GameManager.Instance.GameDeck == null)
-        {
-            Debug.LogError("[TutorialManager SetupTutorialDeck] GameManager.Instance.GameDeck is null. Cannot add cards.");
-            return;
-        }
-
-        if (GameManager.Instance.PlayerHand == null)
-        {
-            Debug.LogError("[TutorialManager SetupTutorialDeck] GameManager.Instance.PlayerHand is null. Cannot clear hand.");
-            return;
-        }
-
-        // Clear existing deck and hand
         GameManager.Instance.GameDeck.CardDataInDeck.Clear();
         GameManager.Instance.PlayerHand.ClearHandArea();
 
-        // Add specific tutorial cards
         AddTutorialCard("ClownFish", ClownfishCount);
         AddTutorialCard("Anemone", AnemoneCount);
         AddTutorialCard("Kraken", KrakenCount);
 
-        // Shuffle deck and draw initial hand
         GameManager.Instance.GameDeck.ShuffleDeck();
-        Debug.Log("[TutorialManager SetupTutorialDeck] Deck shuffled. Drawing initial hand.");
-        GameManager.Instance.StartDrawFullHandCoroutine(false); // Pass 'false' if not from play
+        Debug.Log("[TutorialManager] Deck shuffled, drawing initial hand.");
+        GameManager.Instance.StartDrawFullHandCoroutine(false);
     }
 
-    /// <summary>
-    /// Adds a specific number of cards to the deck.
-    /// </summary>
-    /// <param name="cardName">Name of the card to add.</param>
-    /// <param name="count">Number of cards to add.</param>
     private void AddTutorialCard(string cardName, int count)
     {
-        // Ensure CardLibrary is available
         if (CardLibrary.Instance == null)
         {
-            Debug.LogError("[TutorialManager AddTutorialCard] CardLibrary.Instance is null. Cannot retrieve card data.");
+            Debug.LogError("[TutorialManager AddTutorialCard] CardLibrary null.");
             return;
         }
 
@@ -165,24 +133,19 @@ public class TutorialManager : MonoBehaviour
         if (cardData != null)
         {
             GameManager.Instance.GameDeck.AddCard(cardData, count);
-            Debug.Log($"[TutorialManager AddTutorialCard] Added {count}x {cardName} to the deck.");
+            Debug.Log($"[TutorialManager AddTutorialCard] Added {count}x {cardName}.");
         }
         else
         {
-            Debug.LogWarning($"[TutorialManager AddTutorialCard] Card '{cardName}' not found in CardLibrary.");
+            Debug.LogWarning($"[TutorialManager AddTutorialCard] Card '{cardName}' not found.");
         }
     }
 
-    /// <summary>
-    /// Subscribes to game events for handling tutorial steps.
-    /// </summary>
     private void SubscribeToGameEvents()
     {
-        Debug.Log("[TutorialManager SubscribeToGameEvents] Subscribing to GameManager events.");
-
         if (GameManager.Instance == null)
         {
-            Debug.LogError("[TutorialManager SubscribeToGameEvents] GameManager.Instance is null. Cannot subscribe to events.");
+            Debug.LogError("[TutorialManager SubscribeToGameEvents] GameManager.Instance null.");
             return;
         }
 
@@ -190,16 +153,13 @@ public class TutorialManager : MonoBehaviour
         GameManager.Instance.OnMultiplierChanged += HandleMultiplierChanged;
     }
 
-    /// <summary>
-    /// Unsubscribes from game events to prevent memory leaks.
-    /// </summary>
     public void UnsubscribeFromGameEvents()
     {
-        Debug.Log("[TutorialManager UnsubscribeFromGameEvents] Unsubscribing from GameManager events.");
+        Debug.Log("[TutorialManager UnsubscribeFromGameEvents]");
 
         if (GameManager.Instance == null)
         {
-            Debug.LogWarning("[TutorialManager UnsubscribeFromGameEvents] GameManager.Instance is null. Cannot unsubscribe from events.");
+            Debug.LogWarning("[TutorialManager UnsubscribeFromGameEvents] GameManager.Instance null.");
             return;
         }
 
@@ -207,23 +167,16 @@ public class TutorialManager : MonoBehaviour
         GameManager.Instance.OnMultiplierChanged -= HandleMultiplierChanged;
     }
 
-    /// <summary>
-    /// Begins the tutorial sequence.
-    /// </summary>
-    /// <returns></returns>
     private IEnumerator BeginTutorialSequence()
     {
-        Debug.Log("[TutorialManager BeginTutorialSequence] Beginning tutorial sequence.");
+        Debug.Log("[TutorialManager BeginTutorialSequence]");
         yield return new WaitForSeconds(1f);
         ShowIntroDialogue();
     }
 
-    /// <summary>
-    /// Displays the introduction dialogue.
-    /// </summary>
     private void ShowIntroDialogue()
     {
-        Debug.Log("[TutorialManager ShowIntroDialogue] Showing introduction dialogue.");
+        Debug.Log("[TutorialManager ShowIntroDialogue]");
         StartCoroutine(ShowDialogueLines(new string[]
         {
             "Hi, I'm Shelly! Welcome to the Fresh Catch tutorial!",
@@ -233,22 +186,15 @@ public class TutorialManager : MonoBehaviour
         }, OnIntroDialogueComplete));
     }
 
-    /// <summary>
-    /// Callback after the intro dialogue completes.
-    /// </summary>
     private void OnIntroDialogueComplete()
     {
-        Debug.Log("[TutorialManager OnIntroDialogueComplete] Intro dialogue complete. Moving to ExplainCards step.");
+        Debug.Log("[TutorialManager OnIntroDialogueComplete]");
         _currentStep = TutorialStep.ExplainCards;
     }
 
-    /// <summary>
-    /// Handles score changes to progress the tutorial.
-    /// </summary>
-    /// <param name="newScore">The new score value.</param>
     private void HandleScoreChanged(int newScore)
     {
-        Debug.Log($"[TutorialManager HandleScoreChanged] Score changed to {newScore}. Current Step: {_currentStep}");
+        Debug.Log($"[TutorialManager HandleScoreChanged] Score: {newScore}, Step: {_currentStep}");
 
         if (!IsTutorialMode) return;
 
@@ -257,7 +203,6 @@ public class TutorialManager : MonoBehaviour
             case TutorialStep.ExplainCards:
                 if (newScore > 0)
                 {
-                    Debug.Log("[TutorialManager HandleScoreChanged] Player scored during ExplainCards step. Showing multiplier explanation.");
                     StartCoroutine(ShowDialogueLines(new string[]
                     {
                         "Great job! You scored points from the Clownfish set.",
@@ -272,29 +217,21 @@ public class TutorialManager : MonoBehaviour
             case TutorialStep.WaitForMultiplierPlay:
                 if (newScore >= 50)
                 {
-                    Debug.Log("[TutorialManager HandleScoreChanged] Score reached 50 during WaitForMultiplierPlay step. Showing conclusion.");
                     _currentStep = TutorialStep.Conclusion;
                     ShowConclusion();
                 }
                 break;
-
-            // Add more cases as needed for other steps
         }
     }
 
-    /// <summary>
-    /// Handles multiplier changes to progress the tutorial.
-    /// </summary>
-    /// <param name="newMultiplier">The new multiplier value.</param>
     private void HandleMultiplierChanged(int newMultiplier)
     {
-        Debug.Log($"[TutorialManager HandleMultiplierChanged] Multiplier changed to {newMultiplier}. Current Step: {_currentStep}");
+        Debug.Log($"[TutorialManager HandleMultiplierChanged] Multiplier: {newMultiplier}, Step: {_currentStep}");
 
         if (!IsTutorialMode) return;
 
         if (_currentStep == TutorialStep.ExplainMultiplier && newMultiplier > 1)
         {
-            Debug.Log("[TutorialManager HandleMultiplierChanged] Multiplier activated. Showing multiplier usage instructions.");
             StartCoroutine(ShowDialogueLines(new string[]
             {
                 "Awesome! You've activated the multiplier.",
@@ -304,32 +241,23 @@ public class TutorialManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Callback after the multiplier explanation dialogue completes.
-    /// </summary>
     private void OnMultiplierExplanationComplete()
     {
-        Debug.Log("[TutorialManager OnMultiplierExplanationComplete] Multiplier explanation dialogue complete.");
+        Debug.Log("[TutorialManager OnMultiplierExplanationComplete]");
         _currentStep = TutorialStep.ExplainMultiplier;
     }
 
-    /// <summary>
-    /// Callback after the multiplier usage dialogue completes.
-    /// </summary>
     private void OnMultiplierUsageComplete()
     {
-        Debug.Log("[TutorialManager OnMultiplierUsageComplete] Multiplier usage dialogue complete.");
+        Debug.Log("[TutorialManager OnMultiplierUsageComplete]");
         _currentStep = TutorialStep.WaitForMultiplierPlay;
     }
 
-    /// <summary>
-    /// Shows the conclusion dialogue and transitions to the main menu.
-    /// </summary>
     private void ShowConclusion()
     {
         if (!_tutorialComplete)
         {
-            Debug.Log("[TutorialManager ShowConclusion] Showing conclusion dialogue.");
+            Debug.Log("[TutorialManager ShowConclusion]");
             _tutorialComplete = true;
             StartCoroutine(ShowDialogueLines(new string[]
             {
@@ -340,99 +268,80 @@ public class TutorialManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Callback after the conclusion dialogue completes.
-    /// </summary>
     private void OnConclusionComplete()
     {
-        Debug.Log("[TutorialManager OnConclusionComplete] Conclusion dialogue complete. Returning to main menu.");
+        Debug.Log("[TutorialManager OnConclusionComplete]");
         StartCoroutine(ReturnToMenuCoroutine());
     }
 
-    /// <summary>
-    /// Coroutine to handle returning to the main menu after the tutorial.
-    /// </summary>
-    /// <returns></returns>
     private IEnumerator ReturnToMenuCoroutine()
     {
         yield return new WaitForSeconds(2f);
         UnsubscribeFromGameEvents();
-        SceneManager.LoadScene("MainMenu"); // Replace with your actual main menu scene name
+        SceneManager.LoadScene("MainMenu");
     }
 
-    /// <summary>
-    /// Displays multiple lines of dialogue sequentially.
-    /// </summary>
-    /// <param name="lines">Array of dialogue lines to display.</param>
-    /// <param name="onComplete">Callback after all dialogues are displayed.</param>
-    /// <returns></returns>
     private IEnumerator ShowDialogueLines(string[] lines, Action onComplete = null)
     {
         var shelly = GameManager.Instance?.ShellyController;
         if (shelly == null)
         {
-            Debug.LogError("[TutorialManager ShowDialogueLines] ShellyController is null.");
+            Debug.LogError("[TutorialManager ShowDialogueLines] ShellyController null.");
             yield break;
         }
 
         foreach (var line in lines)
         {
             while (_isDialogueInProgress)
-            {
                 yield return null;
-            }
 
             _isDialogueInProgress = true;
             shelly.ActivateTextBox(line);
 
-            // Wait until Shelly finishes the dialogue
             yield return new WaitUntil(() => !_isDialogueInProgress);
         }
 
         onComplete?.Invoke();
     }
 
-    /// <summary>
-    /// Called by ShellyController when a dialogue line ends.
-    /// </summary>
     public void EndDialogue()
     {
         Debug.Log("[TutorialManager EndDialogue] Dialogue ended.");
         _isDialogueInProgress = false;
     }
 
-    /// <summary>
-    /// Handles the completion of the tutorial by showing final dialogues and returning to the main menu.
-    /// </summary>
     public void HandleTutorialCompletion()
     {
-        Debug.Log("[TutorialManager HandleTutorialCompletion] Handling tutorial completion.");
+        Debug.Log("[TutorialManager HandleTutorialCompletion]");
         ShowConclusion();
     }
 
-    /// <summary>
-    /// Disables the TutorialManager when entering non-tutorial scenes.
-    /// </summary>
-    private void DisableTutorialManager()
+    private void DisableAndDestroy()
     {
-        Debug.Log("[TutorialManager DisableTutorialManager] Disabling TutorialManager.");
-        // Unsubscribe from events to prevent callbacks after disabling
+        Debug.Log("[TutorialManager DisableAndDestroy]");
+
         UnsubscribeFromGameEvents();
 
-        // Destroy the TutorialManager GameObject to fully remove it from the scene
+        // Reset tutorial flags in GameManager if present
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.IsTutorialMode = false;
+            GameManager.Instance.EnableNormalDialogue = true;
+        }
+
         Destroy(gameObject);
-        Debug.Log("[TutorialManager DisableTutorialManager] TutorialManager GameObject destroyed.");
+        Debug.Log("[TutorialManager] Destroyed itself.");
     }
 
-    /// <summary>
-    /// Enables the TutorialManager when entering the TutorialScene.
-    /// </summary>
     private void EnableTutorialManager()
     {
-        Debug.Log("[TutorialManager EnableTutorialManager] Enabling TutorialManager.");
+        Debug.Log("[TutorialManager EnableTutorialManager]");
         this.enabled = true;
 
         // Re-initialize tutorial if needed
-        InitializeTutorial();
+        if (GameManager.Instance != null && GameManager.Instance.IsTutorialMode)
+        {
+            InitializeTutorial();
+        }
     }
 }

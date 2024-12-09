@@ -179,7 +179,7 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance is null)
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
@@ -192,18 +192,20 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Initialize PlayerHand and GameDeck here to ensure they are ready for other scripts
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
 
         if (GameDeck == null)
-        {
             Debug.LogError("[GameManager Awake] GameDeck is null after BuildDefaultDeck.");
-        }
         else
-        {
             Debug.Log("[GameManager Awake] GameDeck initialized successfully.");
-        }
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private void Start()
@@ -211,22 +213,19 @@ public class GameManager : MonoBehaviour
         AudioManager.Instance.PlayAmbientAudio();
         _mainCamera = Camera.main;
 
-        StageAreaController = _stageArea.GetComponent<StageAreaController>();
-        ShellyController = _shelly.GetComponent<ShellyController>();
+        if (_stageArea != null)
+            StageAreaController = _stageArea.GetComponent<StageAreaController>();
+        if (_shelly != null)
+            ShellyController = _shelly.GetComponent<ShellyController>();
 
-        // Initialize HandArea based on _levelIndex
         if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
-        {
             HandArea = _handAreas[_levelIndex - 1];
-        }
         else
-        {
             Debug.LogWarning("[GameManager Start] HandAreas not set or insufficient for the current level.");
-        }
 
         StartCoroutine(DrawInitialHandCoroutine());
 
-        ShellyController.ActivateTextBox(
+        ShellyController?.ActivateTextBox(
             "Hi, I'm Shelly! I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
     }
 
@@ -242,11 +241,13 @@ public class GameManager : MonoBehaviour
         {
             HandleMouseClick(true);
         }
-
         if (Input.GetMouseButtonDown(1))
         {
             HandleMouseClick(false);
         }
+
+        // Optional: Hotkeys for testing (F1/F2/F3)
+        HandleSceneSwitchingHotkeys();
     }
 
     private void HandleMouseClick(bool isLeftClick)
@@ -1014,28 +1015,22 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("[GameManager DisableTutorialManager] Disabling TutorialManager.");
 
-        // Unsubscribe from events
         if (TutorialManager.Instance != null)
         {
+            // Unsubscribe from events in TutorialManager
             TutorialManager.Instance.UnsubscribeFromGameEvents();
         }
 
-        // Reset tutorial-related states in GameManager
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.IsTutorialMode = false;
-            GameManager.Instance.EnableNormalDialogue = true; // Re-enable normal dialogues
-        }
+        IsTutorialMode = false;
+        EnableNormalDialogue = true;
 
-        // Safely destroy TutorialManager instance
+        // Destroy TutorialManager if it exists
         if (TutorialManager.Instance != null)
         {
             Destroy(TutorialManager.Instance.gameObject);
             Debug.Log("[GameManager DisableTutorialManager] TutorialManager destroyed.");
         }
     }
-
-
 
     #endregion
 
@@ -1188,6 +1183,25 @@ public class GameManager : MonoBehaviour
         }
 
         SceneManager.LoadScene(sceneName);
+    }
+
+        private void HandleSceneSwitchingHotkeys()
+    {
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            Debug.Log("[GameManager] F1 pressed - Loading TutorialScene.");
+            TransitionToScene("TutorialScene");
+        }
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            Debug.Log("[GameManager] F2 pressed - Loading GameScene.");
+            TransitionToScene("GameScene");
+        }
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            Debug.Log("[GameManager] F3 pressed - Loading Credits.");
+            TransitionToScene("Credits");
+        }
     }
 
 
