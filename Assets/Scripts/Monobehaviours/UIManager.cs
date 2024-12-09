@@ -212,6 +212,7 @@ public class UIManager : MonoBehaviour
 
     public void OnClickLossRestartButton()
     {
+        AudioManager.Instance.StopLoseAudio();
         GameManager.Instance.RestartCurrentLevel();
         _lossPanel.SetActive(false);
     }

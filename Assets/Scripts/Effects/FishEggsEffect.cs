@@ -2,7 +2,7 @@ using Random = UnityEngine.Random;
 
 public class FishEggsEffect : ICardEffect
 {
-    public string EffectDescription => "Transforms this card into a random card from your hand. The transformed card remains staged.";
+    public string EffectDescription => "Transforms this card into a random card from your hand. Returns the transformed card to your hand.";
     
     public void ActivateEffect()
     {
@@ -21,6 +21,11 @@ public class FishEggsEffect : ICardEffect
         var handCardData = randomCardInHand.Data;
         var handCardEffect = randomCardInHand.CardEffect;
 
+        AudioManager.Instance.PlayTransformAudio();
         stagedCard.TransformCard(handCardData, stagedCard.UI, handCardEffect);
+        playerHand.TryAddCardToHand(stagedCard);
+        GameManager.Instance.PlaceCardInHand(stagedCard, true);
+        
+        GameManager.Instance.StageAreaController.CardsStaged.Clear();
     }
 }

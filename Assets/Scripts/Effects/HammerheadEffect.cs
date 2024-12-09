@@ -1,7 +1,7 @@
 public class HammerheadEffect : ICardEffect
 {
     public string EffectDescription =>
-        "Discards all remaining Stingrays including this card. The next played set receives x-Mult for each Stingray discarded.";
+        "Discards all remaining Stingrays and this card. The next played set receives x-Mult for each Stingray discarded.";
     
     public void ActivateEffect()
     {

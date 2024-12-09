@@ -10,6 +10,7 @@ public class PlanktonEffect : ICardEffect
         if (drawnCard is not null)
         {
             GameManager.Instance.PlayerHand.TryAddCardToHand(drawnCard);
+            GameManager.Instance.AdditionalCardsDrawn += 1;
         }
 
         if (planktonCard is not null)
