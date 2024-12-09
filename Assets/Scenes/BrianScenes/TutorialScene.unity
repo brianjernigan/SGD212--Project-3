@@ -7307,6 +7307,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1116358387}
   m_CullTransparentMesh: 1
+--- !u!1 &1124216382
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1124216383}
+  m_Layer: 2
+  m_Name: WhirlpoolCenter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1124216383
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1124216382}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2121663343}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1192646392
 GameObject:
   m_ObjectHideFlags: 0
@@ -7317,7 +7348,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1192646393}
   m_Layer: 0
-  m_Name: HandAreaParent
+  m_Name: HandAreasParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12932,7 +12963,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 9174998244882592768, guid: 74e78484a1f1669488e99bf68d68ac6f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1124216383}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 74e78484a1f1669488e99bf68d68ac6f, type: 3}
 --- !u!1001 &7607021490377173615
