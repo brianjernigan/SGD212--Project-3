@@ -19,7 +19,11 @@ public class ShellyController : MonoBehaviour
 
     public void ActivateTextBox(string message = "")
     {
-        _shellyTextBox.SetActive(true);
+        if (!_shellyTextBox.activeSelf)
+        {
+            _shellyTextBox.SetActive(true);
+        }
+        
         UpdateShellyDialog(message);
     }
 
@@ -55,5 +59,11 @@ public class ShellyController : MonoBehaviour
         _shellyImage.sprite = _shellyClosed;
         AudioManager.Instance.StopShellyAudio();
         _currentDialogCoroutine = null;
+    }
+
+    public string GetRandomShellyScoreDialog()
+    {
+        var scoreDialog = new[] {"Bingo!", "Nice!", "Great move!"};
+        return scoreDialog[Random.Range(0, scoreDialog.Length)];
     }
 }

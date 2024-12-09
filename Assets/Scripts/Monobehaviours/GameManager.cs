@@ -412,7 +412,12 @@ public class GameManager : MonoBehaviour
         }
 
         AudioManager.Instance.PlayScoreSetAudio();
-        CheckForGameWin();
+
+        if (!CheckForGameWin())
+        {
+            var message = ShellyController.GetRandomShellyScoreDialog();
+            ShellyController.ActivateTextBox(message);
+        }
     }
     
     private void OnClickPeekDeckButton()
@@ -686,11 +691,12 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.ActivateLossPanel();
     }
 
-    private void CheckForGameWin()
+    private bool CheckForGameWin()
     {
-        if (CurrentScore < CurrentRequiredScore) return;
+        if (CurrentScore < CurrentRequiredScore) return false;
         
         HandleWin();
+        return true;
     }
 
     private void HandleWin()
