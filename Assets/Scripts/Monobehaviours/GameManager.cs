@@ -67,6 +67,27 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnHandSizeChanged;
     public event Action<int> OnCardsRemainingChanged;
 
+    [Header("Dialogue Settings")]
+    [Tooltip("Enable or disable normal dialogues.")]
+    [SerializeField] private bool enableNormalDialogue = true;
+    public bool EnableNormalDialogue
+    {
+        get => enableNormalDialogue;
+        set => enableNormalDialogue = value;
+    }
+
+    [Header("Game Mode Settings")]
+    [SerializeField] private bool _isTutorialMode = true; 
+    public bool IsTutorialMode
+    {
+        get => _isTutorialMode;
+        set => _isTutorialMode = value;
+    }
+
+    [Header("Dialogue State")]
+    [SerializeField] private bool isShowingTutorialDialogue = false;
+    [SerializeField] private bool isShowingNormalDialogue = false;
+
     private const int BaseRequiredScore = 50;
     public int CurrentRequiredScore => BaseRequiredScore * _levelIndex;
 
@@ -145,7 +166,7 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    
+
     private void Awake()
     {
         if (Instance is null)
@@ -237,6 +258,37 @@ public class GameManager : MonoBehaviour
             OnClickCardEffectsButton();
         }
     }
+
+    #region Dialogue Methods
+
+    public void ShowNormalDialogue(string message)
+    {
+        if (_isTutorialMode || !enableNormalDialogue || isShowingTutorialDialogue || isShowingNormalDialogue)
+        {
+            return;
+        }
+
+        Debug.Log("[GameManager] Showing normal dialogue now.");
+        isShowingNormalDialogue = true;
+        ShellyController.ActivateTextBox(message);
+        StartCoroutine(WaitForDialogueToFinish(() =>
+        {
+            Debug.Log("[GameManager] Normal dialogue finished.");
+            isShowingNormalDialogue = false;
+        }));
+    }
+
+    private IEnumerator WaitForDialogueToFinish(Action onFinish)
+    {
+        Debug.Log("[GameManager] Waiting for dialogue to finish...");
+        yield return new WaitForSeconds(3f); 
+        Debug.Log("[GameManager] Dialogue wait finished.");
+        onFinish?.Invoke();
+    }
+
+    #endregion
+
+    #region Card Drawing
 
     public void DrawFullHand(bool isFromPlay)
     {
@@ -351,7 +403,11 @@ public class GameManager : MonoBehaviour
         // Unlock animation
         gameCard.IsAnimating = false;
     }
-    
+
+    #endregion
+
+    #region Button Handlers
+
     public void OnClickPlayButton()
     {
         if (StageAreaController.NumCardsStaged == 0) return;
@@ -429,7 +485,11 @@ public class GameManager : MonoBehaviour
     {
         UIManager.Instance.ActivateCardEffectsPanel();
     }
-    
+
+    #endregion
+
+    #region Mouse Input Handling
+
     private void HandleRightMouseClick(GameObject clickedObject)
     {
         if (clickedObject.CompareTag("Card") && !IsFlippingCard)
@@ -495,6 +555,10 @@ public class GameManager : MonoBehaviour
         }
     }
     
+    #endregion
+
+    #region Card Dropping & Discarding
+
     public bool TryDropCard(Transform dropArea, GameCard gameCard)
     {
         // Destage
@@ -638,6 +702,10 @@ public class GameManager : MonoBehaviour
         cardTransform.rotation = targetRotation;
     }
 
+    #endregion
+
+    #region Game Over Conditions
+
     private void CheckForGameLoss()
     {
         if (HasScoreableSet()) return;
@@ -691,6 +759,10 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.ActivateLossPanel();
     }
 
+    #endregion
+
+    #region Game Win Conditions
+
     private bool CheckForGameWin()
     {
         if (CurrentScore < CurrentRequiredScore) return false;
@@ -703,6 +775,10 @@ public class GameManager : MonoBehaviour
     {
         UIManager.Instance.ActivateWinPanel();
     }
+
+    #endregion
+
+    #region Level & Restart
 
     public void RestartCurrentLevel()
     {
@@ -758,11 +834,15 @@ public class GameManager : MonoBehaviour
         PermanentHandSizeModifier = 0;
         TriggerHandSizeChanged();
 
-        GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+        GameDeck = IsTutorialMode 
+            ? DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab)
+            : DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, GetDeckSizeForLevel(_levelIndex));
         TriggerCardsRemainingChanged();
     }
 
-    #region Invocations
+    #endregion
+
+    #region Event Triggers
 
     public void TriggerScoreChanged()
     {
@@ -795,6 +875,302 @@ public class GameManager : MonoBehaviour
         {
             OnCardsRemainingChanged?.Invoke(GameDeck.CardDataInDeck.Count);
         }
+    }
+
+    #endregion
+
+    #region Scene Initialization
+
+    /// <summary>
+    /// Initializes GameManager for the TutorialScene.
+    /// </summary>
+    private void InitializeForTutorialScene()
+    {
+        // Enable tutorial mode and disable normal dialogue
+        IsTutorialMode = true;
+        EnableNormalDialogue = false;
+
+        // Link scene-specific objects
+        LinkSceneSpecificObjects();
+
+        // Setup player hand and deck
+        PlayerHand = new Hand();
+        if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
+        {
+            HandArea = _handAreas[_levelIndex - 1];
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager InitializeForTutorialScene] HandAreas not set or insufficient for the current level.");
+        }
+
+        // Build a tutorial deck
+        GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
+
+        // Draw initial hand
+        StartCoroutine(DrawInitialHandCoroutine());
+
+        // Initialize the tutorial
+        if (TutorialManager.Instance != null)
+        {
+            TutorialManager.Instance.InitializeTutorial();
+        }
+        else
+        {
+            Debug.LogError("[GameManager InitializeForTutorialScene] TutorialManager instance not found.");
+        }
+    }
+
+    /// <summary>
+    /// Initializes GameManager for the L1 Scene (Main Gameplay).
+    /// </summary>
+    private void InitializeForGameScene()
+    {
+        // Disable tutorial mode and enable normal dialogue
+        IsTutorialMode = false;
+        EnableNormalDialogue = true;
+
+        // Link scene-specific objects
+        LinkSceneSpecificObjects();
+
+        // Setup player hand and deck
+        PlayerHand = new Hand();
+        if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
+        {
+            HandArea = _handAreas[_levelIndex - 1];
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager InitializeForGameScene] HandAreas not set or insufficient for the current level.");
+        }
+
+        // Build a deck for normal mode based on level
+        int deckSize = GetDeckSizeForLevel(_levelIndex);
+        GameDeck = DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, deckSize);
+
+        StartCoroutine(DrawInitialHandCoroutine());
+
+        // Show initial dialogue for the normal game
+        ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
+    }
+
+    /// <summary>
+    /// Sets up the tutorial deck with specific cards.
+    /// </summary>
+    private void SetupTutorialDeck()
+    {
+        Debug.Log("[GameManager SetupTutorialDeck] Clearing existing deck and hand for tutorial setup.");
+
+        // Clear existing deck and hand
+        GameDeck.CardDataInDeck.Clear();
+        PlayerHand.ClearHandArea();
+
+        // Add specific tutorial cards
+        AddTutorialCard("ClownFish", 4); // Example counts
+        AddTutorialCard("Anemone", 2);
+        AddTutorialCard("Kraken", 1);
+
+        // Shuffle deck and draw initial hand
+        GameDeck.ShuffleDeck();
+        Debug.Log("[GameManager SetupTutorialDeck] Deck shuffled. Drawing initial hand.");
+        StartCoroutine(DrawFullHandCoroutine());
+    }
+
+    /// <summary>
+    /// Adds a specific number of cards to the deck.
+    /// </summary>
+    /// <param name="cardName">Name of the card to add.</param>
+    /// <param name="count">Number of cards to add.</param>
+    private void AddTutorialCard(string cardName, int count)
+    {
+        // Ensure CardLibrary is available
+        if (CardLibrary.Instance == null)
+        {
+            Debug.LogError("[GameManager AddTutorialCard] CardLibrary.Instance is null. Cannot retrieve card data.");
+            return;
+        }
+
+        var cardData = CardLibrary.Instance.GetCardDataByName(cardName);
+        if (cardData != null)
+        {
+            GameDeck.AddCard(cardData, count);
+            Debug.Log($"[GameManager AddTutorialCard] Added {count}x {cardName} to the deck.");
+        }
+        else
+        {
+            Debug.LogWarning($"[GameManager AddTutorialCard] Card '{cardName}' not found in CardLibrary.");
+        }
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log($"[GameManager OnSceneLoaded] Scene '{scene.name}' loaded.");
+        if (scene.name == "L1")
+        {
+            LinkSceneSpecificObjects();
+            InitializeForGameScene();
+        }
+        else if (scene.name == "TutorialScene")
+        {
+            LinkSceneSpecificObjects();
+            InitializeForTutorialScene();
+        }
+        else
+        {
+            Debug.Log($"[GameManager OnSceneLoaded] No specific initialization for scene: {scene.name}.");
+        }
+    }
+
+    #endregion
+
+    #region Additional Methods
+
+    /// <summary>
+    /// Links scene-specific objects for the current scene.
+    /// </summary>
+    private void LinkSceneSpecificObjects()
+    {
+        _stageArea = GameObject.Find("Stage");
+        if (_stageArea != null)
+        {
+            StageAreaController = _stageArea.GetComponent<StageAreaController>();
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] StageArea not found.");
+        }
+
+        _discardArea = GameObject.Find("Discard");
+        if (_discardArea != null)
+        {
+            // Any specific initialization for DiscardArea
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] DiscardArea not found.");
+        }
+
+        _deck = GameObject.Find("Deck");
+        if (_deck != null)
+        {
+            // Any specific initialization for Deck
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] Deck not found.");
+        }
+
+        _shelly = GameObject.Find("Shelly");
+        if (_shelly != null)
+        {
+            ShellyController = _shelly.GetComponent<ShellyController>();
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] Shelly not found.");
+        }
+
+        // Linking WhirlpoolCenter
+        var whirlpoolObj = GameObject.Find("WhirlpoolCenter");
+        if (whirlpoolObj != null)
+        {
+            _whirlpoolCenter = whirlpoolObj.transform;
+        }
+        else
+        {
+            _whirlpoolCenter = null;
+            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] WhirlpoolCenter not found.");
+        }
+
+        // Linking Levels
+        var levelsParent = GameObject.Find("LevelsParent");
+        if (levelsParent != null)
+        {
+            _levels = new List<GameObject>();
+            foreach (Transform child in levelsParent.transform)
+            {
+                _levels.Add(child.gameObject);
+            }
+        }
+        else
+        {
+            _levels = new List<GameObject>();
+            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] LevelsParent not found.");
+        }
+
+        // Linking HandAreas
+        var handAreasParent = GameObject.Find("HandAreasParent");
+        if (handAreasParent != null)
+        {
+            _handAreas = new List<GameObject>();
+            foreach (Transform child in handAreasParent.transform)
+            {
+                _handAreas.Add(child.gameObject);
+            }
+        }
+        else
+        {
+            _handAreas = new List<GameObject>();
+            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] HandAreasParent not found.");
+        }
+
+        // Linking Stage Positions
+        LinkStagePositions();
+    }
+
+    /// <summary>
+    /// Dynamically links the stage positions by finding child transforms under StageLocations.
+    /// </summary>
+    private void LinkStagePositions()
+    {
+        if (_stageArea == null)
+        {
+            Debug.LogWarning("[GameManager LinkStagePositions] StageArea is not assigned. Cannot link stage positions.");
+            _stagePositions = new List<Transform>();
+            return;
+        }
+
+        // Find the StageLocations child under StageArea
+        Transform stageLocationsTransform = _stageArea.transform.Find("StageLocations");
+        if (stageLocationsTransform == null)
+        {
+            Debug.LogWarning("[GameManager LinkStagePositions] StageLocations object not found under StageArea.");
+            _stagePositions = new List<Transform>();
+            return;
+        }
+
+        // Retrieve all child transforms under StageLocations
+        var positions = stageLocationsTransform.GetComponentsInChildren<Transform>()
+                            .Where(t => t != stageLocationsTransform) // Exclude the StageLocations itself
+                            .ToList();
+
+        if (positions.Count == 0)
+        {
+            Debug.LogWarning("[GameManager LinkStagePositions] No stage positions found under StageLocations.");
+        }
+        else
+        {
+            _stagePositions = positions;
+            foreach (var pos in _stagePositions)
+            {
+                Debug.Log($"[GameManager LinkStagePositions] Found Stage Position: {pos.name}");
+            }
+            Debug.Log($"[GameManager LinkStagePositions] Linked {_stagePositions.Count} stage positions.");
+        }
+    }
+
+    /// <summary>
+    /// Determines the deck size based on the current level for normal mode.
+    /// </summary>
+    private int GetDeckSizeForLevel(int level)
+    {
+        return level switch
+        {
+            1 => 55, // Level 1 deck size
+            2 => 60, // Level 2 deck size
+            3 => 70, // Level 3 deck size
+            _ => 55, // Default to 55 if unknown level
+        };
     }
 
     #endregion
