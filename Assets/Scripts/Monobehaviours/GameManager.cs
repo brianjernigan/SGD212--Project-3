@@ -52,10 +52,10 @@ public class GameManager : MonoBehaviour
     private const float DockWidth = 750f;
     private float _initialCardY;
 
-    private readonly float _spiralDuration = 1.0f; 
-    private readonly float _spiralRadius = 5.0f;  
-    private readonly float _spiralDepth = 2.0f;   
-    private readonly float _spiralRotationSpeed = 360f; 
+    private readonly float _spiralDuration = 1.0f; // Duration of the spiral animation
+    private readonly float _spiralRadius = 5.0f;    // Starting radius of the spiral
+    private readonly float _spiralDepth = 2.0f;     // Depth the card moves downward
+    private readonly float _spiralRotationSpeed = 360f; // Degrees per second
 
     public int PlaysRemaining { get; set; } = 5;
     public int DiscardsRemaining { get; set; } = 5;
@@ -98,7 +98,7 @@ public class GameManager : MonoBehaviour
     {
         totalCards = Mathf.Max(totalCards, 1);
 
-        var cardSpacing = Mathf.Min(DockWidth / totalCards, 140f); 
+        var cardSpacing = Mathf.Min(DockWidth / totalCards, 140f); // Dynamic spacing with a max cap
         var startX = -((totalCards - 1) * cardSpacing) / 2f;
         var xPosition = startX + (cardIndex * cardSpacing);
 
@@ -126,6 +126,12 @@ public class GameManager : MonoBehaviour
 
     private void PlaceCardInStage(GameCard gameCard)
     {
+        if (StageAreaController.NumCardsStaged - 1 < 0 || StageAreaController.NumCardsStaged - 1 >= _stagePositions.Count)
+        {
+            Debug.LogWarning("[GameManager PlaceCardInStage] Invalid stage position index.");
+            return;
+        }
+
         gameCard.UI.transform.position = _stagePositions[StageAreaController.NumCardsStaged - 1].transform.position;
         var vector3 = gameCard.UI.transform.position;
         vector3.y = _initialCardY;
@@ -157,6 +163,12 @@ public class GameManager : MonoBehaviour
     {
         for (var i = 0; i < StageAreaController.NumCardsStaged; i++)
         {
+            if (i >= _stagePositions.Count)
+            {
+                Debug.LogWarning($"[GameManager RearrangeStage] Stage position index {i} out of bounds.");
+                continue;
+            }
+
             StageAreaController.CardsStaged[i].UI.transform.position = _stagePositions[i].position;
         }
 
@@ -171,10 +183,26 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("[GameManager Awake] Instance created and marked as DontDestroyOnLoad.");
         }
         else
         {
             Destroy(gameObject);
+            Debug.LogWarning("[GameManager Awake] Duplicate instance detected and destroyed.");
+            return;
+        }
+
+        // Initialize PlayerHand and GameDeck here to ensure they are ready for other scripts
+        PlayerHand = new Hand();
+        GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+
+        if (GameDeck == null)
+        {
+            Debug.LogError("[GameManager Awake] GameDeck is null after BuildDefaultDeck.");
+        }
+        else
+        {
+            Debug.Log("[GameManager Awake] GameDeck initialized successfully.");
         }
     }
 
@@ -186,12 +214,18 @@ public class GameManager : MonoBehaviour
         StageAreaController = _stageArea.GetComponent<StageAreaController>();
         ShellyController = _shelly.GetComponent<ShellyController>();
 
-        PlayerHand = new Hand();
-        GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
-
-        HandArea = _handAreas[_levelIndex - 1];
+        // Initialize HandArea based on _levelIndex
+        if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
+        {
+            HandArea = _handAreas[_levelIndex - 1];
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager Start] HandAreas not set or insufficient for the current level.");
+        }
 
         StartCoroutine(DrawInitialHandCoroutine());
+
         ShellyController.ActivateTextBox(
             "Hi, I'm Shelly! I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
     }
@@ -199,7 +233,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator DrawInitialHandCoroutine()
     {
         yield return new WaitForSeconds(0.5f);
-        StartCoroutine(DrawFullHandCoroutine());
+        StartCoroutine(DrawFullHandCoroutine(false)); // Starting without a play
     }
 
     private void Update()
@@ -277,7 +311,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator WaitForDialogueToFinish(Action onFinish)
     {
         Debug.Log("[GameManager] Waiting for dialogue to finish...");
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(3f); 
         Debug.Log("[GameManager] Dialogue wait finished.");
         onFinish?.Invoke();
     }
@@ -292,7 +326,7 @@ public class GameManager : MonoBehaviour
 
         if (!IsDrawingCards)
         {
-            StartCoroutine(DrawFullHandCoroutine());
+            StartCoroutine(DrawFullHandCoroutine(isFromPlay));
         }
 
         if (!isFromPlay)
@@ -304,7 +338,12 @@ public class GameManager : MonoBehaviour
         CheckForGameLoss();
     }
 
-    public IEnumerator DrawFullHandCoroutine()
+    /// <summary>
+    /// Coroutine to draw a full hand of cards.
+    /// </summary>
+    /// <param name="isFromPlay">Indicates if the draw is initiated from a play action.</param>
+    /// <returns></returns>
+    public IEnumerator DrawFullHandCoroutine(bool isFromPlay)
     {
         IsDrawingCards = true;
 
@@ -789,6 +828,12 @@ public class GameManager : MonoBehaviour
         GameDeck = IsTutorialMode
             ? DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab)
             : DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, GetDeckSizeForLevel(_levelIndex));
+
+        if (GameDeck == null)
+        {
+            Debug.LogError("[GameManager ResetStats] GameDeck is null after building the deck.");
+        }
+
         TriggerCardsRemainingChanged();
     }
 
@@ -823,7 +868,7 @@ public class GameManager : MonoBehaviour
 
     public void TriggerCardsRemainingChanged()
     {
-        if (GameDeck is not null)
+        if (GameDeck != null)
         {
             OnCardsRemainingChanged?.Invoke(GameDeck.CardDataInDeck.Count);
         }
@@ -851,8 +896,14 @@ public class GameManager : MonoBehaviour
         }
 
         GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
+        if (GameDeck == null)
+        {
+            Debug.LogError("[GameManager InitializeForTutorialScene] GameDeck is null after BuildTutorialDeck.");
+            return;
+        }
 
-        StartCoroutine(DrawInitialHandCoroutine());
+        // Do not draw the initial hand here; TutorialManager will handle it
+        // StartCoroutine(DrawInitialHandCoroutine());
 
         if (TutorialManager.Instance != null)
         {
@@ -860,7 +911,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[GameManager InitializeForTutorialScene] TutorialManager not found.");
+            Debug.LogError("[GameManager InitializeForTutorialScene] TutorialManager instance not found.");
         }
     }
 
@@ -883,6 +934,11 @@ public class GameManager : MonoBehaviour
 
         int deckSize = GetDeckSizeForLevel(_levelIndex);
         GameDeck = DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, deckSize);
+        if (GameDeck == null)
+        {
+            Debug.LogError("[GameManager InitializeForGameScene] GameDeck is null after BuildNormalLevelDeck.");
+            return;
+        }
 
         StartCoroutine(DrawInitialHandCoroutine());
 
@@ -893,6 +949,12 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("[GameManager SetupTutorialDeck] Clearing existing deck and hand.");
 
+        if (GameDeck == null)
+        {
+            Debug.LogError("[GameManager SetupTutorialDeck] GameDeck is null. Cannot clear deck and hand.");
+            return;
+        }
+
         GameDeck.CardDataInDeck.Clear();
         PlayerHand.ClearHandArea();
 
@@ -902,14 +964,14 @@ public class GameManager : MonoBehaviour
 
         GameDeck.ShuffleDeck();
         Debug.Log("[GameManager SetupTutorialDeck] Deck shuffled. Drawing initial hand.");
-        StartCoroutine(DrawFullHandCoroutine());
+        StartCoroutine(DrawFullHandCoroutine(false)); // Start drawing without a play
     }
 
     private void AddTutorialCard(string cardName, int count)
     {
         if (CardLibrary.Instance == null)
         {
-            Debug.LogError("[GameManager AddTutorialCard] CardLibrary is null.");
+            Debug.LogError("[GameManager AddTutorialCard] CardLibrary.Instance is null. Cannot retrieve card data.");
             return;
         }
 
@@ -921,8 +983,22 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[GameManager AddTutorialCard] Card '{cardName}' not found.");
+            Debug.LogWarning($"[GameManager AddTutorialCard] Card '{cardName}' not found in CardLibrary.");
         }
+    }
+
+    /// <summary>
+    /// Public method to start the DrawFullHandCoroutine with the required parameter.
+    /// </summary>
+    /// <param name="isFromPlay">Indicates if the draw is initiated from a play action.</param>
+    public void StartDrawFullHandCoroutine(bool isFromPlay)
+    {
+        if (GameDeck == null)
+        {
+            Debug.LogError("[GameManager StartDrawFullHandCoroutine] GameDeck is null. Cannot start DrawFullHandCoroutine.");
+            return;
+        }
+        StartCoroutine(DrawFullHandCoroutine(isFromPlay));
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -944,6 +1020,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    #endregion
+
+    #region Additional Methods
+
     private void LinkSceneSpecificObjects()
     {
         _stageArea = GameObject.Find("Stage");
@@ -957,7 +1037,24 @@ public class GameManager : MonoBehaviour
         }
 
         _discardArea = GameObject.Find("Discard");
+        if (_discardArea != null)
+        {
+            // Any specific initialization for DiscardArea
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] DiscardArea not found.");
+        }
+
         _deck = GameObject.Find("Deck");
+        if (_deck != null)
+        {
+            // Any specific initialization for Deck
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] Deck not found.");
+        }
 
         _shelly = GameObject.Find("Shelly");
         if (_shelly != null)
@@ -969,6 +1066,7 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("[GameManager LinkSceneSpecificObjects] Shelly not found.");
         }
 
+        // Linking WhirlpoolCenter
         var whirlpoolObj = GameObject.Find("WhirlpoolCenter");
         if (whirlpoolObj != null)
         {
@@ -980,6 +1078,7 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("[GameManager LinkSceneSpecificObjects] WhirlpoolCenter not found.");
         }
 
+        // Linking Levels
         var levelsParent = GameObject.Find("LevelsParent");
         if (levelsParent != null)
         {
@@ -995,6 +1094,7 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("[GameManager LinkSceneSpecificObjects] LevelsParent not found.");
         }
 
+        // Linking HandAreas
         var handAreasParent = GameObject.Find("HandAreasParent");
         if (handAreasParent != null)
         {
@@ -1017,7 +1117,7 @@ public class GameManager : MonoBehaviour
     {
         if (_stageArea == null)
         {
-            Debug.LogWarning("[GameManager LinkStagePositions] No StageArea.");
+            Debug.LogWarning("[GameManager LinkStagePositions] StageArea is not assigned. Cannot link stage positions.");
             _stagePositions = new List<Transform>();
             return;
         }
@@ -1025,7 +1125,7 @@ public class GameManager : MonoBehaviour
         Transform stageLocationsTransform = _stageArea.transform.Find("StageLocations");
         if (stageLocationsTransform == null)
         {
-            Debug.LogWarning("[GameManager LinkStagePositions] No StageLocations under StageArea.");
+            Debug.LogWarning("[GameManager LinkStagePositions] StageLocations object not found under StageArea.");
             _stagePositions = new List<Transform>();
             return;
         }
@@ -1036,16 +1136,16 @@ public class GameManager : MonoBehaviour
 
         if (positions.Count == 0)
         {
-            Debug.LogWarning("[GameManager LinkStagePositions] No positions found.");
+            Debug.LogWarning("[GameManager LinkStagePositions] No stage positions found under StageLocations.");
         }
         else
         {
             _stagePositions = positions;
             foreach (var pos in _stagePositions)
             {
-                Debug.Log($"[GameManager LinkStagePositions] Found: {pos.name}");
+                Debug.Log($"[GameManager LinkStagePositions] Found Stage Position: {pos.name}");
             }
-            Debug.Log($"[GameManager LinkStagePositions] Linked {_stagePositions.Count} positions.");
+            Debug.Log($"[GameManager LinkStagePositions] Linked {_stagePositions.Count} stage positions.");
         }
     }
 
