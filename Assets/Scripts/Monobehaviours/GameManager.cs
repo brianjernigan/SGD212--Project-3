@@ -24,6 +24,9 @@ public class GameManager : MonoBehaviour
     public GameObject StageArea => _stageArea;
     public GameObject DiscardArea => _discardArea;
     public GameObject HandArea { get; private set; }
+    public enum SceneType { MainMenu, Gameplay, Tutorial, Credits }
+public SceneType CurrentSceneType { get; private set; }
+
 
     private int _levelIndex = 1;
 
@@ -67,6 +70,8 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnMultiplierChanged;
     public event Action<int> OnHandSizeChanged;
     public event Action<int> OnCardsRemainingChanged;
+    public int CurrentLevel { get; private set; } = 1;
+
 
     [Header("Dialogue Settings")]
     [Tooltip("Enable or disable normal dialogues.")]
@@ -1143,6 +1148,7 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+           
         // Only re-link references if we are in the game scene
         // The main menu scene does not have these objects, so skip linking there
         if (scene.name == "GameScene")
@@ -1176,5 +1182,93 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
+
+    private void ReLinkSceneReferences(string sceneName)
+    {
+        if (sceneName == "GameScene")
+        {
+            _stageArea = GameObject.Find("Stage");
+            _discardArea = GameObject.Find("Discard");
+            _deck = GameObject.Find("Deck");
+            _shelly = GameObject.Find("Shelly");
+
+            if (_stageArea)
+                StageAreaController = _stageArea.GetComponent<StageAreaController>();
+            if (_shelly)
+                ShellyController = _shelly.GetComponent<ShellyController>();
+
+            // If you have multiple hand areas for different levels, choose the correct one here.
+            HandArea = _handAreas[_levelIndex - 1];
+
+            // Any other per-scene initialization logic
+        }
+        else if (sceneName == "TutorialScene")
+        {
+            // Similar logic for TutorialScene
+        }
+    }
+
+    public void SetSceneReferences(GameObject stageArea, GameObject discardArea, GameObject deck, GameObject whirlpoolCenter, GameObject handArea)
+    {
+        // Assign the references with null checks
+        _stageArea = stageArea;
+        _discardArea = discardArea;
+        _deck = deck;
+        _whirlpoolCenter = whirlpoolCenter != null ? whirlpoolCenter.transform : null;
+        HandArea = handArea;
+
+        // Link the StageAreaController if the stage area is available
+        if (_stageArea != null)
+        {
+            StageAreaController = _stageArea.GetComponent<StageAreaController>();
+            if (StageAreaController != null)
+            {
+                Debug.Log("[GameManager] StageAreaController successfully linked.");
+            }
+            else
+            {
+                Debug.LogWarning("[GameManager] StageArea found but StageAreaController component is missing.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] StageArea is null. Ensure it is present in this scene if required.");
+        }
+
+        // Log individual object states
+        LogReferenceState("StageArea", _stageArea);
+        LogReferenceState("DiscardArea", _discardArea);
+        LogReferenceState("Deck", _deck);
+        LogReferenceState("WhirlpoolCenter", _whirlpoolCenter?.gameObject);
+        LogReferenceState("HandArea", HandArea);
+
+        Debug.Log("[GameManager] Scene references set dynamically.");
+    }
+
+    /// <summary>
+    /// Logs the state of a reference to make debugging easier.
+    /// </summary>
+    /// <param name="objectName">The name of the object being logged.</param>
+    /// <param name="reference">The object reference being checked.</param>
+    private void LogReferenceState(string objectName, GameObject reference)
+    {
+        if (reference != null)
+        {
+            Debug.Log($"[GameManager] {objectName} successfully linked: {reference.name}");
+        }
+        else
+        {
+            Debug.LogWarning($"[GameManager] {objectName} is null. It may not be required in this scene.");
+        }
+    }
+
+        public void SetSceneType(SceneType sceneType)
+    {
+        CurrentSceneType = sceneType;
+        Debug.Log($"[GameManager] Scene type set to: {sceneType}");
+    }
+
+
+
 
 }
