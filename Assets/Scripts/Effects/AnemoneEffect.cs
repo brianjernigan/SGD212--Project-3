@@ -14,5 +14,10 @@ public class AnemoneEffect : ICardEffect
         }
         
         GameManager.Instance.StageAreaController.ClearStageArea(true);
+        
+        if (GameManager.Instance.IsTutorialMode)
+        {
+            TutorialManager.Instance.SetTutorialStep(TutorialStep.ScoreThreeSet);   
+        }
     }
 }

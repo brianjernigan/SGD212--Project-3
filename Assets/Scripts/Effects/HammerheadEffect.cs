@@ -33,5 +33,10 @@ public class HammerheadEffect : ICardEffect
         GameManager.Instance.TriggerMultiplierChanged();
         
         GameManager.Instance.StageAreaController.ClearStageArea(true);
+
+        if (GameManager.Instance.IsTutorialMode && TutorialManager.Instance.CurrentStep == TutorialStep.ActivateHammerhead)
+        {
+            TutorialManager.Instance.SetTutorialStep(TutorialStep.ActivateFishEggs);
+        }
     }
 }

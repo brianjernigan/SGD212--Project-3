@@ -7,21 +7,71 @@ public class TutorialManager : MonoBehaviour
 {
     public static TutorialManager Instance { get; private set; }
 
-    private enum TutorialStep
-    {
-        Intro,
-        ExplainCards,
-        WaitForPlayerToPlaySet,
-        ExplainMultiplier,
-        WaitForMultiplierPlay,
-        Conclusion
-    }
-
-    private TutorialStep _currentStep = TutorialStep.Intro;
+    public TutorialStep CurrentStep { get; set; } = TutorialStep.Introduction;
     private bool _tutorialComplete;
-    public bool IsTutorialMode { get; private set; }
-
     private bool _isDialogueInProgress;
+
+    public void SetTutorialStep(TutorialStep newStep)
+    {
+        if (CurrentStep == newStep) return;
+        
+        CurrentStep = newStep;
+        HandleStepChange(CurrentStep);
+    }
+    
+    private void HandleStepChange(TutorialStep currentStep)
+    {
+        switch (currentStep)
+        {
+            case TutorialStep.Introduction:
+                ShowIntroDialogue();
+                break;
+
+            case TutorialStep.DiscardStep:
+                StartManualDiscardStep();
+                break;
+
+            case TutorialStep.ActivateAnemone:
+                StartPlayAnemoneStep();
+                break;
+
+            case TutorialStep.ScoreThreeSet:
+                StartScoreThreeSetStep();
+                break;
+
+            case TutorialStep.DrawNewHandOne:
+                StartDrawNewHandOneStep();
+                break;
+
+            case TutorialStep.ScoreFourSet:
+                StartScoreFourSetStep();
+                break;
+
+            case TutorialStep.DrawNewHandTwo:
+                StartDrawNewHandTwoStep();
+                break;
+
+            case TutorialStep.ActivateHammerhead:
+                StartActivateHammerheadStep();
+                break;
+
+            case TutorialStep.ActivateFishEggs:
+                StartActivateFishEggsStep();
+                break;
+
+            case TutorialStep.ScoreWhaleShark:
+                StartScoreWhaleSharkStep();
+                break;
+
+            case TutorialStep.Conclusion:
+                ShowConclusion();
+                break;
+
+            default:
+                Debug.LogWarning($"Unhandled tutorial step: {currentStep}");
+                break;
+        }
+    }
 
     private void Awake()
     {
@@ -34,7 +84,6 @@ public class TutorialManager : MonoBehaviour
             {
                 GameManager.Instance.IsTutorialMode = true;
                 GameManager.Instance.EnableNormalDialogue = false;
-                IsTutorialMode = true;
             }
         }
         else
@@ -70,7 +119,6 @@ public class TutorialManager : MonoBehaviour
 
         SetupTutorialDeck();
         StartCoroutine(BeginTutorialSequence());
-        SubscribeToGameEvents();
         GameManager.Instance.StartCoroutine(GameManager.Instance.DrawInitialHandCoroutine());
     }
 
@@ -84,28 +132,6 @@ public class TutorialManager : MonoBehaviour
         GameManager.Instance.PlayerHand.ClearHandArea();
     }
 
-    private void SubscribeToGameEvents()
-    {
-        if (GameManager.Instance == null)
-        {
-            return;
-        }
-
-        GameManager.Instance.OnScoreChanged += HandleScoreChanged;
-        GameManager.Instance.OnMultiplierChanged += HandleMultiplierChanged;
-    }
-
-    public void UnsubscribeFromGameEvents()
-    {
-        if (GameManager.Instance == null)
-        {
-            return;
-        }
-
-        GameManager.Instance.OnScoreChanged -= HandleScoreChanged;
-        GameManager.Instance.OnMultiplierChanged -= HandleMultiplierChanged;
-    }
-
     private IEnumerator BeginTutorialSequence()
     {
         yield return new WaitForSeconds(1f);
@@ -117,69 +143,99 @@ public class TutorialManager : MonoBehaviour
         StartCoroutine(ShowDialogueLines(new[]
         {
             "Hi, I'm Shelly! Welcome to the Fresh Catch tutorial!",
-            "We'll start simple. Your goal: Earn 50 points.",
-            "First, drag 3 Clownfish cards from your hand to the stage area to form a set, then press 'Play' to score."
+            "First, let's learn how to discard. Discarding frees up space in your hand for more cards.",
+            "Go ahead and drag your Bullshark, Stingray, and Plankton cards overtop the vortex to discard them."
         }, OnIntroDialogueComplete));
     }
 
     private void OnIntroDialogueComplete()
     {
-        _currentStep = TutorialStep.ExplainCards;
+        SetTutorialStep(TutorialStep.DiscardStep);
     }
-
-    private void HandleScoreChanged(int newScore)
+    
+    private void StartPlayAnemoneStep()
     {
-        if (!IsTutorialMode) return;
-
-        switch (_currentStep)
+        StartCoroutine(ShowDialogueLines(new[]
         {
-            case TutorialStep.ExplainCards:
-                if (newScore > 0)
-                {
-                    StartCoroutine(ShowDialogueLines(new[]
-                    {
-                        "Great job! You scored points from the Clownfish set.",
-                        "Now let's talk about the multiplier. Anemones add extra multipliers to future sets!",
-                        "Drag an Anemone from your hand to the stage area, then press play to activate its effect.",
-                        "Try to reach 50 points!"
-                    }, OnMultiplierExplanationComplete));
-                    _currentStep = TutorialStep.ExplainMultiplier;
-                }
-                break;
-
-            case TutorialStep.WaitForMultiplierPlay:
-                if (newScore >= 50)
-                {
-                    _currentStep = TutorialStep.Conclusion;
-                    ShowConclusion();
-                }
-                break;
-        }
+            "Great! Now that we've narrowed our hand down, we can start making moves.",
+            "Drag that Anemone card to the stage area.",
+            "Press Play to activate its effect and draw 2 clownfish to your hand."
+        }));
     }
 
-    private void HandleMultiplierChanged(int newMultiplier)
+    private void StartManualDiscardStep()
     {
-        if (!IsTutorialMode) return;
+        Debug.Log("Waiting for discard");
+    }
 
-        if (_currentStep == TutorialStep.ExplainMultiplier && newMultiplier > 1)
+    private void StartScoreThreeSetStep()
+    {
+        StartCoroutine(ShowDialogueLines(new[]
         {
-            StartCoroutine(ShowDialogueLines(new string[]
-            {
-                "Awesome! You've activated the multiplier.",
-                "Play another set to see how it boosts your score!"
-            }, OnMultiplierUsageComplete));
-            _currentStep = TutorialStep.WaitForMultiplierPlay;
-        }
+            "Now, play three Clownfish cards to score your first set and earn points!"
+        }));
     }
 
-    private void OnMultiplierExplanationComplete()
+    private void StartScoreFourSetStep()
     {
-        _currentStep = TutorialStep.ExplainMultiplier;
+        StartCoroutine(ShowDialogueLines(new[]
+        {
+            "Oooh, it looks like you've got a Kraken card! Kraken cards can be played as any rank, like a wildcard.",
+            "Even better, you've got 3 Planktons too!",
+            "If you're able to score a set of 4 of a kind, you'll receive a 2x multiplier!",
+            "Score your Kraken and Planktons to continue."
+        }));
     }
 
-    private void OnMultiplierUsageComplete()
+    private void StartDrawNewHandOneStep()
     {
-        _currentStep = TutorialStep.WaitForMultiplierPlay;
+        StartCoroutine(ShowDialogueLines(new[]
+        {
+            "Nice work! You scored your first points!",
+            "Now, we need to draw some more cards so we can continue.",
+            "Press the Draw button to draw new hand."
+        }));
+    }
+    
+    private void StartDrawNewHandTwoStep()
+    {
+        StartCoroutine(ShowDialogueLines(new[]
+        {
+            "We're almost there!",
+            "Draw another hand and let's get out of here."
+        }));
+    }
+
+    private void StartActivateHammerheadStep()
+    {
+        StartCoroutine(ShowDialogueLines(new[]
+        {
+            "Nice! Certain cards have special effects based on the cards remaining in your deck or hand.",
+            "That Hammerhead card will give add to your multiplier based on the number of Stingrays.",
+            "Why don't you play it and increase that multiplier?"
+        }));
+    }
+
+    private void StartActivateFishEggsStep()
+    {
+        StartCoroutine(ShowDialogueLines(new[]
+        {
+            "Whoa, we can really rack up some points now.",
+            "I see you have some Fish Eggs in your hand.",
+            "Fish Eggs will transform into a random card in your hand when activated.",
+            "Since we shaved our hand down, its only option is to transform into that Whaleshark.",
+            "Go ahead and activate it now!"
+        }));
+    }
+
+    private void StartScoreWhaleSharkStep()
+    {
+        StartCoroutine(ShowDialogueLines(new[]
+        {
+            "Whalesharks are another special card. They can be played as a set of 1, 2, 3, or 4.",
+            "They also add to your multiplier based on the amount of plankton left in your deck.",
+            "This is shaping up to be a big set! Score your two Whalesharks and we can get to playing the real thing!"
+        }));
     }
 
     private void ShowConclusion()
@@ -204,7 +260,6 @@ public class TutorialManager : MonoBehaviour
     private IEnumerator ReturnToMenuCoroutine()
     {
         yield return new WaitForSeconds(2f);
-        UnsubscribeFromGameEvents();
         SceneManager.LoadScene("MainMenu");
     }
 
@@ -242,8 +297,6 @@ public class TutorialManager : MonoBehaviour
 
     private void DisableAndDestroy()
     {
-        UnsubscribeFromGameEvents();
-
         // Reset tutorial flags in GameManager if present
         if (GameManager.Instance != null)
         {

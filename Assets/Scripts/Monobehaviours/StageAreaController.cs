@@ -21,11 +21,11 @@ public class StageAreaController : MonoBehaviour
         _playButtonText.text = canBeScored ? "Score" : "Play";
         UIManager.Instance.UpdatePlaysText(canBeScored ? "!" : GameManager.Instance.PlaysRemaining.ToString());
 
-        if (canBeScored && !_shellyIsUpdated)
+        if (canBeScored && !_shellyIsUpdated && !GameManager.Instance.IsTutorialMode)
         {
             UpdateShellyWithScore();
         }
-        else if (!canBeScored && _shellyIsUpdated && NumCardsStaged != 0)
+        else if (!canBeScored && _shellyIsUpdated && NumCardsStaged != 0 && !GameManager.Instance.IsTutorialMode)
         {
             UpdateShellyThinking();
             _shellyIsUpdated = false;

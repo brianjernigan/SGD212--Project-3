@@ -27,5 +27,11 @@ public class FishEggsEffect : ICardEffect
         GameManager.Instance.PlaceCardInHand(stagedCard, true);
         
         GameManager.Instance.StageAreaController.CardsStaged.Clear();
+
+        if (GameManager.Instance.IsTutorialMode &&
+            TutorialManager.Instance.CurrentStep == TutorialStep.ActivateFishEggs)
+        {
+            TutorialManager.Instance.SetTutorialStep(TutorialStep.ScoreWhaleShark);
+        }
     }
 }

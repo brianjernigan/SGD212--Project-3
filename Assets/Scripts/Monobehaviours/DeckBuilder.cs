@@ -48,14 +48,41 @@ public class DeckBuilder : MonoBehaviour
     
     public Deck BuildTutorialDeck(GameObject cardPrefab)
     {
-        var tutorialComposition = new Dictionary<string, int>
+        var tutorialComposition = new List<string>
         {
-            { "ClownFish", 3 },
-            { "Anemone", 1 },
-            { "Kraken", 1 }
+            "ClownFish",
+            "Anemone",
+            "Bullshark",
+            "Stingray",
+            "Plankton",
+            "Plankton",
+            "Kraken",
+            "Plankton",
+            "Plankton",
+            "Whaleshark",   
+            "Hammerhead",   
+            "Stingray",
+            "Stingray",
+            "FishEggs"
         };
 
-        return BuildDeckFromComposition(cardPrefab, tutorialComposition);
+        return BuildDeckFromOrderedList(cardPrefab, tutorialComposition);
+    }
+
+    private Deck BuildDeckFromOrderedList(GameObject cardPrefab, List<string> orderedCards)
+    {
+        var deckCards = new List<CardData>();
+
+        foreach (var cardName in orderedCards)
+        {
+            var cardData = CardLibrary.Instance.GetCardDataByName(cardName);
+            if (cardData is not null)
+            {
+                deckCards.Add(cardData);
+            }
+        }
+
+        return new Deck(deckCards, cardPrefab);
     }
 
     private Deck BuildDeckFromComposition(GameObject cardPrefab, Dictionary<string, int> composition)

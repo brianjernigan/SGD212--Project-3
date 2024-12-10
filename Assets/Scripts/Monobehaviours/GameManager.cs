@@ -92,6 +92,8 @@ public class GameManager : MonoBehaviour
     private const int BaseRequiredScore = 50;
     public int CurrentRequiredScore => BaseRequiredScore * _levelIndex;
 
+    private int _tutorialDiscardCount;
+
     #region Helpers
 
     private Vector3 CalculateCardPosition(int cardIndex, int totalCards, Vector3 dockCenter)
@@ -105,7 +107,7 @@ public class GameManager : MonoBehaviour
         var handCollider = HandArea.GetComponent<BoxCollider>();
         float fixedY = handCollider.transform.TransformPoint(handCollider.center).y; // Fixed Y position
 
-        return dockCenter + new Vector3(xPosition, fixedY, 0f);
+        return dockCenter + new Vector3(xPosition, fixedY + cardIndex, 0f);
     }
 
 
@@ -235,8 +237,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         StartCoroutine(DrawFullHandCoroutine(false)); // Starting without a play
     }
-
-
+    
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
@@ -334,6 +335,15 @@ public class GameManager : MonoBehaviour
             TriggerDrawsChanged();
         }
 
+        if (IsTutorialMode && TutorialManager.Instance.CurrentStep == TutorialStep.DrawNewHandOne)
+        {
+            TutorialManager.Instance.SetTutorialStep(TutorialStep.ScoreFourSet);
+        }
+        else if (IsTutorialMode && TutorialManager.Instance.CurrentStep == TutorialStep.DrawNewHandTwo)
+        {
+            TutorialManager.Instance.SetTutorialStep(TutorialStep.ActivateHammerhead);
+        }
+        
         CheckForGameLoss();
     }
     
@@ -496,6 +506,19 @@ public class GameManager : MonoBehaviour
 
         AudioManager.Instance.PlayScoreSetAudio();
 
+        if (IsTutorialMode && TutorialManager.Instance.CurrentStep == TutorialStep.ScoreThreeSet)
+        {
+            TutorialManager.Instance.SetTutorialStep(TutorialStep.DrawNewHandOne);
+        } 
+        else if (IsTutorialMode && TutorialManager.Instance.CurrentStep == TutorialStep.ScoreFourSet)
+        {
+            TutorialManager.Instance.SetTutorialStep(TutorialStep.DrawNewHandTwo);
+        }
+        else if (IsTutorialMode && TutorialManager.Instance.CurrentStep == TutorialStep.ScoreWhaleShark)
+        {
+            TutorialManager.Instance.SetTutorialStep(TutorialStep.Conclusion);
+        }
+
         if (!CheckForGameWin())
         {
             string message = string.Empty;
@@ -612,6 +635,8 @@ public class GameManager : MonoBehaviour
         {
             if (DiscardsRemaining == 0) return false;
 
+            if (IsTutorialMode && TutorialManager.Instance.CurrentStep == TutorialStep.Introduction) return false;
+
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
                 FullDiscard(gameCard, false);
@@ -625,6 +650,16 @@ public class GameManager : MonoBehaviour
     public void FullDiscard(GameCard gameCard, bool isFromPlay)
     {
         StartCoroutine(SpiralDiscardAnimation(gameCard, isFromPlay));
+
+        if (IsTutorialMode && TutorialManager.Instance.CurrentStep == TutorialStep.DiscardStep)
+        {
+            _tutorialDiscardCount++;
+
+            if (_tutorialDiscardCount >= 3)
+            {
+                TutorialManager.Instance.SetTutorialStep(TutorialStep.ActivateAnemone);
+            }
+        }
     }
 
     private IEnumerator SpiralDiscardAnimation(GameCard gameCard, bool isFromPlay)
@@ -955,12 +990,6 @@ public class GameManager : MonoBehaviour
 
     public void DisableTutorialManager()
     {
-        if (TutorialManager.Instance != null)
-        {
-            // Unsubscribe from events in TutorialManager
-            TutorialManager.Instance.UnsubscribeFromGameEvents();
-        }
-
         IsTutorialMode = false;
         EnableNormalDialogue = true;
 

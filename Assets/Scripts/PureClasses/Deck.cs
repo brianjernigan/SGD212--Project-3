@@ -15,11 +15,20 @@ public class Deck
 
     public bool IsEmpty => CardDataInDeck.Count == 0;
 
+    // Builds deck based on card counts (Game)
     public Deck(Dictionary<CardData, int> deckComposition, GameObject prefab)
     {
         CardDataInDeck = new List<CardData>();
         ConfigureDeck(deckComposition);
         _cardPrefab = prefab;
+    }
+
+    // Builds deck based on ordered list (Tutorial)
+    public Deck(List<CardData> orderedCards, GameObject prefab)
+    {
+        CardDataInDeck = new List<CardData>(orderedCards);
+        _cardPrefab = prefab;
+        GameManager.Instance.TriggerCardsRemainingChanged();
     }
 
     private void ConfigureDeck(Dictionary<CardData, int> composition)
