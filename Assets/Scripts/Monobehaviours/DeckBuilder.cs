@@ -11,19 +11,13 @@ public class DeckBuilder : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[DeckBuilder Awake] Instance created and marked as DontDestroyOnLoad.");
         }
         else
         {
             Destroy(gameObject);
-            Debug.LogWarning("[DeckBuilder Awake] Duplicate instance detected and destroyed.");
         }
     }
-
-    /// <summary>
-    /// Builds the default deck with a broad variety of cards.
-    /// Used as a base or fallback.
-    /// </summary>
+    
     public Deck BuildDefaultDeck(GameObject cardPrefab)
     {
         var defaultComposition = new Dictionary<string, int>
@@ -47,11 +41,7 @@ public class DeckBuilder : MonoBehaviour
 
         return BuildDeckFromComposition(cardPrefab, defaultComposition);
     }
-
-    /// <summary>
-    /// Builds a tutorial-specific deck with a simpler composition,
-    /// ensuring the player can learn with straightforward cards.
-    /// </summary>
+    
     public Deck BuildTutorialDeck(GameObject cardPrefab)
     {
         var tutorialComposition = new Dictionary<string, int>
@@ -64,11 +54,7 @@ public class DeckBuilder : MonoBehaviour
 
         return BuildDeckFromComposition(cardPrefab, tutorialComposition);
     }
-
-    /// <summary>
-    /// Builds a normal game deck for a given level. Adjust the composition
-    /// based on the level index or desired difficulty.
-    /// </summary>
+    
 public Deck BuildNormalLevelDeck(GameObject cardPrefab, int deckSize)
 {
     // Example: A varied deck composition that sums up to deckSize
@@ -85,7 +71,7 @@ public Deck BuildNormalLevelDeck(GameObject cardPrefab, int deckSize)
     };
 
     // Scaling logic...
-    // Ensure total counts match deckSize}
+    // Ensure total counts match deckSize
 
 
         // Adjust counts proportionally if deckSize differs
@@ -136,10 +122,6 @@ public Deck BuildNormalLevelDeck(GameObject cardPrefab, int deckSize)
         return BuildDeckFromComposition(cardPrefab, scaledComposition);
     }
 
-    /// <summary>
-    /// Converts a dictionary of string->count card entries into
-    /// CardData->int composition for creating a Deck.
-    /// </summary>
     private Deck BuildDeckFromComposition(GameObject cardPrefab, Dictionary<string, int> composition)
     {
         var deckComposition = new Dictionary<CardData, int>();
@@ -150,11 +132,6 @@ public Deck BuildNormalLevelDeck(GameObject cardPrefab, int deckSize)
             if (cardData != null)
             {
                 deckComposition[cardData] = entry.Value;
-                Debug.Log($"[DeckBuilder] Added {entry.Value}x {entry.Key} to the deck.");
-            }
-            else
-            {
-                Debug.LogWarning($"[DeckBuilder] Card '{entry.Key}' not found in CardLibrary.");
             }
         }
 
@@ -164,17 +141,10 @@ public Deck BuildNormalLevelDeck(GameObject cardPrefab, int deckSize)
         return new Deck(shuffledDeck, cardPrefab);
     }
 
-
-    /// <summary>
-    /// Shuffles the deck composition to ensure randomness.
-    /// </summary>
+    
     private Dictionary<CardData, int> ShuffleDeck(Dictionary<CardData, int> deckComposition)
     {
         var shuffledDeck = new Dictionary<CardData, int>();
-
-        // Implement your shuffling logic here if needed.
-        // For simplicity, we'll assume the Deck class handles shuffling internally.
-        // If not, you can implement a proper shuffling mechanism.
 
         return deckComposition;
     }

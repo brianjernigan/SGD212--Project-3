@@ -143,8 +143,7 @@ public class ShellyController : MonoBehaviour
     private IEnumerator ShellyDialogRoutine(string message)
     {
         _shellyDialog.text = "";
-
-        Debug.Log("[ShellyController ShellyDialogRoutine] Starting dialog routine.");
+        
         AudioManager.Instance.PlayShellyAudio();
 
         foreach (var character in message)
@@ -157,7 +156,6 @@ public class ShellyController : MonoBehaviour
 
         _shellyImage.sprite = _shellyClosed;
         AudioManager.Instance.StopShellyAudio();
-        Debug.Log("[ShellyController ShellyDialogRoutine] Dialog routine complete.");
 
         // Notify TutorialManager that dialogue is complete
         if (TutorialManager.Instance != null)
@@ -175,7 +173,6 @@ public class ShellyController : MonoBehaviour
         {
             StopCoroutine(_currentDialogCoroutine);
             _currentDialogCoroutine = null;
-            Debug.Log("[ShellyController OnDisable] Stopped running dialogue coroutine.");
         }
     }
 }

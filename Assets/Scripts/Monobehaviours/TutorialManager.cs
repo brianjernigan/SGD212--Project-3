@@ -36,24 +36,17 @@ public class TutorialManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[TutorialManager Awake] Instance created.");
 
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.IsTutorialMode = true;
                 GameManager.Instance.EnableNormalDialogue = false;
                 IsTutorialMode = true;
-                Debug.Log("[TutorialManager Awake] Tutorial mode enabled.");
-            }
-            else
-            {
-                Debug.LogError("[TutorialManager Awake] GameManager.Instance is null.");
             }
         }
         else
         {
             Destroy(gameObject);
-            Debug.LogWarning("[TutorialManager Awake] Duplicate TutorialManager destroyed.");
         }
     }
 
@@ -69,28 +62,21 @@ public class TutorialManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log($"[TutorialManager OnSceneLoaded] Scene '{scene.name}' loaded.");
-
         if (!scene.name.Equals("TutorialScene", StringComparison.OrdinalIgnoreCase))
         {
-            Debug.Log("[TutorialManager] Not in TutorialScene, destroying TutorialManager.");
             DisableAndDestroy();
         }
         else
         {
-            Debug.Log("[TutorialManager] In TutorialScene, enabling TutorialManager.");
-            this.enabled = true;
+            enabled = true;
             InitializeTutorial();
         }
     }
 
     public void InitializeTutorial()
     {
-        Debug.Log("[TutorialManager InitializeTutorial]");
-
         if (GameManager.Instance == null || !GameManager.Instance.IsTutorialMode)
         {
-            Debug.Log("[TutorialManager] Tutorial mode not active or GameManager null. Exiting.");
             return;
         }
 
@@ -101,11 +87,8 @@ public class TutorialManager : MonoBehaviour
 
     private void SetupTutorialDeck()
     {
-        Debug.Log("[TutorialManager SetupTutorialDeck]");
-
         if (GameManager.Instance == null || GameManager.Instance.GameDeck == null || GameManager.Instance.PlayerHand == null)
         {
-            Debug.LogError("[TutorialManager SetupTutorialDeck] Missing GameManager or its components.");
             return;
         }
 
@@ -117,7 +100,6 @@ public class TutorialManager : MonoBehaviour
         AddTutorialCard("Kraken", KrakenCount);
 
         GameManager.Instance.GameDeck.ShuffleDeck();
-        Debug.Log("[TutorialManager] Deck shuffled, drawing initial hand.");
         GameManager.Instance.StartDrawFullHandCoroutine(false);
     }
 
@@ -125,7 +107,6 @@ public class TutorialManager : MonoBehaviour
     {
         if (CardLibrary.Instance == null)
         {
-            Debug.LogError("[TutorialManager AddTutorialCard] CardLibrary null.");
             return;
         }
 
@@ -133,11 +114,6 @@ public class TutorialManager : MonoBehaviour
         if (cardData != null)
         {
             GameManager.Instance.GameDeck.AddCard(cardData, count);
-            Debug.Log($"[TutorialManager AddTutorialCard] Added {count}x {cardName}.");
-        }
-        else
-        {
-            Debug.LogWarning($"[TutorialManager AddTutorialCard] Card '{cardName}' not found.");
         }
     }
 
@@ -145,7 +121,6 @@ public class TutorialManager : MonoBehaviour
     {
         if (GameManager.Instance == null)
         {
-            Debug.LogError("[TutorialManager SubscribeToGameEvents] GameManager.Instance null.");
             return;
         }
 
@@ -155,11 +130,8 @@ public class TutorialManager : MonoBehaviour
 
     public void UnsubscribeFromGameEvents()
     {
-        Debug.Log("[TutorialManager UnsubscribeFromGameEvents]");
-
         if (GameManager.Instance == null)
         {
-            Debug.LogWarning("[TutorialManager UnsubscribeFromGameEvents] GameManager.Instance null.");
             return;
         }
 
@@ -169,14 +141,12 @@ public class TutorialManager : MonoBehaviour
 
     private IEnumerator BeginTutorialSequence()
     {
-        Debug.Log("[TutorialManager BeginTutorialSequence]");
         yield return new WaitForSeconds(1f);
         ShowIntroDialogue();
     }
 
     private void ShowIntroDialogue()
     {
-        Debug.Log("[TutorialManager ShowIntroDialogue]");
         StartCoroutine(ShowDialogueLines(new string[]
         {
             "Hi, I'm Shelly! Welcome to the Fresh Catch tutorial!",
@@ -188,14 +158,11 @@ public class TutorialManager : MonoBehaviour
 
     private void OnIntroDialogueComplete()
     {
-        Debug.Log("[TutorialManager OnIntroDialogueComplete]");
         _currentStep = TutorialStep.ExplainCards;
     }
 
     private void HandleScoreChanged(int newScore)
     {
-        Debug.Log($"[TutorialManager HandleScoreChanged] Score: {newScore}, Step: {_currentStep}");
-
         if (!IsTutorialMode) return;
 
         switch (_currentStep)
@@ -226,8 +193,6 @@ public class TutorialManager : MonoBehaviour
 
     private void HandleMultiplierChanged(int newMultiplier)
     {
-        Debug.Log($"[TutorialManager HandleMultiplierChanged] Multiplier: {newMultiplier}, Step: {_currentStep}");
-
         if (!IsTutorialMode) return;
 
         if (_currentStep == TutorialStep.ExplainMultiplier && newMultiplier > 1)
@@ -243,13 +208,11 @@ public class TutorialManager : MonoBehaviour
 
     private void OnMultiplierExplanationComplete()
     {
-        Debug.Log("[TutorialManager OnMultiplierExplanationComplete]");
         _currentStep = TutorialStep.ExplainMultiplier;
     }
 
     private void OnMultiplierUsageComplete()
     {
-        Debug.Log("[TutorialManager OnMultiplierUsageComplete]");
         _currentStep = TutorialStep.WaitForMultiplierPlay;
     }
 
@@ -257,7 +220,6 @@ public class TutorialManager : MonoBehaviour
     {
         if (!_tutorialComplete)
         {
-            Debug.Log("[TutorialManager ShowConclusion]");
             _tutorialComplete = true;
             StartCoroutine(ShowDialogueLines(new string[]
             {
@@ -270,7 +232,6 @@ public class TutorialManager : MonoBehaviour
 
     private void OnConclusionComplete()
     {
-        Debug.Log("[TutorialManager OnConclusionComplete]");
         StartCoroutine(ReturnToMenuCoroutine());
     }
 
@@ -286,7 +247,6 @@ public class TutorialManager : MonoBehaviour
         var shelly = GameManager.Instance?.ShellyController;
         if (shelly == null)
         {
-            Debug.LogError("[TutorialManager ShowDialogueLines] ShellyController null.");
             yield break;
         }
 
@@ -306,20 +266,16 @@ public class TutorialManager : MonoBehaviour
 
     public void EndDialogue()
     {
-        Debug.Log("[TutorialManager EndDialogue] Dialogue ended.");
         _isDialogueInProgress = false;
     }
 
     public void HandleTutorialCompletion()
     {
-        Debug.Log("[TutorialManager HandleTutorialCompletion]");
         ShowConclusion();
     }
 
     private void DisableAndDestroy()
     {
-        Debug.Log("[TutorialManager DisableAndDestroy]");
-
         UnsubscribeFromGameEvents();
 
         // Reset tutorial flags in GameManager if present
@@ -330,13 +286,11 @@ public class TutorialManager : MonoBehaviour
         }
 
         Destroy(gameObject);
-        Debug.Log("[TutorialManager] Destroyed itself.");
     }
 
     private void EnableTutorialManager()
     {
-        Debug.Log("[TutorialManager EnableTutorialManager]");
-        this.enabled = true;
+        enabled = true;
 
         // Re-initialize tutorial if needed
         if (GameManager.Instance != null && GameManager.Instance.IsTutorialMode)

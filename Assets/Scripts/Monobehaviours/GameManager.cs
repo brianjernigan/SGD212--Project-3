@@ -230,14 +230,15 @@ public class GameManager : MonoBehaviour
             ShellyController = _shelly.GetComponent<ShellyController>();
 
         if (_handAreas != null && _levelIndex - 1 < _handAreas.Count)
+        {
             HandArea = _handAreas[_levelIndex - 1];
-        else
-            Debug.LogWarning("[GameManager Start] HandAreas not set or insufficient for the current level.");
+        }
 
-        StartCoroutine(DrawInitialHandCoroutine());
-
-        ShellyController?.ActivateTextBox(
-            "Hi, I'm Shelly! I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
+        if (!_isTutorialMode)
+        {
+            ShellyController?.ActivateTextBox(
+                "Hi, I'm Shelly! I'll be your helper throughout Fresh Catch. Why don't you go ahead and make your first move?");
+        }
     }
 
     private IEnumerator DrawInitialHandCoroutine()
@@ -310,22 +311,18 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
-
-        Debug.Log("[GameManager] Showing normal dialogue now.");
+        
         isShowingNormalDialogue = true;
         ShellyController.ActivateTextBox(message);
         StartCoroutine(WaitForDialogueToFinish(() =>
         {
-            Debug.Log("[GameManager] Normal dialogue finished.");
             isShowingNormalDialogue = false;
         }));
     }
 
     private IEnumerator WaitForDialogueToFinish(Action onFinish)
     {
-        Debug.Log("[GameManager] Waiting for dialogue to finish...");
         yield return new WaitForSeconds(3f); 
-        Debug.Log("[GameManager] Dialogue wait finished.");
         onFinish?.Invoke();
     }
 
@@ -350,16 +347,9 @@ public class GameManager : MonoBehaviour
 
         CheckForGameLoss();
     }
-
-
-    /// <summary>
-    /// Coroutine to draw a full hand of cards.
-    /// </summary>
-    /// <param name="isFromPlay">Indicates if the draw is initiated from a play action.</param>
-    /// <returns></returns>
+    
     public IEnumerator DrawFullHandCoroutine(bool isFromPlay)
     {
-        Debug.Log("[DrawFullHandCoroutine] Started.");
         IsDrawingCards = true;
 
         while (NumCardsOnScreen < HandSize && !GameDeck.IsEmpty)
@@ -394,8 +384,6 @@ public class GameManager : MonoBehaviour
 
         TriggerOnMouseOverForCurrentCard();
         CheckForGameLoss();
-
-        Debug.Log("[DrawFullHandCoroutine] Ended.");
     }
 
 
@@ -405,7 +393,6 @@ public class GameManager : MonoBehaviour
         var cardTransform = cardUI.transform;
 
         gameCard.IsAnimating = true;
-        Debug.Log($"[DealCardCoroutine] Starting animation for {gameCard.Data.CardName}.");
 
         // Start from the deck's position
         cardTransform.position = _deck.transform.position;
@@ -429,8 +416,6 @@ public class GameManager : MonoBehaviour
             var arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
             cardTransform.position = arcPosition;
 
-            Debug.Log($"[DealCardCoroutine] {gameCard.Data.CardName} position: {cardTransform.position}");
-
             yield return null;
         }
 
@@ -447,15 +432,12 @@ public class GameManager : MonoBehaviour
             var bouncePosition = Vector3.Lerp(bounceStartPosition, targetPosition, t);
             cardTransform.position = bouncePosition;
 
-            Debug.Log($"[DealCardCoroutine] {gameCard.Data.CardName} bounce position: {cardTransform.position}");
-
             yield return null;
         }
 
         // Ensure the card ends exactly at the target position
         cardTransform.position = targetPosition;
         cardTransform.rotation = Quaternion.Euler(90f, 180f, 0f); // Set to desired rotation
-        Debug.Log($"[DealCardCoroutine] {gameCard.Data.CardName} reached target position: {cardTransform.position}");
 
         gameCard.IsAnimating = false;
     }
@@ -809,14 +791,9 @@ public class GameManager : MonoBehaviour
     {
         if (IsTutorialMode)
         {
-            Debug.Log("[GameManager HandleWin] Tutorial mode active. Informing TutorialManager of win.");
             if (TutorialManager.Instance != null)
             {
                 TutorialManager.Instance.HandleTutorialCompletion();
-            }
-            else
-            {
-                Debug.LogError("[GameManager HandleWin] TutorialManager.Instance is null. Cannot handle tutorial win.");
             }
         }
         else
@@ -885,12 +862,7 @@ public class GameManager : MonoBehaviour
 
         GameDeck = IsTutorialMode
             ? DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab)
-            : DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, GetDeckSizeForLevel(_levelIndex));
-
-        if (GameDeck == null)
-        {
-            Debug.LogError("[GameManager ResetStats] GameDeck is null after building the deck.");
-        }
+            : DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, 55);
 
         TriggerCardsRemainingChanged();
     }
@@ -948,33 +920,19 @@ public class GameManager : MonoBehaviour
         {
             HandArea = _handAreas[_levelIndex - 1];
         }
-        else
-        {
-            Debug.LogWarning("[GameManager InitializeForTutorialScene] HandAreas not set or insufficient.");
-        }
 
         GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
-        if (GameDeck == null)
-        {
-            Debug.LogError("[GameManager InitializeForTutorialScene] GameDeck is null after BuildTutorialDeck.");
-            return;
-        }
+        if (GameDeck == null) return;
 
         if (TutorialManager.Instance != null)
         {
             TutorialManager.Instance.InitializeTutorial();
-        }
-        else
-        {
-            Debug.LogError("[GameManager InitializeForTutorialScene] TutorialManager instance not found.");
         }
     }
 
 
     private void InitializeForGameScene()
     {
-        Debug.Log("[GameManager InitializeForGameScene] Setting up GameScene.");
-
         IsTutorialMode = false;
         EnableNormalDialogue = true;
 
@@ -986,66 +944,36 @@ public class GameManager : MonoBehaviour
         {
             HandArea = _handAreas[_levelIndex - 1];
         }
-        else
-        {
-            Debug.LogWarning("[GameManager InitializeForGameScene] HandAreas not set or insufficient.");
-        }
+        
+        GameDeck = DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, 55);
 
-        int deckSize = GetDeckSizeForLevel(_levelIndex);
-        GameDeck = DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, deckSize);
-
-        if (GameDeck == null)
-        {
-            Debug.LogError("[GameManager InitializeForGameScene] GameDeck is null after BuildNormalLevelDeck.");
-            return;
-        }
+        if (GameDeck == null) return;
 
         StartCoroutine(DrawInitialHandCoroutine());
         ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
     }
-
-
-
-
-    /// <summary>
-    /// Public method to start the DrawFullHandCoroutine with the required parameter.
-    /// </summary>
-    /// <param name="isFromPlay">Indicates if the draw is initiated from a play action.</param>
+    
     public void StartDrawFullHandCoroutine(bool isFromPlay)
     {
-        if (GameDeck == null)
-        {
-            Debug.LogError("[GameManager StartDrawFullHandCoroutine] GameDeck is null. Cannot start DrawFullHandCoroutine.");
-            return;
-        }
+        if (GameDeck == null) return;
         StartCoroutine(DrawFullHandCoroutine(isFromPlay));
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log($"[GameManager OnSceneLoaded] Scene '{scene.name}' loaded.");
-
         if (scene.name == "GameScene")
         {
-            Debug.Log("[GameManager OnSceneLoaded] Initializing GameScene.");
             InitializeForGameScene();
         }
         else if (scene.name == "TutorialScene")
         {
-            Debug.Log("[GameManager OnSceneLoaded] Initializing TutorialScene.");
             InitializeForTutorialScene();
-        }
-        else
-        {
-            Debug.Log($"[GameManager OnSceneLoaded] No specific initialization for scene: {scene.name}");
         }
     }
 
 
     public void DisableTutorialManager()
     {
-        Debug.Log("[GameManager DisableTutorialManager] Disabling TutorialManager.");
-
         if (TutorialManager.Instance != null)
         {
             // Unsubscribe from events in TutorialManager
@@ -1059,7 +987,6 @@ public class GameManager : MonoBehaviour
         if (TutorialManager.Instance != null)
         {
             Destroy(TutorialManager.Instance.gameObject);
-            Debug.Log("[GameManager DisableTutorialManager] TutorialManager destroyed.");
         }
     }
 
@@ -1074,52 +1001,20 @@ public class GameManager : MonoBehaviour
         {
             StageAreaController = _stageArea.GetComponent<StageAreaController>();
         }
-        else
-        {
-            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] StageArea not found.");
-        }
 
         _discardArea = GameObject.Find("Discard");
-        if (_discardArea != null)
-        {
-            // Any specific initialization for DiscardArea
-        }
-        else
-        {
-            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] DiscardArea not found.");
-        }
 
         _deck = GameObject.Find("Deck");
-        if (_deck != null)
-        {
-            // Any specific initialization for Deck
-        }
-        else
-        {
-            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] Deck not found.");
-        }
 
         _shelly = GameObject.Find("Shelly");
         if (_shelly != null)
         {
             ShellyController = _shelly.GetComponent<ShellyController>();
         }
-        else
-        {
-            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] Shelly not found.");
-        }
 
         // Linking WhirlpoolCenter
         var whirlpoolObj = GameObject.Find("WhirlpoolCenter");
-        if (whirlpoolObj != null)
-        {
-            _whirlpoolCenter = whirlpoolObj.transform;
-        }
-        else
-        {
-            _whirlpoolCenter = null;
-            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] WhirlpoolCenter not found.");
-        }
+        _whirlpoolCenter = whirlpoolObj != null ? whirlpoolObj.transform : null;
 
         // Linking Levels
         var levelsParent = GameObject.Find("LevelsParent");
@@ -1134,7 +1029,6 @@ public class GameManager : MonoBehaviour
         else
         {
             _levels = new List<GameObject>();
-            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] LevelsParent not found.");
         }
 
         // Linking HandAreas
@@ -1150,7 +1044,6 @@ public class GameManager : MonoBehaviour
         else
         {
             _handAreas = new List<GameObject>();
-            Debug.LogWarning("[GameManager LinkSceneSpecificObjects] HandAreasParent not found.");
         }
 
         LinkStagePositions();
@@ -1160,7 +1053,6 @@ public class GameManager : MonoBehaviour
     {
         if (_stageArea == null)
         {
-            Debug.LogWarning("[GameManager LinkStagePositions] StageArea is not assigned. Cannot link stage positions.");
             _stagePositions = new List<Transform>();
             return;
         }
@@ -1168,7 +1060,6 @@ public class GameManager : MonoBehaviour
         Transform stageLocationsTransform = _stageArea.transform.Find("StageLocations");
         if (stageLocationsTransform == null)
         {
-            Debug.LogWarning("[GameManager LinkStagePositions] StageLocations object not found under StageArea.");
             _stagePositions = new List<Transform>();
             return;
         }
@@ -1176,37 +1067,13 @@ public class GameManager : MonoBehaviour
         var positions = stageLocationsTransform.GetComponentsInChildren<Transform>()
                         .Where(t => t != stageLocationsTransform)
                         .ToList();
+        
 
-        if (positions.Count == 0)
-        {
-            Debug.LogWarning("[GameManager LinkStagePositions] No stage positions found under StageLocations.");
-        }
-        else
-        {
-            _stagePositions = positions;
-            foreach (var pos in _stagePositions)
-            {
-                Debug.Log($"[GameManager LinkStagePositions] Found Stage Position: {pos.name}");
-            }
-            Debug.Log($"[GameManager LinkStagePositions] Linked {_stagePositions.Count} stage positions.");
-        }
-    }
-
-    private int GetDeckSizeForLevel(int level)
-    {
-        return level switch
-        {
-            1 => 55,
-            2 => 60,
-            3 => 70,
-            _ => 55,
-        };
+        _stagePositions = positions;
     }
 
     private void TransitionToScene(string sceneName)
     {
-        Debug.Log($"[GameManager TransitionToScene] Transitioning to {sceneName}.");
-
         // Reset tutorial states if needed
         if (sceneName != "TutorialScene" && IsTutorialMode)
         {
@@ -1220,17 +1087,14 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            Debug.Log("[GameManager] F1 pressed - Loading TutorialScene.");
             TransitionToScene("TutorialScene");
         }
         if (Input.GetKeyDown(KeyCode.F2))
         {
-            Debug.Log("[GameManager] F2 pressed - Loading GameScene.");
             TransitionToScene("GameScene");
         }
         if (Input.GetKeyDown(KeyCode.F3))
         {
-            Debug.Log("[GameManager] F3 pressed - Loading Credits.");
             TransitionToScene("Credits");
         }
     }

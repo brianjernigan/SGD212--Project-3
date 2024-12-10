@@ -28,11 +28,9 @@ public class DialogueManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[DIALOGUE] DialogueManager initialized.");
         }
         else
         {
-            Debug.LogWarning("[DIALOGUE] Duplicate DialogueManager found and destroyed.");
             Destroy(gameObject);
         }
     }
