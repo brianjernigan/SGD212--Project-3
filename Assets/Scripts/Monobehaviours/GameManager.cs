@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private List<GameObject> _levels;
     [SerializeField] private List<GameObject> _handAreas;
+    
     public GameObject StageArea => _stageArea;
     public GameObject DiscardArea => _discardArea;
     public GameObject HandArea { get; private set; }
@@ -322,7 +323,7 @@ public class GameManager : MonoBehaviour
 
     public void DrawFullHand(bool isFromPlay)
     {
-        if (DrawsRemaining == 0 || NumCardsOnScreen == HandSize) return;
+        if (DrawsRemaining == 0 || NumCardsOnScreen == HandSize || GameDeck.IsEmpty) return;
 
         if (!IsDrawingCards)
         {
@@ -489,6 +490,14 @@ public class GameManager : MonoBehaviour
     private void TriggerCardEffect()
     {
         var firstStagedCard = StageAreaController.GetFirstStagedCard();
+        
+        if (IsTutorialMode &&
+            TutorialManager.Instance.CurrentStep == TutorialStep.ActivateAnemone && firstStagedCard.Data.CardName != "Anemone") return;
+        if (IsTutorialMode &&
+            TutorialManager.Instance.CurrentStep == TutorialStep.ActivateHammerhead && firstStagedCard.Data.CardName != "Hammerhead") return;
+        if (IsTutorialMode &&
+            TutorialManager.Instance.CurrentStep == TutorialStep.ActivateFishEggs && firstStagedCard.Data.CardName != "FishEggs") return;
+        
         firstStagedCard?.ActivateEffect();
     }
 
@@ -635,7 +644,19 @@ public class GameManager : MonoBehaviour
         {
             if (DiscardsRemaining == 0) return false;
 
-            if (IsTutorialMode && TutorialManager.Instance.CurrentStep == TutorialStep.Introduction) return false;
+            switch (IsTutorialMode)
+            {
+                case true when TutorialManager.Instance.CurrentStep == TutorialStep.Introduction:
+                case true when TutorialManager.Instance.CurrentStep == TutorialStep.ActivateAnemone:
+                case true when TutorialManager.Instance.CurrentStep == TutorialStep.ScoreThreeSet:
+                case true when TutorialManager.Instance.CurrentStep == TutorialStep.DrawNewHandOne:
+                case true when TutorialManager.Instance.CurrentStep == TutorialStep.ScoreFourSet:
+                case true when TutorialManager.Instance.CurrentStep == TutorialStep.DrawNewHandTwo:
+                case true when TutorialManager.Instance.CurrentStep == TutorialStep.ActivateHammerhead:
+                case true when TutorialManager.Instance.CurrentStep == TutorialStep.ActivateFishEggs:
+                case true when TutorialManager.Instance.CurrentStep == TutorialStep.ScoreWhaleShark:
+                    return false;
+            }
 
             if (PlayerHand.TryRemoveCardFromHand(gameCard) || StageAreaController.TryRemoveCardFromStage(gameCard))
             {
@@ -870,7 +891,7 @@ public class GameManager : MonoBehaviour
         StageAreaController.ClearStageArea(true);
     }
 
-    private void ResetStats()
+    public void ResetStats()
     {
         CurrentScore = 0;
         TriggerScoreChanged();
@@ -886,6 +907,7 @@ public class GameManager : MonoBehaviour
         TriggerHandSizeChanged();
 
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
+        ShellyController.ActivateTextBox("");
 
         TriggerCardsRemainingChanged();
     }
@@ -945,7 +967,7 @@ public class GameManager : MonoBehaviour
         }
 
         GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
-
+        
         if (TutorialManager.Instance != null)
         {
             TutorialManager.Instance.InitializeTutorial();
@@ -969,8 +991,9 @@ public class GameManager : MonoBehaviour
 
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
 
-        if (GameDeck == null) return;
-
+        ResetStats();
+        UIManager.Instance.ResubscribeEvents();
+        
         StartCoroutine(DrawInitialHandCoroutine());
         ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
     }
@@ -1091,6 +1114,7 @@ public class GameManager : MonoBehaviour
         }
 
         SceneManager.LoadScene(sceneName);
+        ResetStats();
     }
 
     private void HandleSceneSwitchingHotkeys()

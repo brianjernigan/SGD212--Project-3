@@ -19,7 +19,7 @@ public class StageAreaController : MonoBehaviour
     {
         var canBeScored = StageContainsWhaleShark() || NumCardsStaged >= 3;
         _playButtonText.text = canBeScored ? "Score" : "Play";
-        UIManager.Instance.UpdatePlaysText(canBeScored ? "!" : GameManager.Instance.PlaysRemaining.ToString());
+        UIManager.Instance.UpdatePlaysRemainingText(canBeScored ? "!" : GameManager.Instance.PlaysRemaining.ToString());
 
         if (canBeScored && !_shellyIsUpdated && !GameManager.Instance.IsTutorialMode)
         {

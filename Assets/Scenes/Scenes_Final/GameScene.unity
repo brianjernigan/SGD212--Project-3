@@ -1613,6 +1613,7 @@ GameObject:
   - component: {fileID: 194742698}
   - component: {fileID: 194742697}
   - component: {fileID: 194742696}
+  - component: {fileID: 194742700}
   m_Layer: 5
   m_Name: GameStateCanvas
   m_TagString: Untagged
@@ -1706,6 +1707,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &194742700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 194742695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc07d064f32463c4c9e334fe6b233cfa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &197994898
 GameObject:
   m_ObjectHideFlags: 0
@@ -4099,6 +4112,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 641842293}
+  - component: {fileID: 641842294}
   m_Layer: 0
   m_Name: PermanentFixtures
   m_TagString: Untagged
@@ -4131,6 +4145,18 @@ Transform:
   - {fileID: 878973048}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &641842294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 641842292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6df1bfa517558ef4ca69afa452e25635, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &644352885
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4483,7 +4509,7 @@ GameObject:
   - component: {fileID: 656520720}
   - component: {fileID: 656520719}
   m_Layer: 5
-  m_Name: DiscardsText
+  m_Name: DiscardsRemainingText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6442,7 +6468,7 @@ GameObject:
   - component: {fileID: 923470113}
   m_Layer: 5
   m_Name: PeekDeckPanel
-  m_TagString: Untagged
+  m_TagString: PeekDeckPanel
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -10864,7 +10890,7 @@ GameObject:
   - component: {fileID: 1762295432}
   m_Layer: 0
   m_Name: PlaysRemainingText
-  m_TagString: Untagged
+  m_TagString: PlaysRemainingText
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11333,7 +11359,7 @@ GameObject:
   - component: {fileID: 1802983300}
   m_Layer: 0
   m_Name: UIManager
-  m_TagString: Untagged
+  m_TagString: UIManager
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11351,9 +11377,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _scoreText: {fileID: 806817771}
-  _playsText: {fileID: 1762295432}
-  _discardsText: {fileID: 656520719}
-  _drawsText: {fileID: 20760878}
+  _playsRemainingText: {fileID: 1762295432}
+  _discardsRemainingText: {fileID: 656520719}
+  _drawsRemainingText: {fileID: 20760878}
   _multiplierText: {fileID: 1356591238}
   _handSizeText: {fileID: 1782939089}
   _cardsRemainingText: {fileID: 621315294}
@@ -13448,6 +13474,10 @@ PrefabInstance:
     - target: {fileID: 1177344905625713130, guid: 7e77bb192aec57349b6c9829283b11fd, type: 3}
       propertyPath: m_hasFontAssetChanged
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3430174032372215122, guid: 7e77bb192aec57349b6c9829283b11fd, type: 3}
+      propertyPath: m_TagString
+      value: PlayButtonText
       objectReference: {fileID: 0}
     - target: {fileID: 4436569975282715711, guid: 7e77bb192aec57349b6c9829283b11fd, type: 3}
       propertyPath: m_Materials.Array.data[0]
