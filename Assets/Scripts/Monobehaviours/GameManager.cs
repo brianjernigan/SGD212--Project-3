@@ -203,8 +203,6 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-
-
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -232,7 +230,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private IEnumerator DrawInitialHandCoroutine()
+    public IEnumerator DrawInitialHandCoroutine()
     {
         yield return new WaitForSeconds(0.5f);
         StartCoroutine(DrawFullHandCoroutine(false)); // Starting without a play
@@ -802,6 +800,7 @@ public class GameManager : MonoBehaviour
     {
         ClearHandAndStage();
         ResetStats();
+        StartCoroutine(DrawInitialHandCoroutine());
     }
 
     public void HandleLevelChanged()
@@ -851,9 +850,7 @@ public class GameManager : MonoBehaviour
         PermanentHandSizeModifier = 0;
         TriggerHandSizeChanged();
 
-        GameDeck = IsTutorialMode
-            ? DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab)
-            : DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, 55);
+        GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
 
         TriggerCardsRemainingChanged();
     }
@@ -913,7 +910,6 @@ public class GameManager : MonoBehaviour
         }
 
         GameDeck = DeckBuilder.Instance.BuildTutorialDeck(_cardPrefab);
-        if (GameDeck == null) return;
 
         if (TutorialManager.Instance != null)
         {
@@ -935,19 +931,13 @@ public class GameManager : MonoBehaviour
         {
             HandArea = _handAreas[_levelIndex - 1];
         }
-        
-        GameDeck = DeckBuilder.Instance.BuildNormalLevelDeck(_cardPrefab, 55);
+
+        GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
 
         if (GameDeck == null) return;
 
         StartCoroutine(DrawInitialHandCoroutine());
         ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
-    }
-    
-    public void StartDrawFullHandCoroutine(bool isFromPlay)
-    {
-        if (GameDeck == null) return;
-        StartCoroutine(DrawFullHandCoroutine(isFromPlay));
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -1074,7 +1064,7 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(sceneName);
     }
 
-        private void HandleSceneSwitchingHotkeys()
+    private void HandleSceneSwitchingHotkeys()
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
@@ -1089,7 +1079,6 @@ public class GameManager : MonoBehaviour
             TransitionToScene("Credits");
         }
     }
-
-
+    
     #endregion
 }

@@ -39,87 +39,23 @@ public class DeckBuilder : MonoBehaviour
             { "Whaleshark", 3 }
         };
 
-        return BuildDeckFromComposition(cardPrefab, defaultComposition);
+        var deck = BuildDeckFromComposition(cardPrefab, defaultComposition);
+        
+        deck.ShuffleDeck();
+
+        return deck;
     }
     
     public Deck BuildTutorialDeck(GameObject cardPrefab)
     {
         var tutorialComposition = new Dictionary<string, int>
         {
-            { "ClownFish", 4 },
-            { "Anemone", 2 },
+            { "ClownFish", 3 },
+            { "Anemone", 1 },
             { "Kraken", 1 }
-            // Add or remove cards as needed for the tutorial
         };
 
         return BuildDeckFromComposition(cardPrefab, tutorialComposition);
-    }
-    
-public Deck BuildNormalLevelDeck(GameObject cardPrefab, int deckSize)
-{
-    // Example: A varied deck composition that sums up to deckSize
-    var normalComposition = new Dictionary<string, int>
-    {
-        { "Plankton", 10 },
-        { "FishEggs", 8 },
-        { "Seahorse", 6 },
-        { "ClownFish", 6 },
-        { "CookieCutter", 4 },
-        { "Anemone", 3 },
-        { "Kraken", 3 },
-        { "Whaleshark", 2 }
-    };
-
-    // Scaling logic...
-    // Ensure total counts match deckSize
-
-
-        // Adjust counts proportionally if deckSize differs
-        // For simplicity, we'll scale the counts based on deckSize
-        // You can implement more sophisticated logic as needed
-
-        float totalBaseCards = 42f;
-        float scaleFactor = deckSize / totalBaseCards;
-
-        var scaledComposition = new Dictionary<string, int>();
-        foreach (var entry in normalComposition)
-        {
-            scaledComposition[entry.Key] = Mathf.Max(1, Mathf.RoundToInt(entry.Value * scaleFactor));
-        }
-
-        // Optional: Ensure the total cards match deckSize by adjusting the counts
-        int currentTotal = 0;
-        foreach (var count in scaledComposition.Values)
-        {
-            currentTotal += count;
-        }
-
-        while (currentTotal < deckSize)
-        {
-            // Add one to the first card to reach deckSize
-            foreach (var key in scaledComposition.Keys)
-            {
-                scaledComposition[key]++;
-                currentTotal++;
-                if (currentTotal >= deckSize) break;
-            }
-        }
-
-        while (currentTotal > deckSize)
-        {
-            // Subtract one from the last card to reach deckSize
-            foreach (var key in scaledComposition.Keys)
-            {
-                if (scaledComposition[key] > 1)
-                {
-                    scaledComposition[key]--;
-                    currentTotal--;
-                    if (currentTotal <= deckSize) break;
-                }
-            }
-        }
-
-        return BuildDeckFromComposition(cardPrefab, scaledComposition);
     }
 
     private Deck BuildDeckFromComposition(GameObject cardPrefab, Dictionary<string, int> composition)
@@ -135,17 +71,6 @@ public Deck BuildNormalLevelDeck(GameObject cardPrefab, int deckSize)
             }
         }
 
-        // Shuffle the deck to ensure randomness
-        var shuffledDeck = ShuffleDeck(deckComposition);
-
-        return new Deck(shuffledDeck, cardPrefab);
-    }
-
-    
-    private Dictionary<CardData, int> ShuffleDeck(Dictionary<CardData, int> deckComposition)
-    {
-        var shuffledDeck = new Dictionary<CardData, int>();
-
-        return deckComposition;
+        return new Deck(deckComposition, cardPrefab);
     }
 }

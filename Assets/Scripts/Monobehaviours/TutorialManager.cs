@@ -18,13 +18,8 @@ public class TutorialManager : MonoBehaviour
     }
 
     private TutorialStep _currentStep = TutorialStep.Intro;
-    private bool _tutorialComplete = false;
-    public bool IsTutorialMode { get; private set; } = false;
-
-    [Header("Tutorial Deck Setup")]
-    [SerializeField] private int ClownfishCount = 4;
-    [SerializeField] private int AnemoneCount = 2;
-    [SerializeField] private int KrakenCount = 1;
+    private bool _tutorialComplete;
+    public bool IsTutorialMode { get; private set; }
 
     private bool _isDialogueInProgress;
 
@@ -81,6 +76,7 @@ public class TutorialManager : MonoBehaviour
         SetupTutorialDeck();
         StartCoroutine(BeginTutorialSequence());
         SubscribeToGameEvents();
+        GameManager.Instance.StartCoroutine(GameManager.Instance.DrawInitialHandCoroutine());
     }
 
     private void SetupTutorialDeck()
@@ -89,30 +85,8 @@ public class TutorialManager : MonoBehaviour
         {
             return;
         }
-
-        GameManager.Instance.GameDeck.CardDataInDeck.Clear();
+        
         GameManager.Instance.PlayerHand.ClearHandArea();
-
-        AddTutorialCard("ClownFish", ClownfishCount);
-        AddTutorialCard("Anemone", AnemoneCount);
-        AddTutorialCard("Kraken", KrakenCount);
-
-        GameManager.Instance.GameDeck.ShuffleDeck();
-        GameManager.Instance.StartDrawFullHandCoroutine(false);
-    }
-
-    private void AddTutorialCard(string cardName, int count)
-    {
-        if (CardLibrary.Instance == null)
-        {
-            return;
-        }
-
-        var cardData = CardLibrary.Instance.GetCardDataByName(cardName);
-        if (cardData != null)
-        {
-            GameManager.Instance.GameDeck.AddCard(cardData, count);
-        }
     }
 
     private void SubscribeToGameEvents()
@@ -149,8 +123,7 @@ public class TutorialManager : MonoBehaviour
         {
             "Hi, I'm Shelly! Welcome to the Fresh Catch tutorial!",
             "We'll start simple. Your goal: Earn 50 points.",
-            "You have special cards: Clownfish and Anemone. Clownfish score points. Anemone boosts your multiplier!",
-            "First, drag both Clownfish cards from your hand to the stage area to form a set, then press 'Play' to score."
+            "First, drag 3 Clownfish cards from your hand to the stage area to form a set, then press 'Play' to score."
         }, OnIntroDialogueComplete));
     }
 
@@ -172,7 +145,7 @@ public class TutorialManager : MonoBehaviour
                     {
                         "Great job! You scored points from the Clownfish set.",
                         "Now let's talk about the multiplier. Anemones add extra multipliers to future sets!",
-                        "Drag an Anemone from your hand to the stage area. Then play another Clownfish set to see the multiplier!",
+                        "Drag an Anemone from your hand to the stage area, then press play to activate its effect.",
                         "Try to reach 50 points!"
                     }, OnMultiplierExplanationComplete));
                     _currentStep = TutorialStep.ExplainMultiplier;
