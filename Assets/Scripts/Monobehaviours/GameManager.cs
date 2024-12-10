@@ -103,8 +103,11 @@ public class GameManager : MonoBehaviour
         var xPosition = startX + (cardIndex * cardSpacing);
 
         var handCollider = HandArea.GetComponent<BoxCollider>();
-        return dockCenter + new Vector3(xPosition, handCollider.transform.TransformPoint(handCollider.center).y + cardIndex, 0f);
+        float fixedY = handCollider.transform.TransformPoint(handCollider.center).y; // Fixed Y position
+
+        return dockCenter + new Vector3(xPosition, fixedY, 0f);
     }
+
 
     public void PlaceCardInHand(GameCard gameCard, bool isFromCard)
     {
@@ -153,11 +156,17 @@ public class GameManager : MonoBehaviour
             var card = PlayerHand.CardsInHand[i];
             var targetPosition = CalculateCardPosition(i, PlayerHand.NumCardsInHand, dockCenter);
             card.UI.YPositionInHand = targetPosition.y;
-            StartCoroutine(AnimateCardToPosition(card.UI?.transform, targetPosition, Quaternion.Euler(90f, 180f, 0f)));
+
+            // Only animate if the card is not already being animated
+            if (!card.IsAnimating)
+            {
+                StartCoroutine(AnimateCardToPosition(card.UI?.transform, targetPosition, Quaternion.Euler(90f, 180f, 0f)));
+            }
         }
 
         TriggerCardsRemainingChanged();
     }
+
 
     public void RearrangeStage()
     {
@@ -234,6 +243,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         StartCoroutine(DrawFullHandCoroutine(false)); // Starting without a play
     }
+
 
     private void Update()
     {
@@ -338,6 +348,7 @@ public class GameManager : MonoBehaviour
 
         CheckForGameLoss();
     }
+
 
     /// <summary>
     /// Coroutine to draw a full hand of cards.
