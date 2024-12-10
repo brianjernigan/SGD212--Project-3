@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class MenuController : MonoBehaviour
 {
+    // Existing methods
     public void OnClickStartButton()
     {
         SceneManager.LoadScene("GameScene");
@@ -28,5 +29,11 @@ public class MenuController : MonoBehaviour
     public void OnClickQuitButton()
     {
         Application.Quit();
+    }
+
+    // New method for Tutorial button
+    public void OnClickTutorialButton()
+    {
+        SceneManager.LoadScene("TutorialScene");
     }
 }
