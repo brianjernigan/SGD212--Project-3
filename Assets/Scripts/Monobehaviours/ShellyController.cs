@@ -34,65 +34,34 @@ public class ShellyController : MonoBehaviour
     private bool _isMouthOpen;
     private Coroutine _currentDialogCoroutine;
     private bool _isDialogueActive = false;
-
-    private void Awake()
-    {
-        if (_shellyTextBox == null)
-        {
-            Debug.LogError("[ShellyController Awake] _shellyTextBox is not assigned.");
-        }
-        if (_shellyDialog == null)
-        {
-            Debug.LogError("[ShellyController Awake] _shellyDialog is not assigned.");
-        }
-        if (_shellyImage == null)
-        {
-            Debug.LogError("[ShellyController Awake] _shellyImage is not assigned.");
-        }
-    }
-
-    /// <summary>
-    /// Returns a random thinking dialogue string.
-    /// </summary>
+    
     public string GetRandomThinkingDialog()
     {
         if (thinkingDialogs.Count == 0)
         {
-            Debug.LogWarning("[ShellyController GetRandomThinkingDialog] thinkingDialogs list is empty.");
             return "Thinking...";
         }
 
         return thinkingDialogs[Random.Range(0, thinkingDialogs.Count)];
     }
-
-    /// <summary>
-    /// Returns a random score dialogue string.
-    /// </summary>
+    
     public string GetRandomScoreDialog()
     {
         if (scoreDialogs.Count == 0)
         {
-            Debug.LogWarning("[ShellyController GetRandomScoreDialog] scoreDialogs list is empty.");
             return "Good job!";
         }
 
         return scoreDialogs[Random.Range(0, scoreDialogs.Count)];
     }
-
-    /// <summary>
-    /// Activates the text box and starts displaying the provided message.
-    /// Prevents overlapping dialogues if one is already active.
-    /// </summary>
-    /// <param name="message">The message to display.</param>
+    
     public void ActivateTextBox(string message)
     {
         if (_isDialogueActive)
         {
-            Debug.LogWarning("[ShellyController ActivateTextBox] Dialogue already active. Skipping new dialogue.");
             return;
         }
-
-        Debug.Log($"[ShellyController ActivateTextBox] Activating text box with message: {message}");
+        
         _shellyTextBox.SetActive(true);
         _isDialogueActive = true;
 
@@ -101,24 +70,18 @@ public class ShellyController : MonoBehaviour
         {
             StopCoroutine(_currentDialogCoroutine);
             _currentDialogCoroutine = null;
-            Debug.Log("[ShellyController ActivateTextBox] Stopped existing dialogue coroutine.");
         }
 
         _currentDialogCoroutine = StartCoroutine(ShellyDialogRoutine(message));
     }
-
-    /// <summary>
-    /// Deactivates the text box and stops any ongoing dialogue coroutine.
-    /// </summary>
+    
     public void DeactivateTextBox()
     {
         if (!_isDialogueActive)
         {
-            Debug.LogWarning("[ShellyController DeactivateTextBox] Attempted to deactivate text box when no dialogue is active.");
             return;
         }
-
-        Debug.Log("[ShellyController DeactivateTextBox] Deactivating text box.");
+        
         _shellyTextBox.SetActive(false);
         _isDialogueActive = false;
 
@@ -127,7 +90,6 @@ public class ShellyController : MonoBehaviour
         {
             StopCoroutine(_currentDialogCoroutine);
             _currentDialogCoroutine = null;
-            Debug.Log("[ShellyController DeactivateTextBox] Stopped dialogue coroutine upon deactivation.");
         }
 
         // Notify TutorialManager that the dialogue line has ended
@@ -137,9 +99,6 @@ public class ShellyController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Coroutine that types out the dialogue message character by character.
-    /// </summary>
     private IEnumerator ShellyDialogRoutine(string message)
     {
         _shellyDialog.text = "";

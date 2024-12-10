@@ -131,7 +131,6 @@ public class GameManager : MonoBehaviour
     {
         if (StageAreaController.NumCardsStaged - 1 < 0 || StageAreaController.NumCardsStaged - 1 >= _stagePositions.Count)
         {
-            Debug.LogWarning("[GameManager PlaceCardInStage] Invalid stage position index.");
             return;
         }
 
@@ -174,7 +173,6 @@ public class GameManager : MonoBehaviour
         {
             if (i >= _stagePositions.Count)
             {
-                Debug.LogWarning($"[GameManager RearrangeStage] Stage position index {i} out of bounds.");
                 continue;
             }
 
@@ -192,22 +190,15 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[GameManager Awake] Instance created and marked as DontDestroyOnLoad.");
         }
         else
         {
             Destroy(gameObject);
-            Debug.LogWarning("[GameManager Awake] Duplicate instance detected and destroyed.");
             return;
         }
 
         PlayerHand = new Hand();
         GameDeck = DeckBuilder.Instance.BuildDefaultDeck(_cardPrefab);
-
-        if (GameDeck == null)
-            Debug.LogError("[GameManager Awake] GameDeck is null after BuildDefaultDeck.");
-        else
-            Debug.Log("[GameManager Awake] GameDeck initialized successfully.");
 
         SceneManager.sceneLoaded += OnSceneLoaded;
     }

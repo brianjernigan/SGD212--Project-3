@@ -26,9 +26,7 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private int AnemoneCount = 2;
     [SerializeField] private int KrakenCount = 1;
 
-    [Header("Dialogue Settings")]
-    [SerializeField] private float DialogueWaitTime = 3f;
-    private bool _isDialogueInProgress = false;
+    private bool _isDialogueInProgress;
 
     private void Awake()
     {
