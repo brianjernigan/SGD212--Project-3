@@ -59,11 +59,6 @@ public class TutorialManager : MonoBehaviour
         {
             DisableAndDestroy();
         }
-        else
-        {
-            enabled = true;
-            InitializeTutorial();
-        }
     }
 
     public void InitializeTutorial()
@@ -119,7 +114,7 @@ public class TutorialManager : MonoBehaviour
 
     private void ShowIntroDialogue()
     {
-        StartCoroutine(ShowDialogueLines(new string[]
+        StartCoroutine(ShowDialogueLines(new[]
         {
             "Hi, I'm Shelly! Welcome to the Fresh Catch tutorial!",
             "We'll start simple. Your goal: Earn 50 points.",
@@ -141,7 +136,7 @@ public class TutorialManager : MonoBehaviour
             case TutorialStep.ExplainCards:
                 if (newScore > 0)
                 {
-                    StartCoroutine(ShowDialogueLines(new string[]
+                    StartCoroutine(ShowDialogueLines(new[]
                     {
                         "Great job! You scored points from the Clownfish set.",
                         "Now let's talk about the multiplier. Anemones add extra multipliers to future sets!",

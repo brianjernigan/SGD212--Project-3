@@ -20,8 +20,6 @@ public class Deck
         CardDataInDeck = new List<CardData>();
         ConfigureDeck(deckComposition);
         _cardPrefab = prefab;
-
-        ShuffleDeck();
     }
 
     private void ConfigureDeck(Dictionary<CardData, int> composition)
