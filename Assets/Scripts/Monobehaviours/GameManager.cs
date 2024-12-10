@@ -212,6 +212,8 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
+
+
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -357,6 +359,7 @@ public class GameManager : MonoBehaviour
     /// <returns></returns>
     public IEnumerator DrawFullHandCoroutine(bool isFromPlay)
     {
+        Debug.Log("[DrawFullHandCoroutine] Started.");
         IsDrawingCards = true;
 
         while (NumCardsOnScreen < HandSize && !GameDeck.IsEmpty)
@@ -391,7 +394,10 @@ public class GameManager : MonoBehaviour
 
         TriggerOnMouseOverForCurrentCard();
         CheckForGameLoss();
+
+        Debug.Log("[DrawFullHandCoroutine] Ended.");
     }
+
 
     private IEnumerator DealCardCoroutine(GameCard gameCard, Vector3 targetPosition)
     {
@@ -399,7 +405,9 @@ public class GameManager : MonoBehaviour
         var cardTransform = cardUI.transform;
 
         gameCard.IsAnimating = true;
+        Debug.Log($"[DealCardCoroutine] Starting animation for {gameCard.Data.CardName}.");
 
+        // Start from the deck's position
         cardTransform.position = _deck.transform.position;
 
         AudioManager.Instance.PlayCardDrawAudio();
@@ -411,36 +419,47 @@ public class GameManager : MonoBehaviour
         var startPosition = cardTransform.position;
         var overshootPosition = targetPosition + Vector3.up * 1.5f;
 
+        // Move to overshoot position
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
-            var t = elapsedTime / duration;
-            t = t * t * (3f - 2f * t);
+            var t = Mathf.Clamp01(elapsedTime / duration);
+            t = t * t * (3f - 2f * t); // Smoothstep interpolation
 
             var arcPosition = Vector3.Lerp(startPosition, overshootPosition, t);
             cardTransform.position = arcPosition;
 
+            Debug.Log($"[DealCardCoroutine] {gameCard.Data.CardName} position: {cardTransform.position}");
+
             yield return null;
         }
 
+        // Bounce back to final position
         elapsedTime = 0f;
         var bounceStartPosition = cardTransform.position;
 
         while (elapsedTime < bounceDuration)
         {
             elapsedTime += Time.deltaTime;
-            var t = elapsedTime / bounceDuration;
-            t = t * t * (3f - 2f * t);
+            var t = Mathf.Clamp01(elapsedTime / bounceDuration);
+            t = t * t * (3f - 2f * t); // Smoothstep interpolation
 
             var bouncePosition = Vector3.Lerp(bounceStartPosition, targetPosition, t);
             cardTransform.position = bouncePosition;
 
+            Debug.Log($"[DealCardCoroutine] {gameCard.Data.CardName} bounce position: {cardTransform.position}");
+
             yield return null;
         }
 
+        // Ensure the card ends exactly at the target position
         cardTransform.position = targetPosition;
+        cardTransform.rotation = Quaternion.Euler(90f, 180f, 0f); // Set to desired rotation
+        Debug.Log($"[DealCardCoroutine] {gameCard.Data.CardName} reached target position: {cardTransform.position}");
+
         gameCard.IsAnimating = false;
     }
+
 
     #endregion
 
@@ -984,6 +1003,7 @@ public class GameManager : MonoBehaviour
         StartCoroutine(DrawInitialHandCoroutine());
         ShowNormalDialogue("Welcome to Fresh Catch! Make your first move and show us your skills.");
     }
+
 
 
 
